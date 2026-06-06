@@ -1,21 +1,9 @@
 import { Check, HelpCircle, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatFieldValue } from "../display";
 import type { EvidenceRef, InferredField } from "../types";
 import { EvidenceChip } from "./EvidenceChip";
 import { StatusBadge } from "./StatusBadge";
-
-function displayValue(field: InferredField) {
-  if (field.key === "countryOfUse" && field.value === "ES") return "Spain";
-  if (field.key === "recommendedProduct" && field.value === "nie_number_application") {
-    return "NIE number application";
-  }
-  if (field.key === "requiredCompanionDocument" && field.value === "nie_personal_data") {
-    return "NIE Personal Data";
-  }
-  if (field.key === "apostille" && field.value === true) return "Required";
-  if (field.key === "hardCopy" && field.value === true) return "Required";
-  return String(field.value);
-}
 
 export function InferenceFieldCard({
   field,
@@ -36,7 +24,7 @@ export function InferenceFieldCard({
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium uppercase text-muted-foreground">{field.label}</p>
           <h3 className="mt-1 text-lg font-semibold text-foreground">
-            {displayValue(field)}
+            {formatFieldValue(field)}
           </h3>
         </div>
         <StatusBadge status={field.status} />

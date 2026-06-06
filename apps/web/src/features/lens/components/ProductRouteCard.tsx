@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FileCheck2, HelpCircle, Info, Link2, PackageCheck, SearchCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatProductName } from "../display";
 import type { PersonaFixture } from "../types";
 import { EvidenceChip } from "./EvidenceChip";
 import { StatusBadge } from "./StatusBadge";
@@ -25,8 +26,8 @@ export function ProductRouteCard({
         <div>
           <h2 className="text-2xl font-semibold text-foreground">Your booking route</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Because NIE number application was selected, Notarity also needs the
-            NIE Personal Data form.
+            Lens shows each Notarity product, attached file, and route-required
+            companion document before pricing.
           </p>
         </div>
         <StatusBadge status={routeConfirmed ? "confirmed" : "needs_review"} />
@@ -42,9 +43,7 @@ export function ProductRouteCard({
                 </span>
                 <div>
                   <p className="text-base font-semibold text-foreground">
-                    {product.id === "UpEJ7raQEKQKFhWn12r2"
-                      ? "NIE number application"
-                      : "NIE Personal Data"}
+                    {formatProductName(product.id)}
                   </p>
                   <div className="mt-2 grid gap-1 text-sm text-muted-foreground">
                     <span className="inline-flex items-center gap-2">
@@ -106,9 +105,9 @@ export function ProductRouteCard({
                 Why this route is selected
               </h3>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                The NIE application evidence maps to the Notarity NIE product.
-                Notarity's route rule then adds the NIE Personal Data companion
-                product.
+                Document evidence maps to deterministic Notarity products. When
+                the route requires a companion product, Lens shows it before the
+                payload is submitted.
               </p>
             </div>
           </div>

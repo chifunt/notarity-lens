@@ -37,6 +37,13 @@ import {
 } from "@/features/lens/components/ReadingProgress";
 import { ReviewSection } from "@/features/lens/components/ReviewSection";
 import { StatusBadge } from "@/features/lens/components/StatusBadge";
+import {
+  formatAddress,
+  formatCountry,
+  formatFilesSummary,
+  formatProductSummary,
+  formatShippingSummary,
+} from "@/features/lens/display";
 import { formatEuro } from "@/features/lens/format";
 import { useLensStore } from "@/features/lens/store";
 import type { PersonaFixture, PriceResponse } from "@/features/lens/types";
@@ -412,6 +419,7 @@ export function CountryScreen() {
           <div className="mx-auto max-w-3xl">
             <CountrySemanticsCard
               inference={fixture.inference}
+              payload={fixture.payload}
               onConfirm={() => {
                 confirmCountry();
                 navigate("/lens/plan");
@@ -454,7 +462,7 @@ export function CostScreen() {
 
   return (
     <RequireFixture>
-      {(_fixture, price) => (
+      {(fixture, price) => (
         <ScreenFrame sidebar={false}>
           <div className="mx-auto max-w-5xl">
             <div>
@@ -464,7 +472,7 @@ export function CostScreen() {
               </p>
             </div>
             <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
-              <PreparationTimeline />
+              <PreparationTimeline fixture={fixture} />
               {price ? <LiveReceipt price={price} /> : null}
             </div>
             <div className="mt-6 flex justify-end">
@@ -492,7 +500,7 @@ export function AppointmentScreen() {
             <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
               <h1 className="text-3xl font-semibold text-foreground">Add participants and pick a time</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                The sample request is pre-filled for Joshua. The appointment slot
+                The sample request is pre-filled for {fixture.name}. The appointment slot
                 uses the safe fallback fixture from the Notarity docs.
               </p>
 
@@ -530,7 +538,7 @@ export function AppointmentScreen() {
                           <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                           <p>
                             Every signer must be listed as a participant and verify
-                            identity during the appointment. Joshua is the only
+                            identity during the appointment. {fixture.name} is the only
                             signer in this sample request.
                           </p>
                         </div>
@@ -571,8 +579,8 @@ export function AppointmentScreen() {
                   <div className="rounded-lg border border-border bg-lens-surface-muted p-4">
                     <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
                     <p className="mt-3">
-                      Hard copy delivery remains Barcelona, Spain, separate from
-                      Joshua's US billing context.
+                      {formatShippingSummary(fixture.payload)} remains separate
+                      from {fixture.name}'s billing context.
                     </p>
                   </div>
                 </aside>
@@ -606,9 +614,13 @@ export function ReviewScreen() {
               fixture.inference.products.every((field) => field.status === "confirmed") &&
               Boolean(price);
             const summary = [
-              { icon: Globe2, label: "Country of use", value: "Spain" },
-              { icon: PackageCheck, label: "Booking", value: "NIE application + Personal Data" },
-              { icon: UserRound, label: "Client", value: "Joshua Timms" },
+              {
+                icon: Globe2,
+                label: "Country of use",
+                value: formatCountry(fixture.payload.destinationCountry),
+              },
+              { icon: PackageCheck, label: "Booking", value: formatProductSummary(fixture.payload) },
+              { icon: UserRound, label: "Client", value: fixture.name },
               { icon: ReceiptIcon, label: "Total", value: price ? formatEuro(price.confirmedPrice) : "Pending" },
             ];
 
@@ -651,19 +663,19 @@ export function ReviewScreen() {
                   rows={[
                     {
                       label: "Country of use",
-                      value: "Spain",
+                      value: formatCountry(fixture.payload.destinationCountry),
                       status: fixture.inference.countryOfUse.status,
                       onChange: () => navigate("/lens/country"),
                     },
                     {
                       label: "Products",
-                      value: "NIE number application; NIE Personal Data",
+                      value: formatProductSummary(fixture.payload),
                       status: "confirmed",
                       onChange: () => navigate("/lens/plan"),
                     },
                     {
                       label: "Documents",
-                      value: fixture.payload.products.flatMap((product) => product.files).join(", "),
+                      value: formatFilesSummary(fixture.payload),
                       status: "confirmed",
                       onChange: () => navigate("/lens/evidence"),
                     },
@@ -692,13 +704,13 @@ export function ReviewScreen() {
                     },
                     {
                       label: "Billing",
-                      value: "Joshua Timms, New York, United States",
+                      value: formatAddress(fixture.payload.billingDetails),
                       status: "confirmed",
                       onChange: () => navigate("/lens/evidence"),
                     },
                     {
                       label: "Shipping",
-                      value: "Joshua Timms, Carrer de Mallorca 401, Barcelona, Spain",
+                      value: formatAddress(fixture.payload.shippingDetails),
                       status: "confirmed",
                       onChange: () => navigate("/lens/evidence"),
                     },
@@ -755,10 +767,17 @@ export function SuccessScreen() {
               </p>
               <div className="mt-6 grid gap-4 text-left sm:grid-cols-2 lg:grid-cols-4">
                 {[
-                  ["Country of use", "Spain"],
-                  ["Products", "NIE application + Personal Data"],
-                  ["Price", price ? formatEuro(price.confirmedPrice) : "EUR 580"],
-                  ["Shipping", "Hard copy to Barcelona"],
+                  ["Country of use", formatCountry(fixture.payload.destinationCountry)],
+                  ["Products", formatProductSummary(fixture.payload)],
+                  [
+                    "Price",
+                    price
+                      ? formatEuro(price.confirmedPrice)
+                      : fixture.payload.confirmedPrice
+                        ? formatEuro(fixture.payload.confirmedPrice)
+                        : "Pending",
+                  ],
+                  ["Shipping", formatShippingSummary(fixture.payload)],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-lg border border-border bg-lens-surface-muted p-4">
                     <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
@@ -771,7 +790,7 @@ export function SuccessScreen() {
                 <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
                   <p>Video appointment and identity verification.</p>
                   <p>Digital original becomes available after notarisation.</p>
-                  <p>Apostilled hard copy ships to Barcelona.</p>
+                  <p>{formatShippingSummary(fixture.payload)}.</p>
                 </div>
               </div>
             </section>

@@ -301,3 +301,18 @@
 - Verification:
   - Button scan shows remaining controls are wired, disabled intentionally, or conditionally rendered with handlers.
 - Next: decide whether to implement real editable participant state or add a browser-level smoke test dependency.
+
+## Sprint 21: Display generalization pass A
+
+- Status: complete
+- Scope: reduce Joshua/Spain-specific rendering where fixture and payload data already provide the value.
+- Changes:
+  - Added `apps/web/src/features/lens/display.ts` for country names, product names, address formatting, file summaries, and shipping summaries.
+  - Reused display helpers in inference cards, product route cards, country semantics, preparation timeline, review, appointment, and success.
+  - Replaced several hardcoded review/success/appointment strings with fixture-derived values.
+  - Kept product ID labels local in the web helper to avoid pulling shared fixtures into the client bundle.
+- Remaining limitation:
+  - The app still loads Joshua as the primary sample request and some start-page sample copy remains Joshua-specific. This sprint prepares for broader persona support without changing the core route state model.
+- Verification:
+  - Browser check: fresh sample flow reaches review and still renders Spain, NIE number application, NIE Personal Data, and Joshua shipping correctly.
+- Next: introduce a real `loadPersona` store action and a safe sample selector, then audit which screens need deeper non-Joshua behavior.

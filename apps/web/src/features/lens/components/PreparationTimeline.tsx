@@ -1,21 +1,36 @@
 import { CheckCircle2 } from "lucide-react";
+import { formatCountry, formatFilesSummary } from "../display";
+import type { PersonaFixture } from "../types";
 
-const timeline = [
-  {
-    title: "Before appointment",
-    items: ["Confirm Spain as country of use", "Attach NIE application and personal data form", "Confirm apostille and hard copy"],
-  },
-  {
-    title: "During appointment",
-    items: ["Join video appointment", "Verify identity", "Sign with the notary"],
-  },
-  {
-    title: "After appointment",
-    items: ["Receive digital original", "Apostille is prepared", "Hard copy ships to Barcelona"],
-  },
-];
+export function PreparationTimeline({ fixture }: { fixture: PersonaFixture }) {
+  const country = formatCountry(fixture.payload.destinationCountry);
+  const timeline = [
+    {
+      title: "Before appointment",
+      items: [
+        `Confirm ${country} as country of use`,
+        `Attach ${formatFilesSummary(fixture.payload)}`,
+        "Confirm apostille and hard copy",
+      ],
+    },
+    {
+      title: "During appointment",
+      items: ["Join video appointment", "Verify identity", "Sign with the notary"],
+    },
+    {
+      title: "After appointment",
+      items: [
+        "Receive digital original",
+        fixture.payload.products.some((product) => product.apostille)
+          ? "Apostille is prepared"
+          : "No apostille selected",
+        fixture.payload.hardCopy.hardCopy
+          ? "Hard copy is prepared for shipment"
+          : "No hard copy shipment selected",
+      ],
+    },
+  ];
 
-export function PreparationTimeline() {
   return (
     <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
       <h2 className="text-2xl font-semibold text-foreground">Preparation timeline</h2>
