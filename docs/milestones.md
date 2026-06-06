@@ -147,3 +147,25 @@
   - `git ls-files _context` returns no tracked context files.
   - Secret scan found no committed token or password; only runtime header construction code matched.
 - Next: final completion audit against the P0 acceptance criteria.
+
+## Sprint 11: Lovable visual alignment pass A
+
+- Status: complete
+- Scope: align the real web app with the Lovable export's first-screen structure, visual tokens, shell, and analyze-step behavior.
+- Changes:
+  - Added the official Notarity logo asset to the web public bundle and used it in the app header.
+  - Replaced the earlier shell with the Lovable-style max-width header, segmented progress bar, sticky right rail, and Notarity color tokens.
+  - Reworked `/` into the Lovable-style centered upload card with secondary scan/upload-later actions.
+  - Replaced user-facing "demo route" language with "sample request" wording so Joshua is a reliable sample persona, not a product mode.
+  - Changed `/lens/analyze` into an automatic backend-style progress sequence that advances to evidence when the draft is ready.
+- Intentional differences from the Lovable export:
+  - Kept the step icons inside the horizontal progress bar because they improve scan speed without changing the segmented timeline model.
+  - Kept the PRD route order with cost before appointment/review; the Lovable export jumps from plan to review, but the research and scope lock require early, itemized cost.
+  - Kept letter spacing neutral for accessibility and predictable fit across mobile widths.
+- Verification:
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+  - Browser check: desktop start page, sample-request analyze transition, evidence arrival, and mobile start page layout verified at `390x844`.
+- Next: align the evidence screen with Lovable's document tabs while adding highlighted cited quotes across all uploaded documents.

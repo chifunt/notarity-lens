@@ -31,7 +31,7 @@ export function PdfPreviewPanel({ inference }: { inference: DocumentFactExtracti
             <div className="mt-3 grid gap-3">
               {document.textByPage.map((page) => (
                 <div key={page.page} className="rounded-md bg-white p-3 text-sm leading-6 text-slate-700">
-                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
+                  <p className="mb-2 text-xs font-medium uppercase text-slate-500">
                     Page {page.page}
                   </p>
                   {page.text}

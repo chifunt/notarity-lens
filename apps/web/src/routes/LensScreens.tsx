@@ -1,10 +1,12 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   CalendarDays,
   CheckCircle2,
+  FileText,
   FileUp,
+  Smartphone,
   Send,
   ShieldCheck,
   Truck,
@@ -22,7 +24,10 @@ import { PdfPreviewPanel } from "@/features/lens/components/PdfPreviewPanel";
 import { PreparationTimeline } from "@/features/lens/components/PreparationTimeline";
 import { ProductRouteCard } from "@/features/lens/components/ProductRouteCard";
 import { ReceiptSidebar } from "@/features/lens/components/ReceiptSidebar";
-import { ReadingProgress } from "@/features/lens/components/ReadingProgress";
+import {
+  ReadingProgress,
+  type ProgressItem,
+} from "@/features/lens/components/ReadingProgress";
 import { ReviewSection } from "@/features/lens/components/ReviewSection";
 import { StatusBadge } from "@/features/lens/components/StatusBadge";
 import { formatEuro } from "@/features/lens/format";
@@ -46,11 +51,8 @@ function ScreenFrame({
   const price = useLensStore((state) => state.price);
 
   return (
-    <AppShell>
-      <div className={sidebar ? "grid gap-6 lg:grid-cols-[1fr_20rem]" : ""}>
-        <div>{children}</div>
-        {sidebar ? <ReceiptSidebar price={price} /> : null}
-      </div>
+    <AppShell rightRail={sidebar ? <ReceiptSidebar price={price} /> : undefined}>
+      {children}
     </AppShell>
   );
 }
@@ -100,59 +102,102 @@ export function StartScreen() {
   return (
     <AppShell>
       <DemoError />
-      <section className="grid min-h-[calc(100vh-12rem)] items-center gap-8 lg:grid-cols-[1fr_26rem]">
-        <div>
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1 text-sm text-violet-900">
-            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-            Nothing is submitted until you confirm.
+      <section className="mx-auto flex min-h-[calc(100vh-15rem)] w-full max-w-3xl flex-col justify-center py-8">
+        <div className="text-center">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-sm text-muted-foreground shadow-[var(--shadow-card)]">
+            <ShieldCheck className="h-4 w-4 text-status-confirmed-foreground" aria-hidden="true" />
+            AI prepares a draft. Nothing is submitted until you confirm.
           </div>
-          <h1 className="max-w-3xl text-5xl font-semibold tracking-normal text-slate-950">
+          <h1 className="text-4xl font-semibold text-foreground sm:text-5xl">
             Upload your document
           </h1>
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-            We will read it, suggest the right booking route, and show what needs
-            your confirmation.
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+            We read the documents, find the likely booking route, and ask you to
+            confirm the fields that matter.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf"
-              multiple
-              className="sr-only"
-              onChange={() => {
-                void loadAndContinue();
-              }}
-            />
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={loading}
-              type="button"
-            >
-              <FileUp className="h-4 w-4" aria-hidden="true" />
-              {loading ? "Reading..." : "Upload your document"}
-            </Button>
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-dashed border-primary/35 bg-card p-5 text-center shadow-[var(--shadow-card)] sm:p-8">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            multiple
+            hidden
+            aria-hidden="true"
+            tabIndex={-1}
+            onChange={() => {
+              void loadAndContinue();
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={loading}
+            className="group flex min-h-64 w-full flex-col items-center justify-center rounded-xl border border-border bg-secondary/60 px-6 py-10 transition-colors hover:border-primary/45 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
+          >
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+              <FileUp className="h-6 w-6" aria-hidden="true" />
+            </span>
+            <span className="mt-5 text-lg font-semibold text-foreground">
+              {loading ? "Reading documents..." : "Choose PDF documents"}
+            </span>
+            <span className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
+              Upload the notarisation documents you already have. We keep the
+              route as a draft until you approve it.
+            </span>
+          </button>
+
+          <div className="mt-5 flex flex-wrap justify-center gap-3">
             <Button variant="outline" onClick={() => navigate("/lens/analyze")}>
+              <FileText className="h-4 w-4" aria-hidden="true" />
               I will upload it later
             </Button>
             <Button variant="ghost" onClick={loadAndContinue} disabled={loading}>
-              Load Joshua demo
+              Use sample request
             </Button>
           </div>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-950">Joshua demo path</h2>
-          <div className="mt-4 grid gap-3 text-sm text-slate-700">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            className="rounded-xl border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <Smartphone className="h-5 w-5 text-primary" aria-hidden="true" />
+            <span className="mt-3 block text-sm font-semibold text-foreground">
+              Scan from phone
+            </span>
+            <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+              Continue here after capturing documents on another device.
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/lens/analyze")}
+            className="rounded-xl border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
+            <span className="mt-3 block text-sm font-semibold text-foreground">
+              Continue without files
+            </span>
+            <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+              Start with a guided draft and attach documents before submission.
+            </span>
+          </button>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+          <h2 className="text-sm font-semibold text-foreground">Sample request output</h2>
+          <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
             {[
               "Country of use: Spain",
               "Billing/home: United States",
               "Shipping: Barcelona, Spain",
               "NIE number application plus NIE Personal Data",
-              "Receipt total: EUR 580",
             ].map((item) => (
               <div key={item} className="flex gap-2">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-confirmed-foreground" aria-hidden="true" />
                 <span>{item}</span>
               </div>
             ))}
@@ -163,9 +208,39 @@ export function StartScreen() {
   );
 }
 
+const analyzeSteps: ProgressItem[] = [
+  {
+    label: "Receive uploaded documents",
+    detail: "Store original filenames and create canonical payload names.",
+    status: "pending",
+  },
+  {
+    label: "Extract document text",
+    detail: "Read each page so cited evidence can be shown beside inferences.",
+    status: "pending",
+  },
+  {
+    label: "Infer country of use",
+    detail: "Look for jurisdiction evidence without mixing it up with residence or shipping.",
+    status: "pending",
+  },
+  {
+    label: "Map route to Notarity products",
+    detail: "Use deterministic product IDs and companion-document rules.",
+    status: "pending",
+  },
+  {
+    label: "Prepare review draft",
+    detail: "Assemble field states, evidence, price request, and payload preview.",
+    status: "pending",
+  },
+];
+
 export function AnalyzeScreen() {
   const navigate = useNavigate();
   const { fixture, loadJoshuaDemo, loading } = useEnsureFixture();
+  const [activeStep, setActiveStep] = useState(0);
+  const [complete, setComplete] = useState(false);
 
   useEffect(() => {
     if (!fixture && !loading) {
@@ -173,25 +248,61 @@ export function AnalyzeScreen() {
     }
   }, [fixture, loadJoshuaDemo, loading]);
 
+  useEffect(() => {
+    if (!fixture) return;
+
+    setActiveStep(0);
+    setComplete(false);
+    const timer = window.setInterval(() => {
+      setActiveStep((current) => {
+        if (current >= analyzeSteps.length - 1) {
+          window.clearInterval(timer);
+          setComplete(true);
+          window.setTimeout(() => navigate("/lens/evidence"), 500);
+          return current;
+        }
+        return current + 1;
+      });
+    }, 650);
+
+    return () => window.clearInterval(timer);
+  }, [fixture, navigate]);
+
+  const progressItems = useMemo(
+    () =>
+      analyzeSteps.map((item, index) => ({
+        ...item,
+        status:
+          complete || index < activeStep
+            ? "done"
+            : index === activeStep
+              ? "active"
+              : "pending",
+      })) satisfies ProgressItem[],
+    [activeStep, complete],
+  );
+
   return (
     <ScreenFrame>
       <DemoError />
       <div className="grid gap-5">
-        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <h1 className="text-3xl font-semibold text-slate-950">Analyze documents</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            For demo reliability, this loads fixture extraction from the Joshua PDFs.
-            Uploaded files use the same canonical filename mapping before submit.
+        <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
+          <h1 className="text-3xl font-semibold text-foreground">Reading your documents</h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Lens prepares a draft route from document evidence, deterministic
+            product rules, and the Notarity pricing contract.
           </p>
         </div>
         {fixture ? <DocumentFileList documents={fixture.documents} /> : <EmptyState onLoad={loadJoshuaDemo} loading={loading} />}
-        <ReadingProgress />
-        <div className="flex justify-end">
-          <Button onClick={() => navigate("/lens/evidence")} disabled={!fixture}>
-            Review evidence
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Button>
-        </div>
+        <ReadingProgress items={progressItems} />
+        {complete ? (
+          <div className="flex justify-end">
+            <Button onClick={() => navigate("/lens/evidence")} disabled={!fixture}>
+              Open evidence
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          </div>
+        ) : null}
       </div>
     </ScreenFrame>
   );
@@ -321,7 +432,7 @@ export function AppointmentScreen() {
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <h1 className="text-3xl font-semibold text-slate-950">Appointment details</h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Joshua is pre-filled for the hackathon demo. Timeslot is the mock
+              The sample request is pre-filled for Joshua. Timeslot is the safe
               fallback fixture from the Notarity docs.
             </p>
             <div className="mt-5 grid gap-4 lg:grid-cols-3">

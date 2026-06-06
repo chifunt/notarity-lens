@@ -1,11 +1,88 @@
 @import "tailwindcss";
 
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-lens-surface: var(--lens-surface);
+  --color-lens-surface-muted: var(--lens-surface-muted);
+  --color-status-inferred: var(--status-inferred);
+  --color-status-inferred-foreground: var(--status-inferred-foreground);
+  --color-status-needs-review: var(--status-needs-review);
+  --color-status-needs-review-foreground: var(--status-needs-review-foreground);
+  --color-status-confirmed: var(--status-confirmed);
+  --color-status-confirmed-foreground: var(--status-confirmed-foreground);
+  --color-status-edited: var(--status-edited);
+  --color-status-edited-foreground: var(--status-edited-foreground);
+  --color-status-conflict: var(--status-conflict);
+  --color-status-conflict-foreground: var(--status-conflict-foreground);
+  --color-status-missing: var(--status-missing);
+  --color-status-missing-foreground: var(--status-missing-foreground);
+  --font-sans:
+    "General Sans", Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display:
+    "General Sans", Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+}
+
 :root {
   color-scheme: light;
+  --radius: 0.5rem;
+  --background: #f8f8f8;
+  --foreground: #13044f;
+  --card: #ffffff;
+  --card-foreground: #13044f;
+  --primary: #501dff;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f2ed;
+  --secondary-foreground: #13044f;
+  --muted: #f1f0ec;
+  --muted-foreground: #798092;
+  --accent: #aeb1ff;
+  --accent-foreground: #13044f;
+  --border: #d5e0e3;
+  --input: #d5e0e3;
+  --ring: #501dff;
+  --lens-surface: #ffffff;
+  --lens-surface-muted: #f4f2ed;
+  --status-inferred: #eef0ff;
+  --status-inferred-foreground: #2a1b8a;
+  --status-needs-review: #fff1de;
+  --status-needs-review-foreground: #8a5a14;
+  --status-confirmed: #e6f6ec;
+  --status-confirmed-foreground: #1f6b3a;
+  --status-edited: #efe9ff;
+  --status-edited-foreground: #3d1a99;
+  --status-conflict: #fde4dc;
+  --status-conflict-foreground: #8a2a14;
+  --status-missing: #eef0f2;
+  --status-missing-foreground: #798092;
+  --shadow-card:
+    0 1px 2px 0 rgba(19, 4, 79, 0.04),
+    0 8px 24px -12px rgba(19, 4, 79, 0.1);
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  background: #f8fafc;
+    "General Sans", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 * {
@@ -15,6 +92,10 @@
 body {
   margin: 0;
   min-width: 320px;
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 button,
@@ -22,4 +103,14 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: 0;
+}
+
+::selection {
+  background: rgba(80, 29, 255, 0.16);
 }
