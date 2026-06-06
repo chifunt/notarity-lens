@@ -146,11 +146,20 @@ function RequireFixture({
 export function StartScreen() {
   const navigate = useNavigate();
   const loadPersona = useLensStore((state) => state.loadPersona);
+  const uploadDocuments = useLensStore((state) => state.uploadDocuments);
   const loading = useLensStore((state) => state.loading);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadAndContinue = async (persona: PersonaFixture["id"] = "joshua") => {
     await loadPersona(persona);
+    navigate("/lens/analyze");
+  };
+
+  const uploadAndContinue = async (files: FileList | null) => {
+    const selectedFiles = Array.from(files ?? []);
+    if (!selectedFiles.length) return;
+
+    await uploadDocuments(selectedFiles);
     navigate("/lens/analyze");
   };
 
@@ -181,8 +190,8 @@ export function StartScreen() {
             hidden
             aria-hidden="true"
             tabIndex={-1}
-            onChange={() => {
-              navigate("/lens/analyze");
+            onChange={(event) => {
+              void uploadAndContinue(event.currentTarget.files);
             }}
           />
           <button
@@ -306,6 +315,7 @@ const analyzeSteps: ProgressItem[] = [
 export function AnalyzeScreen() {
   const navigate = useNavigate();
   const { fixture, loadJoshuaDemo, loading } = useEnsureFixture();
+  const uploadedDocuments = useLensStore((state) => state.uploadedDocuments);
   const [activeStep, setActiveStep] = useState(0);
   const [complete, setComplete] = useState(false);
 
@@ -354,8 +364,28 @@ export function AnalyzeScreen() {
             product rules, and the Notarity pricing contract.
           </p>
         </div>
-        {fixture ? <DocumentFileList documents={fixture.documents} /> : <EmptyState onLoad={loadJoshuaDemo} loading={loading} />}
-        <ReadingProgress items={progressItems} />
+        {fixture ? (
+          <DocumentFileList documents={fixture.documents} />
+        ) : uploadedDocuments.length ? (
+          <div className="grid gap-4">
+            <DocumentFileList documents={uploadedDocuments} />
+            <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
+              <h2 className="text-xl font-semibold text-foreground">
+                Uploaded documents received
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                These files are stored as upload metadata. Choose a sample
+                request when you need a complete route, price, and payload draft.
+              </p>
+              <Button className="mt-4" onClick={loadJoshuaDemo} disabled={loading}>
+                {loading ? "Loading..." : "Use Joshua sample request"}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <EmptyState onLoad={loadJoshuaDemo} loading={loading} />
+        )}
+        {fixture ? <ReadingProgress items={progressItems} /> : null}
         {complete ? (
           <div className="flex justify-end">
             <Button onClick={() => navigate("/lens/evidence")} disabled={!fixture}>

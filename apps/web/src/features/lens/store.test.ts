@@ -12,6 +12,7 @@ function jsonResponse(data: unknown) {
 function resetStore() {
   useLensStore.setState({
     fixture: null,
+    uploadedDocuments: [],
     price: null,
     submitResult: null,
     loading: false,
@@ -59,6 +60,24 @@ describe("Lens store sample flow", () => {
           });
         }
 
+        if (href.endsWith("/api/documents/upload")) {
+          return jsonResponse({
+            sessionId: "session_test",
+            documents: [
+              {
+                id: "upload-test-0",
+                filename: "Uploaded_Power_of_Attorney.pdf",
+                canonicalName: "Uploaded_Power_of_Attorney.pdf",
+                mimeType: "application/pdf",
+                size: 12,
+                extractionStatus: "pending",
+                textByPage: [],
+              },
+            ],
+            source: "upload",
+          });
+        }
+
         return jsonResponse({ ok: true });
       }),
     );
@@ -95,6 +114,7 @@ describe("Lens store sample flow", () => {
 
     useLensStore.getState().reset();
     expect(useLensStore.getState().fixture).toBeNull();
+    expect(useLensStore.getState().uploadedDocuments).toEqual([]);
     expect(useLensStore.getState().price).toBeNull();
     expect(useLensStore.getState().submitResult).toBeNull();
   });
@@ -107,6 +127,25 @@ describe("Lens store sample flow", () => {
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/fixtures/robert"),
       expect.anything(),
+    );
+  });
+
+  it("stores uploaded document metadata without creating a sample fixture", async () => {
+    const file = new File(["sample"], "Uploaded_Power_of_Attorney.pdf", {
+      type: "application/pdf",
+    });
+
+    await useLensStore.getState().uploadDocuments([file]);
+
+    expect(useLensStore.getState().fixture).toBeNull();
+    expect(useLensStore.getState().price).toBeNull();
+    expect(useLensStore.getState().uploadedDocuments).toHaveLength(1);
+    expect(useLensStore.getState().uploadedDocuments[0]?.filename).toBe(
+      "Uploaded_Power_of_Attorney.pdf",
+    );
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/documents/upload"),
+      expect.objectContaining({ method: "POST", body: expect.any(FormData) }),
     );
   });
 });

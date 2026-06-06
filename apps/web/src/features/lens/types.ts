@@ -93,6 +93,12 @@ export type PriceResponse = {
   source: "mock" | "live";
 };
 
+export type UploadDocumentsResponse = {
+  sessionId: string;
+  documents: ExtractedDocument[];
+  source: "fixture" | "upload";
+};
+
 export type SubmitResponse = {
   ok: boolean;
   id: string;

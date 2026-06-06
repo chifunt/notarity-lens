@@ -1,7 +1,8 @@
 import { create } from "zustand";
-import { getPersonaFixture, pricePayload, submitPayload } from "./api";
+import { getPersonaFixture, pricePayload, submitPayload, uploadDocumentFiles } from "./api";
 import type {
   DocumentFactExtraction,
+  ExtractedDocument,
   FieldStatus,
   InferredField,
   PersonaFixture,
@@ -11,12 +12,14 @@ import type {
 
 type LensStore = {
   fixture: PersonaFixture | null;
+  uploadedDocuments: ExtractedDocument[];
   price: PriceResponse | null;
   submitResult: SubmitResponse | null;
   loading: boolean;
   error: string | null;
   loadPersona: (persona?: PersonaFixture["id"]) => Promise<void>;
   loadJoshuaDemo: () => Promise<void>;
+  uploadDocuments: (files: File[]) => Promise<void>;
   confirmEvidence: () => void;
   confirmCountry: () => void;
   confirmRoute: () => void;
@@ -48,6 +51,7 @@ function withInference(
 
 export const useLensStore = create<LensStore>((set, get) => ({
   fixture: null,
+  uploadedDocuments: [],
   price: null,
   submitResult: null,
   loading: false,
@@ -58,7 +62,7 @@ export const useLensStore = create<LensStore>((set, get) => ({
     try {
       const fixture = await getPersonaFixture(persona);
       const price = await pricePayload(fixture.payload);
-      set({ fixture, price, loading: false });
+      set({ fixture, uploadedDocuments: [], price, loading: false });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load sample request";
       set({ error: message, loading: false });
@@ -66,6 +70,27 @@ export const useLensStore = create<LensStore>((set, get) => ({
   },
 
   loadJoshuaDemo: async () => get().loadPersona("joshua"),
+
+  uploadDocuments: async (files) => {
+    if (!files.length) return;
+
+    set({
+      fixture: null,
+      uploadedDocuments: [],
+      price: null,
+      submitResult: null,
+      loading: true,
+      error: null,
+    });
+    try {
+      const upload = await uploadDocumentFiles(files);
+      set({ uploadedDocuments: upload.documents, loading: false });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to upload documents";
+      set({ error: message, loading: false });
+    }
+  },
 
   confirmEvidence: () => set((state) => ({ fixture: state.fixture })),
 
@@ -103,5 +128,12 @@ export const useLensStore = create<LensStore>((set, get) => ({
     }
   },
 
-  reset: () => set({ fixture: null, price: null, submitResult: null, error: null }),
+  reset: () =>
+    set({
+      fixture: null,
+      uploadedDocuments: [],
+      price: null,
+      submitResult: null,
+      error: null,
+    }),
 }));

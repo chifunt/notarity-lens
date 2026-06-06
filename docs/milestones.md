@@ -408,3 +408,24 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add a real uploaded-file draft path or remove upload wording until uploaded PDFs can produce a complete deterministic payload.
+
+## Sprint 27: Uploaded document metadata path
+
+- Status: complete
+- Scope: make PDF selection a real metadata upload path without pretending uploaded PDFs already have a complete Notarity payload.
+- Changes:
+  - Added a web multipart upload API helper for `/api/documents/upload`.
+  - Added store state for uploaded document metadata.
+  - File selection now uploads selected PDFs and clears any active sample fixture/price.
+  - Analyze shows uploaded document metadata separately from complete sample drafts.
+  - Added web store coverage proving uploads do not create a sample fixture.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Manual API check: multipart `POST /api/documents/upload` returns source `upload` and uploaded document metadata.
+  - Browser check: start screen still renders the PDF chooser and all three sample cards.
+  - Browser check: direct `/lens/analyze` still shows the explicit no-draft state.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: implement real extraction-to-payload generation for uploaded documents or keep uploaded files as review-only metadata.
