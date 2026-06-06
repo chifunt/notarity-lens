@@ -12,9 +12,11 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.7",
+    "@notarity-lens/ai": "workspace:*",
     "@notarity-lens/notarity": "workspace:*",
     "@notarity-lens/shared": "workspace:*",
     "hono": "^4.10.6",
+    "openai": "^6.10.0",
     "zod": "^4.2.1"
   },
   "devDependencies": {

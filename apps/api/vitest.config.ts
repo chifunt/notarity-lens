@@ -10,6 +10,9 @@ export default defineConfig({
       "@notarity-lens/notarity": fileURLToPath(
         new URL("../../packages/notarity/src/index.ts", import.meta.url),
       ),
+      "@notarity-lens/ai": fileURLToPath(
+        new URL("../../packages/ai/src/index.ts", import.meta.url),
+      ),
     },
   },
   test: {

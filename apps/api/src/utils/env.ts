@@ -10,6 +10,10 @@ export type ApiConfig = {
   mockNotarity: boolean;
   mockAi: boolean;
   allowLiveSubmit: boolean;
+  deepseekApiKey?: string;
+  deepseekBaseUrl: string;
+  deepseekModelFast: string;
+  deepseekModelReview: string;
 };
 
 function envBoolean(value: string | undefined, fallback: boolean) {
@@ -33,5 +37,9 @@ export function getApiConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     mockNotarity: envBoolean(env.MOCK_NOTARITY, true),
     mockAi: envBoolean(env.MOCK_AI, true),
     allowLiveSubmit: envBoolean(env.ALLOW_LIVE_SUBMIT, false),
+    deepseekApiKey: env.DEEPSEEK_API_KEY || undefined,
+    deepseekBaseUrl: env.DEEPSEEK_BASE_URL ?? "https://api.deepseek.com",
+    deepseekModelFast: env.DEEPSEEK_MODEL_FAST ?? "deepseek-v4-flash",
+    deepseekModelReview: env.DEEPSEEK_MODEL_REVIEW ?? "deepseek-v4-pro",
   };
 }

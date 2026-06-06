@@ -106,3 +106,25 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add the DeepSeek prompt/schema package and live-safe AI adapter fallback, then document setup and demo.
+
+## Sprint 7/8: AI and live-safe adapters
+
+- Status: complete for P0 mock mode; live submit remains deliberately gated.
+- Scope:
+  - Add backend-only OpenAI-compatible DeepSeek client.
+  - Add strict extraction prompt and schema exports in `@notarity-lens/ai`.
+  - Validate live AI JSON with Zod.
+  - Fall back to Joshua fixture when `MOCK_AI=true`, no key is configured, or live AI output fails validation.
+  - Keep Notarity live reads and price behind `MOCK_NOTARITY=false`.
+  - Keep live submit blocked unless explicitly enabled; multipart live submit is documented as not enabled for public demo safety.
+- Tests:
+  - Inference mapper maps NIE and Spanish tax authority language to ES.
+  - New York maps to billing/residence, not country of use.
+  - Barcelona maps to shipping/representative evidence.
+  - Multiple countries produce `needs_review`.
+- Checks:
+  - `pnpm typecheck` succeeds from a clean build-output state.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add README, REPORT, architecture docs, and demo checklist; run final verification.
