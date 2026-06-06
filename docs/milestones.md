@@ -57,3 +57,25 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add Hono API mock routes and live-safe Notarity/AI client skeletons.
+
+## Sprint 4: API mock server
+
+- Status: complete
+- Scope: add Hono routes for fixtures, upload metadata, mock extraction, mock inference, booking form, products, timeslots, price, and submit.
+- Safety:
+  - Mock mode is the default.
+  - Live submit is blocked unless `ALLOW_LIVE_SUBMIT=true`.
+  - Real Notarity client reads env placeholders and does not log credentials.
+- Tests:
+  - health route
+  - fixture route
+  - mock infer route
+  - mock price route
+  - mock submit route
+- Checks:
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+  - Built API manually returns Joshua fixture, EUR 580 mock price, and mock submit success.
+- Next: build the web flow using the Lovable design reference and connect it to the mock API.

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { createLensRoutes } from "./routes/lens-routes.js";
 
 export function createApiApp() {
   const app = new Hono();
@@ -14,6 +15,7 @@ export function createApiApp() {
   );
 
   app.get("/health", (c) => c.json({ ok: true }));
+  app.route("/api", createLensRoutes());
 
   return app;
 }

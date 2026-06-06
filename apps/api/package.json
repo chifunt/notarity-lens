@@ -8,10 +8,11 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --config vitest.config.ts --passWithNoTests"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.7",
+    "@notarity-lens/notarity": "workspace:*",
     "@notarity-lens/shared": "workspace:*",
     "hono": "^4.10.6",
     "zod": "^4.2.1"
