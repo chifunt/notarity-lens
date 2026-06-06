@@ -1,17 +1,23 @@
-import { FileCheck2, Info, Link2, PackageCheck } from "lucide-react";
+import { useState } from "react";
+import { FileCheck2, HelpCircle, Info, Link2, PackageCheck, SearchCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PersonaFixture } from "../types";
+import { EvidenceChip } from "./EvidenceChip";
 import { StatusBadge } from "./StatusBadge";
 
 export function ProductRouteCard({
   fixture,
   onConfirm,
+  onShowEvidence,
 }: {
   fixture: PersonaFixture;
   onConfirm: () => void;
+  onShowEvidence?: () => void;
 }) {
   const productFields = fixture.inference.products;
   const routeConfirmed = productFields.every((field) => field.status === "confirmed");
+  const [helpOpen, setHelpOpen] = useState(false);
+  const productEvidence = productFields.flatMap((field) => field.evidence);
 
   return (
     <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
@@ -75,8 +81,68 @@ export function ProductRouteCard({
         <Button onClick={onConfirm}>
           {routeConfirmed ? "Continue with route" : "Confirm product route"}
         </Button>
-        <Button variant="outline">Change</Button>
+        <Button
+          variant="outline"
+          aria-controls="route-unsure-help"
+          aria-expanded={helpOpen}
+          onClick={() => setHelpOpen((open) => !open)}
+        >
+          <HelpCircle className="h-4 w-4" aria-hidden="true" />
+          I am not sure
+        </Button>
       </div>
+
+      {helpOpen ? (
+        <div
+          id="route-unsure-help"
+          className="mt-5 rounded-xl border border-border bg-lens-surface-muted p-4"
+        >
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <SearchCheck className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-base font-semibold text-foreground">
+                Why this route is selected
+              </h3>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                The NIE application evidence maps to the Notarity NIE product.
+                Notarity's route rule then adds the NIE Personal Data companion
+                product.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {fixture.payload.products.map((product) => (
+              <div key={product.id} className="rounded-lg border border-border bg-card p-3">
+                <p className="text-xs font-medium uppercase text-muted-foreground">Product ID</p>
+                <p className="mt-1 break-all font-mono text-xs text-foreground">{product.id}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Files: {product.files.join(", ")}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {productEvidence.map((evidence) => (
+              <EvidenceChip key={evidence.id} evidence={evidence} compact />
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button size="sm" onClick={onConfirm}>
+              Confirm route
+            </Button>
+            {onShowEvidence ? (
+              <Button size="sm" variant="outline" onClick={onShowEvidence}>
+                Show cited evidence
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

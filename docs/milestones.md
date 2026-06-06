@@ -224,3 +224,19 @@
   - Browser check: `I am not sure` opens the panel.
   - Browser check: `Show cited evidence` routes back to `/lens/evidence`.
 - Next: expand uncertainty support to route/product, price, and appointment screens, then consider a backend-backed assistant endpoint with strict read-only guardrails.
+
+## Sprint 15: Route uncertainty support
+
+- Status: complete
+- Scope: make the route screen's uncertainty control useful without allowing unsafe product mutations.
+- Changes:
+  - Replaced the previous inert `Change` control with an `I am not sure` panel.
+  - Explains why the NIE route and companion Personal Data product are selected.
+  - Shows deterministic Notarity product IDs in structured boxes.
+  - Shows product evidence chips and a `Show cited evidence` action back to `/lens/evidence`.
+- Safety decision:
+  - Product IDs remain deterministic outputs from route rules. The help panel can explain and route to evidence, but does not let a conversational answer invent or swap product IDs.
+- Verification:
+  - Browser check: `I am not sure` opens the route help panel.
+  - Browser check: `Show cited evidence` routes back to `/lens/evidence`.
+- Next: expand uncertainty support to cost and appointment, then add automated browser smoke tests for the sample flow.

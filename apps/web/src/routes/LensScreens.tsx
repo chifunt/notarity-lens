@@ -438,6 +438,7 @@ export function PlanScreen() {
                 confirmRoute();
                 navigate("/lens/cost");
               }}
+              onShowEvidence={() => navigate("/lens/evidence")}
             />
           </div>
         </ScreenFrame>
