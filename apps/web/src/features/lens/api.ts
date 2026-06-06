@@ -22,7 +22,7 @@ export function getApiHealth() {
   return requestJson<{ ok: true }>("/health");
 }
 
-export function getPersonaFixture(persona = "joshua") {
+export function getPersonaFixture(persona: PersonaFixture["id"] = "joshua") {
   return requestJson<PersonaFixture>(`/api/fixtures/${persona}`);
 }
 

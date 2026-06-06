@@ -15,6 +15,7 @@ type LensStore = {
   submitResult: SubmitResponse | null;
   loading: boolean;
   error: string | null;
+  loadPersona: (persona?: PersonaFixture["id"]) => Promise<void>;
   loadJoshuaDemo: () => Promise<void>;
   confirmEvidence: () => void;
   confirmCountry: () => void;
@@ -52,17 +53,19 @@ export const useLensStore = create<LensStore>((set, get) => ({
   loading: false,
   error: null,
 
-  loadJoshuaDemo: async () => {
+  loadPersona: async (persona = "joshua") => {
     set({ loading: true, error: null, submitResult: null });
     try {
-      const fixture = await getPersonaFixture("joshua");
+      const fixture = await getPersonaFixture(persona);
       const price = await pricePayload(fixture.payload);
       set({ fixture, price, loading: false });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to load demo";
+      const message = error instanceof Error ? error.message : "Unable to load sample request";
       set({ error: message, loading: false });
     }
   },
+
+  loadJoshuaDemo: async () => get().loadPersona("joshua"),
 
   confirmEvidence: () => set((state) => ({ fixture: state.fixture })),
 

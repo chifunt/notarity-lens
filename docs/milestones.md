@@ -316,3 +316,21 @@
 - Verification:
   - Browser check: fresh sample flow reaches review and still renders Spain, NIE number application, NIE Personal Data, and Joshua shipping correctly.
 - Next: introduce a real `loadPersona` store action and a safe sample selector, then audit which screens need deeper non-Joshua behavior.
+
+## Sprint 22: Generic persona store loader
+
+- Status: complete
+- Scope: make the web Lens store load any supported sample persona while preserving the existing Joshua sample action used by the UI.
+- Changes:
+  - Added `loadPersona(persona)` to the Lens store and made `loadJoshuaDemo()` delegate to it.
+  - Typed the fixture API helper to supported persona IDs.
+  - Extended the web store smoke test to load and price the Robert fixture through the generic loader.
+- Remaining limitation:
+  - The UI still defaults to the Joshua sample. A user-facing selector needs a separate screen audit because non-Joshua fixture evidence and product inference depth are not yet equivalent to Joshua.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add safe fixture evidence fallbacks and then expose a small sample selector only where the non-Joshua screens are ready.

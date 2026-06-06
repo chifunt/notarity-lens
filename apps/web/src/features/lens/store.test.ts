@@ -1,4 +1,4 @@
-import { joshuaFixture } from "@notarity-lens/shared";
+import { joshuaFixture, robertFixture } from "@notarity-lens/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useLensStore } from "./store";
 
@@ -31,10 +31,20 @@ describe("Lens store sample flow", () => {
           return jsonResponse(joshuaFixture);
         }
 
+        if (href.endsWith("/api/fixtures/robert")) {
+          return jsonResponse(robertFixture);
+        }
+
         if (href.endsWith("/api/price")) {
+          const body = init?.body ? JSON.parse(String(init.body)) : {};
+          const fixture =
+            body.destinationCountry === robertFixture.payload.destinationCountry
+              ? robertFixture
+              : joshuaFixture;
+
           return jsonResponse({
-            confirmedPrice: 580,
-            lines: joshuaFixture.priceLines,
+            confirmedPrice: body.confirmedPrice ?? fixture.payload.confirmedPrice ?? 0,
+            lines: fixture.priceLines,
             source: "mock",
           });
         }
@@ -87,5 +97,16 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().fixture).toBeNull();
     expect(useLensStore.getState().price).toBeNull();
     expect(useLensStore.getState().submitResult).toBeNull();
+  });
+
+  it("loads and prices a non-Joshua fixture through the generic persona loader", async () => {
+    await useLensStore.getState().loadPersona("robert");
+
+    expect(useLensStore.getState().fixture?.id).toBe("robert");
+    expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/fixtures/robert"),
+      expect.anything(),
+    );
   });
 });
