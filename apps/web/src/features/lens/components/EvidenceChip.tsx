@@ -19,7 +19,7 @@ export function EvidenceChip({
   const title = `${evidence.filename}${evidence.page ? `, page ${evidence.page}` : ""}`;
   const content = (
     <>
-      <Quote className="h-3.5 w-3.5 text-violet-700" aria-hidden="true" />
+      <Quote className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
       <span className="max-w-[18rem] truncate">{evidence.quote}</span>
     </>
   );

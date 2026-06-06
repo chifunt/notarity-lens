@@ -4,12 +4,18 @@ import {
   ArrowRight,
   CalendarDays,
   CheckCircle2,
+  Clock3,
   FileText,
   FileUp,
-  Smartphone,
+  Globe2,
+  Mail,
+  MapPin,
+  PackageCheck,
+  Receipt as ReceiptIcon,
+  RotateCcw,
   Send,
   ShieldCheck,
-  Truck,
+  Smartphone,
   UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,7 +68,7 @@ function DemoError() {
   if (!error) return null;
 
   return (
-    <div className="mb-4 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+    <div className="mb-4 rounded-md border border-status-conflict bg-status-conflict px-4 py-3 text-sm text-status-conflict-foreground">
       {error}
     </div>
   );
@@ -401,13 +407,15 @@ export function CountryScreen() {
     <RequireFixture>
       {(fixture) => (
         <ScreenFrame>
-          <CountrySemanticsCard
-            inference={fixture.inference}
-            onConfirm={() => {
-              confirmCountry();
-              navigate("/lens/plan");
-            }}
-          />
+          <div className="mx-auto max-w-3xl">
+            <CountrySemanticsCard
+              inference={fixture.inference}
+              onConfirm={() => {
+                confirmCountry();
+                navigate("/lens/plan");
+              }}
+            />
+          </div>
         </ScreenFrame>
       )}
     </RequireFixture>
@@ -422,13 +430,15 @@ export function PlanScreen() {
     <RequireFixture>
       {(fixture) => (
         <ScreenFrame>
-          <ProductRouteCard
-            fixture={fixture}
-            onConfirm={() => {
-              confirmRoute();
-              navigate("/lens/cost");
-            }}
-          />
+          <div className="mx-auto max-w-3xl">
+            <ProductRouteCard
+              fixture={fixture}
+              onConfirm={() => {
+                confirmRoute();
+                navigate("/lens/cost");
+              }}
+            />
+          </div>
         </ScreenFrame>
       )}
     </RequireFixture>
@@ -441,16 +451,24 @@ export function CostScreen() {
   return (
     <RequireFixture>
       {(_fixture, price) => (
-        <ScreenFrame>
-          {price ? <LiveReceipt price={price} /> : null}
-          <div className="mt-6">
-            <PreparationTimeline />
-          </div>
-          <div className="mt-6 flex justify-end">
-            <Button onClick={() => navigate("/lens/appointment")}>
-              Continue to appointment
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
+        <ScreenFrame sidebar={false}>
+          <div className="mx-auto max-w-5xl">
+            <div>
+              <h1 className="text-3xl font-semibold text-foreground">Cost and next steps</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                See the itemized price before choosing the appointment details.
+              </p>
+            </div>
+            <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
+              <PreparationTimeline />
+              {price ? <LiveReceipt price={price} /> : null}
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button onClick={() => navigate("/lens/appointment")}>
+                Continue to appointment
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </div>
           </div>
         </ScreenFrame>
       )}
@@ -465,41 +483,79 @@ export function AppointmentScreen() {
     <RequireFixture>
       {(fixture) => (
         <ScreenFrame>
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h1 className="text-3xl font-semibold text-slate-950">Appointment details</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              The sample request is pre-filled for Joshua. Timeslot is the safe
-              fallback fixture from the Notarity docs.
-            </p>
-            <div className="mt-5 grid gap-4 lg:grid-cols-3">
-              <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
-                <UserRound className="h-5 w-5 text-violet-700" aria-hidden="true" />
-                <p className="mt-3 text-sm font-medium text-slate-500">Participant</p>
-                <p className="mt-1 font-semibold text-slate-950">
-                  {fixture.payload.participants[0]?.email}
-                </p>
+          <div className="mx-auto max-w-5xl">
+            <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
+              <h1 className="text-3xl font-semibold text-foreground">Add participants and pick a time</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                The sample request is pre-filled for Joshua. The appointment slot
+                uses the safe fallback fixture from the Notarity docs.
+              </p>
+
+              <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+                <div className="grid gap-4">
+                  <article className="rounded-lg border border-border bg-lens-surface-muted p-4">
+                    <div className="flex items-center gap-2">
+                      <UserRound className="h-5 w-5 text-primary" aria-hidden="true" />
+                      <h2 className="text-base font-semibold text-foreground">Participants</h2>
+                    </div>
+                    <div className="mt-4 rounded-md border border-border bg-card px-3 py-3">
+                      <p className="text-xs font-medium uppercase text-muted-foreground">Client email</p>
+                      <p className="mt-1 break-all text-sm font-semibold text-foreground">
+                        {fixture.payload.participants[0]?.email}
+                      </p>
+                    </div>
+                    <Button type="button" variant="ghost" size="sm" className="mt-3 text-primary">
+                      <Mail className="h-4 w-4" aria-hidden="true" />
+                      Add another participant
+                    </Button>
+                  </article>
+
+                  <article className="rounded-lg border border-border bg-lens-surface-muted p-4">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="h-5 w-5 text-primary" aria-hidden="true" />
+                      <h2 className="text-base font-semibold text-foreground">Appointment slot</h2>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-md border border-border bg-card p-3">
+                        <p className="text-xs font-medium uppercase text-muted-foreground">Timeslot ID</p>
+                        <p className="mt-1 break-all text-sm font-semibold text-foreground">
+                          {fixture.payload.timeslots[0]}
+                        </p>
+                      </div>
+                      <div className="rounded-md border border-border bg-card p-3">
+                        <p className="text-xs font-medium uppercase text-muted-foreground">Timezone</p>
+                        <p className="mt-1 text-sm font-semibold text-foreground">
+                          {String(fixture.payload.timezone ?? "Europe/Vienna")}
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+
+                <aside className="grid content-start gap-3 text-sm text-muted-foreground">
+                  <div className="rounded-lg border border-border bg-lens-surface-muted p-4">
+                    <Clock3 className="h-5 w-5 text-primary" aria-hidden="true" />
+                    <p className="mt-3">
+                      Partner notaries confirm the final appointment time by email.
+                      This screen keeps the slot explicit before final review.
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-lens-surface-muted p-4">
+                    <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
+                    <p className="mt-3">
+                      Hard copy delivery remains Barcelona, Spain, separate from
+                      Joshua's US billing context.
+                    </p>
+                  </div>
+                </aside>
               </div>
-              <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
-                <CalendarDays className="h-5 w-5 text-violet-700" aria-hidden="true" />
-                <p className="mt-3 text-sm font-medium text-slate-500">Timeslot</p>
-                <p className="mt-1 font-semibold text-slate-950">
-                  {fixture.payload.timeslots[0]}
-                </p>
-              </div>
-              <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
-                <Truck className="h-5 w-5 text-violet-700" aria-hidden="true" />
-                <p className="mt-3 text-sm font-medium text-slate-500">Shipping</p>
-                <p className="mt-1 font-semibold text-slate-950">
-                  Barcelona, Spain
-                </p>
-              </div>
+            </section>
+            <div className="mt-6 flex justify-end">
+              <Button onClick={() => navigate("/lens/review")}>
+                Review booking
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
             </div>
-          </section>
-          <div className="mt-6 flex justify-end">
-            <Button onClick={() => navigate("/lens/review")}>
-              Review booking
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
           </div>
         </ScreenFrame>
       )}
@@ -521,60 +577,86 @@ export function ReviewScreen() {
               fixture.inference.countryOfUse.status === "confirmed" &&
               fixture.inference.products.every((field) => field.status === "confirmed") &&
               Boolean(price);
+            const summary = [
+              { icon: Globe2, label: "Country of use", value: "Spain" },
+              { icon: PackageCheck, label: "Booking", value: "NIE application + Personal Data" },
+              { icon: UserRound, label: "Client", value: "Joshua Timms" },
+              { icon: ReceiptIcon, label: "Total", value: price ? formatEuro(price.confirmedPrice) : "Pending" },
+            ];
 
             return (
-          <div className="grid gap-5">
-            <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h1 className="text-3xl font-semibold text-slate-950">Final review</h1>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    AI prepared a draft from your documents. Nothing is submitted
-                    until you confirm.
-                  </p>
+              <div className="grid gap-5">
+                <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h1 className="text-3xl font-semibold text-foreground">Final review</h1>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                        Lens prepared a draft from your documents. Nothing is submitted
+                        until you confirm.
+                      </p>
+                    </div>
+                    <StatusBadge status="confirmed" />
+                  </div>
+                  <ul className="mt-5 grid gap-4 sm:grid-cols-2">
+                    {summary.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <li key={item.label} className="flex items-start gap-3 rounded-lg border border-border bg-lens-surface-muted p-3">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <Icon className="h-4 w-4" aria-hidden="true" />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium uppercase text-muted-foreground">
+                              {item.label}
+                            </p>
+                            <p className="mt-0.5 text-sm font-semibold text-foreground">
+                              {item.value}
+                            </p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+                <ReviewSection
+                  title="Country and route"
+                  rows={[
+                    { label: "Country of use", value: "Spain", status: fixture.inference.countryOfUse.status },
+                    { label: "Products", value: "NIE number application; NIE Personal Data", status: "confirmed" },
+                    { label: "Documents", value: fixture.payload.products.flatMap((product) => product.files).join(", "), status: "confirmed" },
+                    { label: "Hard copy", value: "Yes, standard shipping", status: "confirmed" },
+                    { label: "Price", value: price ? formatEuro(price.confirmedPrice) : "Pending", status: price ? "confirmed" : "missing" },
+                  ]}
+                />
+                <ReviewSection
+                  title="People and addresses"
+                  rows={[
+                    { label: "Participant", value: fixture.payload.participants[0]?.email ?? "", status: "confirmed" },
+                    { label: "Billing", value: "Joshua Timms, New York, United States", status: "confirmed" },
+                    { label: "Shipping", value: "Joshua Timms, Carrer de Mallorca 401, Barcelona, Spain", status: "confirmed" },
+                  ]}
+                />
+                <PayloadPreview payload={fixture.payload} />
+                <div className="flex flex-wrap justify-end gap-2">
+                  <Button variant="outline" onClick={() => navigate("/lens/appointment")}>
+                    Back
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      await submitBooking();
+                      navigate("/lens/success");
+                    }}
+                    disabled={loading || !readyToSubmit}
+                  >
+                    <Send className="h-4 w-4" aria-hidden="true" />
+                    {loading
+                      ? "Creating..."
+                      : readyToSubmit
+                        ? "Create booking request"
+                        : "Confirm required fields first"}
+                  </Button>
                 </div>
-                <StatusBadge status="confirmed" />
               </div>
-            </section>
-            <ReviewSection
-              title="Country and route"
-              rows={[
-                { label: "Country of use", value: "Spain", status: fixture.inference.countryOfUse.status },
-                { label: "Products", value: "NIE number application; NIE Personal Data", status: "confirmed" },
-                { label: "Documents", value: fixture.payload.products.flatMap((product) => product.files).join(", "), status: "confirmed" },
-                { label: "Hard copy", value: "Yes, standard shipping", status: "confirmed" },
-                { label: "Price", value: price ? formatEuro(price.confirmedPrice) : "Pending", status: price ? "confirmed" : "missing" },
-              ]}
-            />
-            <ReviewSection
-              title="People and addresses"
-              rows={[
-                { label: "Participant", value: fixture.payload.participants[0]?.email ?? "", status: "confirmed" },
-                { label: "Billing", value: "Joshua Timms, New York, United States", status: "confirmed" },
-                { label: "Shipping", value: "Joshua Timms, Carrer de Mallorca 401, Barcelona, Spain", status: "confirmed" },
-              ]}
-            />
-            <PayloadPreview payload={fixture.payload} />
-            <div className="flex flex-wrap justify-end gap-2">
-              <Button variant="outline" onClick={() => navigate("/lens/appointment")}>
-                Back
-              </Button>
-              <Button
-                onClick={async () => {
-                  await submitBooking();
-                  navigate("/lens/success");
-                }}
-                disabled={loading || !readyToSubmit}
-              >
-                <Send className="h-4 w-4" aria-hidden="true" />
-                {loading
-                  ? "Creating..."
-                  : readyToSubmit
-                    ? "Create mock booking request"
-                    : "Confirm required fields first"}
-              </Button>
-            </div>
-          </div>
             );
           })()}
         </ScreenFrame>
@@ -586,47 +668,61 @@ export function ReviewScreen() {
 export function SuccessScreen() {
   const navigate = useNavigate();
   const submitResult = useLensStore((state) => state.submitResult);
+  const reset = useLensStore((state) => state.reset);
 
   return (
     <RequireFixture>
       {(fixture, price) => (
         <ScreenFrame sidebar={false}>
-          <section className="rounded-lg border border-emerald-200 bg-white p-8 text-center shadow-sm">
-            <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-700" aria-hidden="true" />
-            <h1 className="mt-4 text-3xl font-semibold text-slate-950">Booking created</h1>
-            <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              {submitResult?.id ?? "mock appointment request"} was created in mock
-              mode. The payload is ready for Notarity multipart submission when
-              live credentials and live submit are enabled.
-            </p>
-            <div className="mt-6 grid gap-4 text-left lg:grid-cols-4">
-              {[
-                ["Country of use", "Spain"],
-                ["Products", "NIE application + Personal Data"],
-                ["Price", price ? formatEuro(price.confirmedPrice) : "EUR 580"],
-                ["Shipping", "Hard copy to Barcelona"],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-md border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-sm font-medium text-slate-500">{label}</p>
-                  <p className="mt-1 font-semibold text-slate-950">{value}</p>
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 rounded-md bg-slate-50 p-4 text-left">
-              <h2 className="text-base font-semibold text-slate-950">What happens next</h2>
-              <div className="mt-3 grid gap-2 text-sm text-slate-700">
-                <p>Video appointment and identity verification.</p>
-                <p>Digital original becomes available after notarisation.</p>
-                <p>Apostilled hard copy ships to Barcelona.</p>
+          <div className="mx-auto max-w-3xl">
+            <section className="rounded-xl border border-status-confirmed bg-card p-8 text-center shadow-[var(--shadow-card)]">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-status-confirmed text-status-confirmed-foreground">
+                <CheckCircle2 className="h-7 w-7" aria-hidden="true" />
+              </span>
+              <h1 className="mt-4 text-3xl font-semibold text-foreground">Booking request ready</h1>
+              <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                {submitResult?.id ?? "appointment request"} was created in safe
+                submit mode. The payload is ready for Notarity multipart submission
+                when live credentials and live submit are enabled.
+              </p>
+              <div className="mt-6 grid gap-4 text-left sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  ["Country of use", "Spain"],
+                  ["Products", "NIE application + Personal Data"],
+                  ["Price", price ? formatEuro(price.confirmedPrice) : "EUR 580"],
+                  ["Shipping", "Hard copy to Barcelona"],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border border-border bg-lens-surface-muted p-4">
+                    <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
+                    <p className="mt-1 font-semibold text-foreground">{value}</p>
+                  </div>
+                ))}
               </div>
+              <div className="mt-6 rounded-lg border border-border bg-lens-surface-muted p-4 text-left">
+                <h2 className="text-base font-semibold text-foreground">What happens next</h2>
+                <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
+                  <p>Video appointment and identity verification.</p>
+                  <p>Digital original becomes available after notarisation.</p>
+                  <p>Apostilled hard copy ships to Barcelona.</p>
+                </div>
+              </div>
+            </section>
+            <div className="mt-5">
+              <PayloadPreview payload={fixture.payload} />
             </div>
-            <PayloadPreview payload={fixture.payload} />
-            <div className="mt-6">
-              <Button variant="outline" onClick={() => navigate("/")}>
-                Start over
+            <div className="mt-6 flex justify-center">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  reset();
+                  navigate("/");
+                }}
+              >
+                <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                Start another booking
               </Button>
             </div>
-          </section>
+          </div>
         </ScreenFrame>
       )}
     </RequireFixture>

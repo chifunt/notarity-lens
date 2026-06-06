@@ -188,3 +188,23 @@
   - Browser check: clicking the `NIE personal details form` field-card citation switches to the personal-details document tab.
   - Browser check: mobile evidence layout stacks without text overlap at `390x844`; DOM has one app shell despite a full-page screenshot stitching artifact.
 - Next: continue Lovable alignment for country, route, cost, appointment, review, and success screens, then add deeper unsure/help flows.
+
+## Sprint 13: Remaining route visual alignment
+
+- Status: complete
+- Scope: bring the country, route, cost, appointment, review, and success screens into the same Lovable/Notarity component language.
+- Changes:
+  - Tokenized country semantics, route cards, receipts, preparation timeline, review rows, payload preview, error banner, and success state.
+  - Added Lovable-style summary cards to final review.
+  - Reworked appointment into participant, slot, and explanatory side panels instead of three generic summary tiles.
+  - Removed the duplicate receipt rail from the cost screen; the main cost screen now owns the itemized price panel.
+  - Reset state when starting another booking from success.
+- Intentional differences from the Lovable export:
+  - Kept cost before appointment and review because the PRD says cost should be shown early as line items before the user proceeds.
+  - Kept the safe fixture timeslot visible as an explicit ID because product IDs, timeslot IDs, and prices must not be invented by AI.
+- Verification:
+  - Browser check: full sample flow still reaches `/lens/success` after the polish.
+  - Browser check: desktop review and appointment screens visually inspected.
+  - Browser check: mobile appointment and review have no horizontal overflow at `390x844`.
+  - Palette scan found no remaining old `slate`, `violet`, `emerald`, `blue`, `rose`, `amber`, or `tracking-*` classes in the Lens UI files touched.
+- Next: add uncertainty/help affordances and deeper assistant-like support for "I am not sure" without submitting or changing deterministic payloads.
