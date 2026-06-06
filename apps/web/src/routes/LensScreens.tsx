@@ -739,6 +739,10 @@ export function ReviewScreen() {
               fixture.inference.countryOfUse.status === "confirmed" &&
               fixture.inference.products.every((field) => field.status === "confirmed") &&
               Boolean(price);
+            const submitLabel =
+              price?.source === "mock"
+                ? "Create mock booking request"
+                : "Create booking request";
             const summary = [
               {
                 icon: Globe2,
@@ -858,7 +862,7 @@ export function ReviewScreen() {
                     {loading
                       ? "Creating..."
                       : readyToSubmit
-                        ? "Create booking request"
+                        ? submitLabel
                         : "Confirm required fields first"}
                   </Button>
                 </div>

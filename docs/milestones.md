@@ -463,3 +463,19 @@
   - Stale docs wording scan completed; remaining old wording is historical milestone context or intentional limitations.
   - `pnpm typecheck` succeeds.
 - Next: decide whether uploaded document metadata should remain review-only or drive a constrained extraction-to-payload path.
+
+## Sprint 30: Mock submit CTA accuracy
+
+- Status: complete
+- Scope: align the final review submit CTA with mock vs live mode.
+- Changes:
+  - Final review now labels the ready submit action as `Create mock booking request` when the current price response is from mock mode.
+  - Live-priced drafts keep the generic `Create booking request` label.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: Joshua review shows `Create mock booking request` and no generic create-booking CTA in mock mode.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue acceptance audit against demo script and polish any remaining wording mismatches.
