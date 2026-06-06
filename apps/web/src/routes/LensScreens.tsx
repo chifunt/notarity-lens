@@ -182,7 +182,7 @@ export function StartScreen() {
             aria-hidden="true"
             tabIndex={-1}
             onChange={() => {
-              void loadAndContinue();
+              navigate("/lens/analyze");
             }}
           />
           <button
@@ -209,7 +209,7 @@ export function StartScreen() {
               I will upload it later
             </Button>
             <Button variant="ghost" onClick={() => void loadAndContinue()} disabled={loading}>
-              Use sample request
+              Use Joshua sample
             </Button>
           </div>
         </div>
@@ -308,12 +308,6 @@ export function AnalyzeScreen() {
   const { fixture, loadJoshuaDemo, loading } = useEnsureFixture();
   const [activeStep, setActiveStep] = useState(0);
   const [complete, setComplete] = useState(false);
-
-  useEffect(() => {
-    if (!fixture && !loading) {
-      void loadJoshuaDemo();
-    }
-  }, [fixture, loadJoshuaDemo, loading]);
 
   useEffect(() => {
     if (!fixture) return;

@@ -389,3 +389,22 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: replace remaining route-default assumptions with explicit sample/upload mode state so upload-later and selected samples do not rely on the Joshua fallback.
+
+## Sprint 26: Explicit sample loading
+
+- Status: complete
+- Scope: stop loading Joshua implicitly when a user enters the analyze flow without selecting a sample.
+- Changes:
+  - Removed the `/lens/analyze` auto-load effect that silently fetched Joshua when no fixture existed.
+  - Changed file selection to enter analyze without substituting Joshua sample data.
+  - Made the default sample buttons say Joshua explicitly.
+  - Updated the empty state to explain that no draft is loaded yet and a sample request must be chosen.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: direct `/lens/analyze` stays on the explicit empty state and does not auto-load Joshua.
+  - Browser check: `Use Joshua sample request` from the analyze empty state advances to evidence.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add a real uploaded-file draft path or remove upload wording until uploaded PDFs can produce a complete deterministic payload.
