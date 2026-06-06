@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -90,6 +90,7 @@ export function StartScreen() {
   const navigate = useNavigate();
   const loadJoshuaDemo = useLensStore((state) => state.loadJoshuaDemo);
   const loading = useLensStore((state) => state.loading);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadAndContinue = async () => {
     await loadJoshuaDemo();
@@ -113,12 +114,29 @@ export function StartScreen() {
             your confirmation.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button onClick={loadAndContinue} disabled={loading}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf"
+              multiple
+              className="sr-only"
+              onChange={() => {
+                void loadAndContinue();
+              }}
+            />
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={loading}
+              type="button"
+            >
               <FileUp className="h-4 w-4" aria-hidden="true" />
-              {loading ? "Loading Joshua demo..." : "Load Joshua demo"}
+              {loading ? "Reading..." : "Upload your document"}
             </Button>
             <Button variant="outline" onClick={() => navigate("/lens/analyze")}>
               I will upload it later
+            </Button>
+            <Button variant="ghost" onClick={loadAndContinue} disabled={loading}>
+              Load Joshua demo
             </Button>
           </div>
         </div>
