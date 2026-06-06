@@ -89,6 +89,41 @@ const sampleRequests: Array<{
   },
 ];
 
+function SampleRequestGrid({
+  loading,
+  onSelect,
+}: {
+  loading: boolean;
+  onSelect: (persona: PersonaFixture["id"]) => void;
+}) {
+  return (
+    <div className="grid gap-3 lg:grid-cols-3">
+      {sampleRequests.map((sample) => (
+        <button
+          key={sample.id}
+          type="button"
+          onClick={() => onSelect(sample.id)}
+          disabled={loading}
+          className="rounded-lg border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
+        >
+          <span className="text-sm font-semibold text-foreground">{sample.name}</span>
+          <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+            {sample.summary}
+          </span>
+          <span className="mt-3 grid gap-2 text-sm text-muted-foreground">
+            {sample.bullets.map((item) => (
+              <span key={item} className="flex gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-confirmed-foreground" aria-hidden="true" />
+                <span>{item}</span>
+              </span>
+            ))}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function useEnsureFixture() {
   const fixture = useLensStore((state) => state.fixture);
   const loadJoshuaDemo = useLensStore((state) => state.loadJoshuaDemo);
@@ -252,33 +287,17 @@ export function StartScreen() {
           </button>
         </div>
 
-        <div className="mt-4 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+        <section className="mt-6">
           <h2 className="text-sm font-semibold text-foreground">Sample requests</h2>
-          <div className="mt-3 grid gap-3 lg:grid-cols-3">
-            {sampleRequests.map((sample) => (
-              <button
-                key={sample.id}
-                type="button"
-                onClick={() => void loadAndContinue(sample.id)}
-                disabled={loading}
-                className="rounded-lg border border-border bg-lens-surface-muted p-4 text-left transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
-              >
-                <span className="text-sm font-semibold text-foreground">{sample.name}</span>
-                <span className="mt-1 block text-sm leading-6 text-muted-foreground">
-                  {sample.summary}
-                </span>
-                <span className="mt-3 grid gap-2 text-sm text-muted-foreground">
-                  {sample.bullets.map((item) => (
-                    <span key={item} className="flex gap-2">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-confirmed-foreground" aria-hidden="true" />
-                      <span>{item}</span>
-                    </span>
-                  ))}
-                </span>
-              </button>
-            ))}
+          <div className="mt-3">
+            <SampleRequestGrid
+              loading={loading}
+              onSelect={(persona) => {
+                void loadAndContinue(persona);
+              }}
+            />
           </div>
-        </div>
+        </section>
       </section>
     </AppShell>
   );
@@ -315,9 +334,14 @@ const analyzeSteps: ProgressItem[] = [
 export function AnalyzeScreen() {
   const navigate = useNavigate();
   const { fixture, loadJoshuaDemo, loading } = useEnsureFixture();
+  const loadPersona = useLensStore((state) => state.loadPersona);
   const uploadedDocuments = useLensStore((state) => state.uploadedDocuments);
   const [activeStep, setActiveStep] = useState(0);
   const [complete, setComplete] = useState(false);
+
+  const loadSampleInPlace = async (persona: PersonaFixture["id"]) => {
+    await loadPersona(persona);
+  };
 
   useEffect(() => {
     if (!fixture) return;
@@ -377,13 +401,38 @@ export function AnalyzeScreen() {
                 These files are stored as upload metadata. Choose a sample
                 request when you need a complete route, price, and payload draft.
               </p>
-              <Button className="mt-4" onClick={loadJoshuaDemo} disabled={loading}>
-                {loading ? "Loading..." : "Use Joshua sample request"}
-              </Button>
             </div>
+            <section>
+              <h2 className="text-sm font-semibold text-foreground">
+                Continue with a sample request
+              </h2>
+              <div className="mt-3">
+                <SampleRequestGrid
+                  loading={loading}
+                  onSelect={(persona) => {
+                    void loadSampleInPlace(persona);
+                  }}
+                />
+              </div>
+            </section>
           </div>
         ) : (
-          <EmptyState onLoad={loadJoshuaDemo} loading={loading} />
+          <div className="grid gap-4">
+            <EmptyState onLoad={loadJoshuaDemo} loading={loading} />
+            <section>
+              <h2 className="text-sm font-semibold text-foreground">
+                Or choose another sample
+              </h2>
+              <div className="mt-3">
+                <SampleRequestGrid
+                  loading={loading}
+                  onSelect={(persona) => {
+                    void loadSampleInPlace(persona);
+                  }}
+                />
+              </div>
+            </section>
+          </div>
         )}
         {fixture ? <ReadingProgress items={progressItems} /> : null}
         {complete ? (

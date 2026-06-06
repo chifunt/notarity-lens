@@ -429,3 +429,23 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: implement real extraction-to-payload generation for uploaded documents or keep uploaded files as review-only metadata.
+
+## Sprint 28: Sample picker layout cleanup
+
+- Status: complete
+- Scope: remove nested-card sample picker layout and make every no-draft state offer all supported sample personas.
+- Changes:
+  - Extracted a reusable sample request grid.
+  - Changed the start-screen sample section into an unframed section with individual sample cards.
+  - Added the same sample picker below the no-draft analyze empty state.
+  - Added the same sample picker below uploaded document metadata.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: start screen shows exactly three sample cards.
+  - Browser check: direct analyze empty state shows exactly three sample cards and Robert can be selected from there to reach evidence.
+  - Browser check: start and analyze sample pickers have no horizontal overflow at `390x844`.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: decide whether uploaded document metadata should remain review-only or drive a constrained extraction-to-payload path.
