@@ -1,16 +1,21 @@
-import { ArrowRight, CheckCircle2, HelpCircle, Home, MapPinned, Truck } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, CheckCircle2, HelpCircle, Home, MapPinned, SearchCheck, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EvidenceChip } from "./EvidenceChip";
 import { StatusBadge } from "./StatusBadge";
 import type { DocumentFactExtraction } from "../types";
 
 export function CountrySemanticsCard({
   inference,
   onConfirm,
+  onShowEvidence,
 }: {
   inference: DocumentFactExtraction;
   onConfirm: () => void;
+  onShowEvidence?: () => void;
 }) {
   const confirmed = inference.countryOfUse.status === "confirmed";
+  const [helpOpen, setHelpOpen] = useState(false);
 
   return (
     <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
@@ -60,11 +65,57 @@ export function CountrySemanticsCard({
         <Button onClick={onConfirm}>
           {confirmed ? "Continue with Spain" : "Confirm Spain"}
         </Button>
-        <Button variant="outline">
+        <Button
+          variant="outline"
+          aria-controls="country-unsure-help"
+          aria-expanded={helpOpen}
+          onClick={() => setHelpOpen((open) => !open)}
+        >
           <HelpCircle className="h-4 w-4" aria-hidden="true" />
           I am not sure
         </Button>
       </div>
+
+      {helpOpen ? (
+        <div
+          id="country-unsure-help"
+          className="mt-5 rounded-xl border border-border bg-lens-surface-muted p-4"
+        >
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <SearchCheck className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="text-base font-semibold text-foreground">
+                Why Lens suggests Spain
+              </h3>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                Country of use means where the notarised document will be used or
+                accepted. For Joshua, the Spanish NIE, Spanish tax authority, and
+                Barcelona hard-copy evidence all point to Spain. His New York
+                address stays billing/home context.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {inference.countryOfUse.evidence.map((evidence) => (
+              <EvidenceChip key={evidence.id} evidence={evidence} compact />
+            ))}
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button size="sm" onClick={onConfirm}>
+              Confirm Spain
+            </Button>
+            {onShowEvidence ? (
+              <Button size="sm" variant="outline" onClick={onShowEvidence}>
+                Show cited evidence
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

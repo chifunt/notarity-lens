@@ -414,6 +414,7 @@ export function CountryScreen() {
                 confirmCountry();
                 navigate("/lens/plan");
               }}
+              onShowEvidence={() => navigate("/lens/evidence")}
             />
           </div>
         </ScreenFrame>

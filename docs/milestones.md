@@ -208,3 +208,19 @@
   - Browser check: mobile appointment and review have no horizontal overflow at `390x844`.
   - Palette scan found no remaining old `slate`, `violet`, `emerald`, `blue`, `rose`, `amber`, or `tracking-*` classes in the Lens UI files touched.
 - Next: add uncertainty/help affordances and deeper assistant-like support for "I am not sure" without submitting or changing deterministic payloads.
+
+## Sprint 14: Country uncertainty support
+
+- Status: complete
+- Scope: turn the country screen's `I am not sure` control into a useful assistant-like support surface.
+- Changes:
+  - Added an inline help panel explaining why Spain is suggested as the country of use.
+  - Shows the country evidence chips directly in the help panel.
+  - Adds a `Show cited evidence` action that routes back to `/lens/evidence`.
+  - Keeps `Confirm Spain` as the only state-changing action in the panel.
+- Safety decision:
+  - The help panel explains and links evidence, but does not let a conversational answer change country, products, price, or payload. Deterministic confirmation remains the gate.
+- Verification:
+  - Browser check: `I am not sure` opens the panel.
+  - Browser check: `Show cited evidence` routes back to `/lens/evidence`.
+- Next: expand uncertainty support to route/product, price, and appointment screens, then consider a backend-backed assistant endpoint with strict read-only guardrails.
