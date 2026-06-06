@@ -334,3 +334,21 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add safe fixture evidence fallbacks and then expose a small sample selector only where the non-Joshua screens are ready.
+
+## Sprint 23: Evidence document fallback
+
+- Status: complete
+- Scope: make the evidence viewer tolerate fixtures where inferred fields cite documents that are stored on the fixture rather than duplicated under the inference object.
+- Changes:
+  - Added a document resolver that prefers extraction documents and falls back to the fixture document list when needed.
+  - Passed fixture documents into the evidence preview panel.
+  - Added an empty document-text state instead of rendering a blank preview if neither source has pages.
+  - Added web unit coverage for Joshua extraction documents and Robert fixture-document fallback.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+  - Browser check: sample evidence screen still opens with two document tabs and highlighted cited quotes.
+- Next: expose a small sample selector on the start screen only after route/cost/appointment copy is audited for non-Joshua fixture data.

@@ -336,6 +336,7 @@ export function EvidenceScreen() {
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.85fr)]">
             <PdfPreviewPanel
               inference={fixture.inference}
+              documents={fixture.documents}
               activeDocumentId={activeEvidenceDocumentId}
               onActiveDocumentChange={setActiveEvidenceDocumentId}
             />

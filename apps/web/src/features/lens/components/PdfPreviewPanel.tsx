@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { FileText, Quote } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { resolveEvidenceDocuments } from "../evidenceDocuments";
 import type { DocumentFactExtraction, EvidenceRef, ExtractedDocument } from "../types";
 import { EvidenceChip } from "./EvidenceChip";
 
@@ -93,19 +94,25 @@ function HighlightedText({ text, evidence }: { text: string; evidence: EvidenceR
 
 export function PdfPreviewPanel({
   inference,
+  documents: fallbackDocuments = [],
   activeDocumentId,
   onActiveDocumentChange,
 }: {
   inference: DocumentFactExtraction;
+  documents?: ExtractedDocument[];
   activeDocumentId?: string;
   onActiveDocumentChange?: (documentId: string) => void;
 }) {
   const allEvidence = useMemo(() => collectEvidence(inference), [inference]);
-  const initialDocument = inference.documents[0];
+  const documents = useMemo(
+    () => resolveEvidenceDocuments(inference, fallbackDocuments),
+    [fallbackDocuments, inference],
+  );
+  const initialDocument = documents[0];
   const [internalDocumentId, setInternalDocumentId] = useState(initialDocument?.id);
   const selectedDocumentId = activeDocumentId ?? internalDocumentId ?? initialDocument?.id;
   const selectedDocument =
-    inference.documents.find((document) => document.id === selectedDocumentId) ?? initialDocument;
+    documents.find((document) => document.id === selectedDocumentId) ?? initialDocument;
   const selectedEvidence = selectedDocument
     ? evidenceForDocument(allEvidence, selectedDocument)
     : [];
@@ -118,7 +125,7 @@ export function PdfPreviewPanel({
   return (
     <section className="flex h-full min-h-[460px] flex-col rounded-xl border border-border bg-card shadow-[var(--shadow-card)] lg:min-h-[680px]">
       <div className="flex flex-wrap items-center gap-1 border-b border-border bg-lens-surface-muted/60 px-2 py-2">
-        {inference.documents.map((document) => {
+        {documents.map((document) => {
           const documentEvidence = evidenceForDocument(allEvidence, document);
           const active = document.id === selectedDocument?.id;
 
@@ -216,7 +223,20 @@ export function PdfPreviewPanel({
               </div>
             </section>
           </div>
-        ) : null}
+        ) : (
+          <div className="grid h-full min-h-[18rem] place-items-center p-6 text-center">
+            <div>
+              <FileText className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden="true" />
+              <p className="mt-3 text-sm font-medium text-foreground">
+                No extracted document text is available
+              </p>
+              <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">
+                The inferred fields can still be reviewed, but inline quote
+                highlighting needs extracted document pages.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
