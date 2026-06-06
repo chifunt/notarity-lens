@@ -479,3 +479,21 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue acceptance audit against demo script and polish any remaining wording mismatches.
+
+## Sprint 31: Final acceptance audit
+
+- Status: complete
+- Scope: verify the P0 MVP against the pasted acceptance checklist.
+- Verification:
+  - `pnpm install --frozen-lockfile` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+  - `git ls-files _context` returns no tracked context files.
+  - Secret scan found only placeholders, documentation references, and runtime header construction.
+  - Browser check: Joshua sample reaches evidence with highlighted citations, country confirmation, product route confirmation, €580 cost, appointment, final review, payload preview, `Create mock booking request`, mock submit success, mock appointment id, and success summary.
+- Result:
+  - P0 Joshua demo is ready in mock mode.
+  - Robert and Elizabeth are available as fallback sample branches.
+  - Arbitrary uploaded PDFs are honestly handled as metadata-only until extraction-to-payload generation is implemented.
