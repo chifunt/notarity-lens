@@ -22,3 +22,19 @@
   - `pnpm build` succeeds.
   - Built API `GET /health` returns `{ "ok": true }`.
 - Next: add shared Zod schemas and persona fixtures for Joshua, Robert, and Elizabeth.
+
+## Sprint 2: Fixtures and schemas
+
+- Status: complete
+- Scope: add shared Zod contracts for evidence, field status, inferred fields, extracted documents, price lines, Notarity product selections, appointment payloads, drafts, and persona fixtures.
+- Fixture coverage:
+  - Joshua happy path with exact critical payload, price lines, and canonical filename mapping.
+  - Robert fallback route for Lithuania.
+  - Elizabeth edge-case route for Austria with participant ambiguity.
+- Checks:
+  - `pnpm --filter @notarity-lens/shared test` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: implement the deterministic Notarity core: condition engine, product resolver, file map, price helper, payload builder, and tests.
