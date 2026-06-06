@@ -5,10 +5,7 @@
     "types": ["vite/client", "vitest/globals"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@notarity-lens/shared": ["../../packages/shared/src/index.ts"],
-      "@notarity-lens/notarity": ["../../packages/notarity/src/index.ts"],
-      "@notarity-lens/ai": ["../../packages/ai/src/index.ts"]
+      "@/*": ["./src/*"]
     },
     "noEmit": true
   },

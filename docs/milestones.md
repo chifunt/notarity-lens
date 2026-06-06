@@ -38,3 +38,22 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: implement the deterministic Notarity core: condition engine, product resolver, file map, price helper, payload builder, and tests.
+
+## Sprint 3: Deterministic Notarity core
+
+- Status: complete
+- Scope: implement documented condition operators, country/product routing, timeslot label selection, canonical filename mapping, price summing, and deterministic Joshua payload generation.
+- Tests:
+  - ES route exposes the NIE path.
+  - NIE application auto-adds NIE Personal Data.
+  - AT route uses the Austria branch.
+  - generic non-AT/non-ES route uses the generic branch.
+  - Joshua payload critical fields match the expected booking.
+  - product filenames match normalized multipart filenames.
+  - Joshua price lines sum to EUR 580.
+- Checks:
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add Hono API mock routes and live-safe Notarity/AI client skeletons.
