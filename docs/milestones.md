@@ -372,3 +372,20 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: mobile-smoke the selector and continue tightening remaining non-Joshua copy or gating defects.
+
+## Sprint 25: Mobile selector verification
+
+- Status: complete
+- Scope: verify the sample selector and a non-Joshua review path at a narrow mobile viewport.
+- Result:
+  - No code changes were needed.
+  - At `390x844`, the start screen shows all three sample request cards without horizontal overflow.
+  - At `390x844`, Elizabeth reaches final review without horizontal overflow.
+  - Mobile review shows FlexCo Incorporation and No hard copy shipment.
+- Verification:
+  - Browser check: mobile selector and Elizabeth review path pass at `390x844`.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: replace remaining route-default assumptions with explicit sample/upload mode state so upload-later and selected samples do not rely on the Joshua fallback.
