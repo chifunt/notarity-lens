@@ -1,0 +1,5 @@
+.DS_Store
+_context/
+.env
+.env.*
+!.env.example
