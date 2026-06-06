@@ -4,6 +4,12 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@notarity-lens/shared": ["packages/shared/src/index.ts"],
+      "@notarity-lens/notarity": ["packages/notarity/src/index.ts"],
+      "@notarity-lens/ai": ["packages/ai/src/index.ts"]
+    },
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
