@@ -128,3 +128,22 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add README, REPORT, architecture docs, and demo checklist; run final verification.
+
+## Sprint 10: Tests, docs, and demo prep
+
+- Status: complete
+- Scope: add public setup docs, report, architecture notes, and a Joshua demo checklist.
+- Artifacts:
+  - `README.md`
+  - `REPORT.md`
+  - `docs/architecture.md`
+  - `docs/demo-checklist.md`
+- Checks:
+  - `pnpm install` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+  - `git ls-files _context` returns no tracked context files.
+  - Secret scan found no committed token or password; only runtime header construction code matched.
+- Next: final completion audit against the P0 acceptance criteria.
