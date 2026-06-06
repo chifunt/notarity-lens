@@ -266,3 +266,15 @@
 - Verification:
   - Browser check: appointment screen opens the participant help panel.
 - Next: add cost uncertainty support and evaluate whether participant editing should become real state in a later non-P0 sprint.
+
+## Sprint 18: Cost uncertainty support
+
+- Status: complete
+- Scope: explain the itemized price without implying Lens calculates final pricing itself.
+- Changes:
+  - Added `I am not sure about the price` to the receipt.
+  - The panel explains that live mode must use the Notarity pricing endpoint as authoritative.
+  - Keeps the visible line-item receipt and lists what can affect the endpoint result.
+- Verification:
+  - Browser check: cost screen opens the price help panel and keeps the itemized total visible.
+- Next: add higher-signal automated UI smoke coverage or deepen real participant editing behind deterministic payload updates.

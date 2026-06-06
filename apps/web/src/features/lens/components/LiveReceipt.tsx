@@ -1,8 +1,12 @@
-import { RefreshCcw } from "lucide-react";
+import { useState } from "react";
+import { HelpCircle, RefreshCcw, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { formatEuro, formatEuroFromCents } from "../format";
 import type { PriceResponse } from "../types";
 
 export function LiveReceipt({ price }: { price: PriceResponse }) {
+  const [helpOpen, setHelpOpen] = useState(false);
+
   return (
     <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -34,13 +38,47 @@ export function LiveReceipt({ price }: { price: PriceResponse }) {
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg border border-border bg-lens-surface-muted p-4">
-        <h3 className="text-sm font-semibold text-foreground">What changes this price?</h3>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Product route, apostille, hard copy, drafting help, proof of representation,
-          shipping, and the country of use can affect the pricing endpoint.
-        </p>
-      </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="mt-4"
+        aria-controls="price-help"
+        aria-expanded={helpOpen}
+        onClick={() => setHelpOpen((open) => !open)}
+      >
+        <HelpCircle className="h-4 w-4" aria-hidden="true" />
+        I am not sure about the price
+      </Button>
+
+      {helpOpen ? (
+        <div id="price-help" className="mt-4 rounded-lg border border-border bg-lens-surface-muted p-4">
+          <div className="flex items-start gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">
+                Why this total is used
+              </h3>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                The total follows the Notarity pricing response shape. In live
+                mode, the pricing endpoint is authoritative; Lens should not
+                invent or recalculate final prices from product metadata.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-md border border-border bg-card p-3">
+            <h4 className="text-sm font-semibold text-foreground">What can change it?</h4>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Product route, apostille, hard copy, drafting help, proof of
+              representation, shipping, and country of use can affect the
+              pricing endpoint.
+            </p>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
