@@ -648,19 +648,59 @@ export function ReviewScreen() {
                 <ReviewSection
                   title="Country and route"
                   rows={[
-                    { label: "Country of use", value: "Spain", status: fixture.inference.countryOfUse.status },
-                    { label: "Products", value: "NIE number application; NIE Personal Data", status: "confirmed" },
-                    { label: "Documents", value: fixture.payload.products.flatMap((product) => product.files).join(", "), status: "confirmed" },
-                    { label: "Hard copy", value: "Yes, standard shipping", status: "confirmed" },
-                    { label: "Price", value: price ? formatEuro(price.confirmedPrice) : "Pending", status: price ? "confirmed" : "missing" },
+                    {
+                      label: "Country of use",
+                      value: "Spain",
+                      status: fixture.inference.countryOfUse.status,
+                      onChange: () => navigate("/lens/country"),
+                    },
+                    {
+                      label: "Products",
+                      value: "NIE number application; NIE Personal Data",
+                      status: "confirmed",
+                      onChange: () => navigate("/lens/plan"),
+                    },
+                    {
+                      label: "Documents",
+                      value: fixture.payload.products.flatMap((product) => product.files).join(", "),
+                      status: "confirmed",
+                      onChange: () => navigate("/lens/evidence"),
+                    },
+                    {
+                      label: "Hard copy",
+                      value: "Yes, standard shipping",
+                      status: "confirmed",
+                      onChange: () => navigate("/lens/plan"),
+                    },
+                    {
+                      label: "Price",
+                      value: price ? formatEuro(price.confirmedPrice) : "Pending",
+                      status: price ? "confirmed" : "missing",
+                      onChange: () => navigate("/lens/cost"),
+                    },
                   ]}
                 />
                 <ReviewSection
                   title="People and addresses"
                   rows={[
-                    { label: "Participant", value: fixture.payload.participants[0]?.email ?? "", status: "confirmed" },
-                    { label: "Billing", value: "Joshua Timms, New York, United States", status: "confirmed" },
-                    { label: "Shipping", value: "Joshua Timms, Carrer de Mallorca 401, Barcelona, Spain", status: "confirmed" },
+                    {
+                      label: "Participant",
+                      value: fixture.payload.participants[0]?.email ?? "",
+                      status: "confirmed",
+                      onChange: () => navigate("/lens/appointment"),
+                    },
+                    {
+                      label: "Billing",
+                      value: "Joshua Timms, New York, United States",
+                      status: "confirmed",
+                      onChange: () => navigate("/lens/evidence"),
+                    },
+                    {
+                      label: "Shipping",
+                      value: "Joshua Timms, Carrer de Mallorca 401, Barcelona, Spain",
+                      status: "confirmed",
+                      onChange: () => navigate("/lens/evidence"),
+                    },
                   ]}
                 />
                 <PayloadPreview payload={fixture.payload} />

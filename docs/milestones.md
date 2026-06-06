@@ -278,3 +278,15 @@
 - Verification:
   - Browser check: cost screen opens the price help panel and keeps the itemized total visible.
 - Next: add higher-signal automated UI smoke coverage or deepen real participant editing behind deterministic payload updates.
+
+## Sprint 19: Review change actions
+
+- Status: complete
+- Scope: remove inert `Change` controls from final review.
+- Changes:
+  - Review rows now accept optional `onChange` actions.
+  - Country, product, document, hard copy, price, participant, billing, and shipping rows route to the relevant screen.
+  - Change buttons now have accessible names such as `Change Price`.
+- Verification:
+  - Browser check: `Change Price` on review routes back to `/lens/cost`.
+- Next: add a small browser-level smoke test or continue replacing fixture-only UI with real editable state where it is safe.

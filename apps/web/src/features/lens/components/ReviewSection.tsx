@@ -8,7 +8,12 @@ export function ReviewSection({
   rows,
 }: {
   title: string;
-  rows: Array<{ label: string; value: ReactNode; status: FieldStatus }>;
+  rows: Array<{
+    label: string;
+    value: ReactNode;
+    status: FieldStatus;
+    onChange?: () => void;
+  }>;
 }) {
   return (
     <section className="rounded-xl border border-border bg-card shadow-[var(--shadow-card)]">
@@ -21,9 +26,17 @@ export function ReviewSection({
             <p className="text-sm font-medium text-muted-foreground">{row.label}</p>
             <div className="min-w-0 break-words text-sm text-foreground">{row.value}</div>
             <StatusBadge status={row.status} className="justify-self-start" />
-            <Button variant="ghost" size="sm" className="justify-self-start md:justify-self-end">
-              Change
-            </Button>
+            {row.onChange ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-self-start md:justify-self-end"
+                onClick={row.onChange}
+                aria-label={`Change ${row.label}`}
+              >
+                Change
+              </Button>
+            ) : null}
           </div>
         ))}
       </div>
