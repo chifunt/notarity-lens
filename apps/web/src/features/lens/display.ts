@@ -38,6 +38,10 @@ export function formatFilesSummary(payload: AppointmentPayload) {
   return files.length ? files.join(", ") : "No files attached yet";
 }
 
+export function formatProductFiles(files: string[]) {
+  return files.length ? files.join(", ") : "No files attached yet";
+}
+
 export function formatBooleanChoice(value: unknown) {
   return value === true ? "Required" : value === false ? "Not needed" : "Not applicable";
 }

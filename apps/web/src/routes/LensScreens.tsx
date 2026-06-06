@@ -48,6 +48,47 @@ import { formatEuro } from "@/features/lens/format";
 import { useLensStore } from "@/features/lens/store";
 import type { PersonaFixture, PriceResponse } from "@/features/lens/types";
 
+const sampleRequests: Array<{
+  id: PersonaFixture["id"];
+  name: string;
+  summary: string;
+  bullets: string[];
+}> = [
+  {
+    id: "joshua",
+    name: "Joshua Blake",
+    summary: "Spanish NIE route with hard-copy shipping",
+    bullets: [
+      "Country of use: Spain",
+      "Billing/home: United States",
+      "Shipping: Barcelona, Spain",
+      "NIE number application plus personal-data companion",
+    ],
+  },
+  {
+    id: "robert",
+    name: "Robert Stevens",
+    summary: "Lithuanian signature notarisation",
+    bullets: [
+      "Country of use: Lithuania",
+      "One signature notarisation product",
+      "No hard-copy shipment",
+      "No files attached yet",
+    ],
+  },
+  {
+    id: "elizabeth",
+    name: "Elizabeth Midgley",
+    summary: "Austrian FlexCo incorporation",
+    bullets: [
+      "Country of use: Austria",
+      "FlexCo incorporation product",
+      "UK billing context",
+      "Participant ambiguity needs review",
+    ],
+  },
+];
+
 function useEnsureFixture() {
   const fixture = useLensStore((state) => state.fixture);
   const loadJoshuaDemo = useLensStore((state) => state.loadJoshuaDemo);
@@ -104,12 +145,12 @@ function RequireFixture({
 
 export function StartScreen() {
   const navigate = useNavigate();
-  const loadJoshuaDemo = useLensStore((state) => state.loadJoshuaDemo);
+  const loadPersona = useLensStore((state) => state.loadPersona);
   const loading = useLensStore((state) => state.loading);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const loadAndContinue = async () => {
-    await loadJoshuaDemo();
+  const loadAndContinue = async (persona: PersonaFixture["id"] = "joshua") => {
+    await loadPersona(persona);
     navigate("/lens/analyze");
   };
 
@@ -167,7 +208,7 @@ export function StartScreen() {
               <FileText className="h-4 w-4" aria-hidden="true" />
               I will upload it later
             </Button>
-            <Button variant="ghost" onClick={loadAndContinue} disabled={loading}>
+            <Button variant="ghost" onClick={() => void loadAndContinue()} disabled={loading}>
               Use sample request
             </Button>
           </div>
@@ -203,18 +244,29 @@ export function StartScreen() {
         </div>
 
         <div className="mt-4 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
-          <h2 className="text-sm font-semibold text-foreground">Sample request output</h2>
-          <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
-            {[
-              "Country of use: Spain",
-              "Billing/home: United States",
-              "Shipping: Barcelona, Spain",
-              "NIE number application plus NIE Personal Data",
-            ].map((item) => (
-              <div key={item} className="flex gap-2">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-confirmed-foreground" aria-hidden="true" />
-                <span>{item}</span>
-              </div>
+          <h2 className="text-sm font-semibold text-foreground">Sample requests</h2>
+          <div className="mt-3 grid gap-3 lg:grid-cols-3">
+            {sampleRequests.map((sample) => (
+              <button
+                key={sample.id}
+                type="button"
+                onClick={() => void loadAndContinue(sample.id)}
+                disabled={loading}
+                className="rounded-lg border border-border bg-lens-surface-muted p-4 text-left transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
+              >
+                <span className="text-sm font-semibold text-foreground">{sample.name}</span>
+                <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+                  {sample.summary}
+                </span>
+                <span className="mt-3 grid gap-2 text-sm text-muted-foreground">
+                  {sample.bullets.map((item) => (
+                    <span key={item} className="flex gap-2">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-confirmed-foreground" aria-hidden="true" />
+                      <span>{item}</span>
+                    </span>
+                  ))}
+                </span>
+              </button>
             ))}
           </div>
         </div>
@@ -682,8 +734,8 @@ export function ReviewScreen() {
                     },
                     {
                       label: "Hard copy",
-                      value: "Yes, standard shipping",
-                      status: "confirmed",
+                      value: formatShippingSummary(fixture.payload),
+                      status: fixture.payload.hardCopy.hardCopy ? "confirmed" : "not_applicable",
                       onChange: () => navigate("/lens/plan"),
                     },
                     {
@@ -711,8 +763,8 @@ export function ReviewScreen() {
                     },
                     {
                       label: "Shipping",
-                      value: formatAddress(fixture.payload.shippingDetails),
-                      status: "confirmed",
+                      value: formatShippingSummary(fixture.payload),
+                      status: fixture.payload.shippingDetails ? "confirmed" : "not_applicable",
                       onChange: () => navigate("/lens/evidence"),
                     },
                   ]}

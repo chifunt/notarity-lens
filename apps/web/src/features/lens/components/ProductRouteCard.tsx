@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FileCheck2, HelpCircle, Info, Link2, PackageCheck, SearchCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { formatProductName } from "../display";
+import { formatBooleanChoice, formatProductFiles, formatProductName } from "../display";
 import type { PersonaFixture } from "../types";
 import { EvidenceChip } from "./EvidenceChip";
 import { StatusBadge } from "./StatusBadge";
@@ -16,9 +16,12 @@ export function ProductRouteCard({
   onShowEvidence?: () => void;
 }) {
   const productFields = fixture.inference.products;
-  const routeConfirmed = productFields.every((field) => field.status === "confirmed");
+  const routeConfirmed = productFields.length
+    ? productFields.every((field) => field.status === "confirmed")
+    : true;
   const [helpOpen, setHelpOpen] = useState(false);
   const productEvidence = productFields.flatMap((field) => field.evidence);
+  const hasCompanionProduct = fixture.payload.products.length > 1;
 
   return (
     <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
@@ -48,16 +51,16 @@ export function ProductRouteCard({
                   <div className="mt-2 grid gap-1 text-sm text-muted-foreground">
                     <span className="inline-flex items-center gap-2">
                       <FileCheck2 className="h-4 w-4 text-status-confirmed-foreground" aria-hidden="true" />
-                      File attached: {product.files.join(", ")}
+                      Files: {formatProductFiles(product.files)}
                     </span>
                     <span className="inline-flex items-center gap-2">
                       <PackageCheck className="h-4 w-4 text-primary" aria-hidden="true" />
-                      Apostille: {product.apostille ? "required" : "not needed"}
+                      Apostille: {formatBooleanChoice(product.apostille)}
                     </span>
                   </div>
                 </div>
               </div>
-              {index === 1 ? (
+              {hasCompanionProduct && index > 0 ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-status-inferred px-2 py-1 text-xs font-medium text-status-inferred-foreground">
                   <Link2 className="h-3.5 w-3.5" aria-hidden="true" />
                   Required companion document
@@ -68,13 +71,15 @@ export function ProductRouteCard({
         ))}
       </div>
 
-      <div className="mt-4 flex items-start gap-2 rounded-lg border border-border bg-accent/30 px-4 py-3 text-sm text-foreground/80">
-        <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-        <p>
-          The second document is easy to miss in a normal booking form. Lens
-          adds it because this Notarity route requires it.
-        </p>
-      </div>
+      {hasCompanionProduct ? (
+        <div className="mt-4 flex items-start gap-2 rounded-lg border border-border bg-accent/30 px-4 py-3 text-sm text-foreground/80">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+          <p>
+            This route includes a required companion product. Lens shows it
+            before the payload is submitted.
+          </p>
+        </div>
+      ) : null}
 
       <div className="mt-5 flex flex-wrap gap-2">
         <Button onClick={onConfirm}>
@@ -125,9 +130,16 @@ export function ProductRouteCard({
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            {productEvidence.map((evidence) => (
-              <EvidenceChip key={evidence.id} evidence={evidence} compact />
-            ))}
+            {productEvidence.length ? (
+              productEvidence.map((evidence) => (
+                <EvidenceChip key={evidence.id} evidence={evidence} compact />
+              ))
+            ) : (
+              <p className="text-sm leading-6 text-muted-foreground">
+                No product-level citations were extracted for this sample. Review
+                the country evidence and product IDs before continuing.
+              </p>
+            )}
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">

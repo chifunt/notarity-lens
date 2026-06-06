@@ -352,3 +352,23 @@
   - `pnpm build` succeeds.
   - Browser check: sample evidence screen still opens with two document tabs and highlighted cited quotes.
 - Next: expose a small sample selector on the start screen only after route/cost/appointment copy is audited for non-Joshua fixture data.
+
+## Sprint 24: Sample selector readiness
+
+- Status: complete
+- Scope: expose the supported sample personas without keeping Joshua-only assumptions in the route and review screens.
+- Changes:
+  - Added start-screen sample request cards for Joshua, Robert, and Elizabeth.
+  - Made product-route file, apostille, companion-product, and evidence-help copy derive from the active payload.
+  - Replaced hardcoded review hard-copy/shipping text with payload-derived summaries and not-applicable statuses.
+  - Generalized the empty-state sample copy.
+  - Added display-helper tests for no-file products, hard-copy summaries, and nullable boolean labels.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: Robert selector path reaches final review with Signature notarisation, No hard copy shipment, and No files attached yet.
+  - Browser check: Elizabeth selector path reaches final review with FlexCo Incorporation, United Kingdom billing context, and No hard copy shipment.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: mobile-smoke the selector and continue tightening remaining non-Joshua copy or gating defects.

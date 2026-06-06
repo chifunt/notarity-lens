@@ -13,8 +13,8 @@ export function EmptyState({
       <FileUp className="mx-auto h-10 w-10 text-primary" aria-hidden="true" />
       <h2 className="mt-4 text-xl font-semibold text-foreground">Upload documents first</h2>
       <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-        Use the sample request to preload the Joshua documents, route, receipt,
-        and payload expected for the hackathon persona.
+        Use a sample request to preload documents, route, receipt, and payload
+        data for a safe draft review.
       </p>
       <Button className="mt-5" onClick={onLoad} disabled={loading}>
         {loading ? "Loading..." : "Use sample request"}
