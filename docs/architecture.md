@@ -29,12 +29,16 @@ flowchart TD
 
 The default demo mode uses:
 
-- Joshua fixture documents and extracted text.
-- Joshua fixture inference.
+- Joshua, Robert, or Elizabeth fixture documents and extracted text.
+- persona fixture inference.
 - mock booking form and product fixtures.
 - mock timeslot `xitTkTMC18R0ZfCNtqyW`.
 - mock price lines totaling EUR 580.
 - mock submit id `mock_appt_*`.
+
+Uploaded PDFs use `/api/documents/upload` to return session and file metadata.
+That metadata is visible in the analyze screen, but arbitrary uploaded PDFs do
+not yet drive deterministic payload generation.
 
 ## Live Mode Boundaries
 

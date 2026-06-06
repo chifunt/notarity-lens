@@ -14,7 +14,10 @@ an itemized price, and submits a mock appointment request.
 
 ## What Works
 
-- Joshua Timms demo flow from upload/intake to mock success.
+- Joshua Timms demo flow from sample intake to mock success.
+- Sample request selector for Joshua, Robert, and Elizabeth fallback personas.
+- PDF selection posts to the backend upload endpoint and displays uploaded
+  document metadata separately from complete sample drafts.
 - Evidence review for Spain, NIE, Joshua, New York billing, Barcelona shipping,
   apostille, and hard copy.
 - Country semantics screen that separates country of use, billing/home, and
@@ -35,7 +38,9 @@ an itemized price, and submits a mock appointment request.
 
 ## What Is Mocked
 
-- PDF extraction uses Joshua fixture text.
+- Sample request extraction uses fixture text.
+- Arbitrary uploaded PDFs are metadata-only in the web flow until extraction can
+  produce a complete deterministic payload.
 - AI inference defaults to `MOCK_AI=true`.
 - Notarity API defaults to `MOCK_NOTARITY=true`.
 - Submit defaults to mock mode. Live submit is blocked unless explicitly enabled
@@ -91,7 +96,7 @@ pnpm build
 ## Demo Path
 
 1. Open the app.
-2. Click `Load Joshua demo`.
+2. Click the `Joshua Blake` sample request card or `Use Joshua sample`.
 3. Review document analysis and filename mapping.
 4. Review evidence for NIE, Spanish tax authorities, Barcelona, Joshua Timms,
    and New York.

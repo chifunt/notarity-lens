@@ -15,7 +15,7 @@
 
 ## 3-Minute Joshua Path
 
-1. Click `Load Joshua demo`.
+1. Click the `Joshua Blake` sample request card or `Use Joshua sample`.
 2. Show both uploaded documents and canonical filename mapping.
 3. Show evidence:
    - Foreign Identity Number (NIE)
@@ -55,3 +55,8 @@
 - If live pricing is unavailable, show the fixture price labeled as demo price.
 - If live submit is unavailable, show the payload preview and explain that live
   submit is gated for safety.
+- If Joshua breaks, return to the start screen and choose the Robert Stevens or
+  Elizabeth Midgley sample request card.
+- If arbitrary PDF upload is discussed, explain that the current P0 records
+  uploaded document metadata but does not yet generate a complete Notarity
+  payload from arbitrary PDFs.

@@ -449,3 +449,17 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: decide whether uploaded document metadata should remain review-only or drive a constrained extraction-to-payload path.
+
+## Sprint 29: Documentation refresh
+
+- Status: complete
+- Scope: align public docs and demo notes with the current selector and upload-metadata behavior.
+- Changes:
+  - Updated README demo steps from the old Load Joshua demo wording to the current Joshua sample card.
+  - Documented Robert and Elizabeth as fallback sample branches.
+  - Documented arbitrary PDF upload as metadata-only until payload generation exists.
+  - Updated report limitations and architecture notes to match the implemented upload metadata path.
+- Verification:
+  - Stale docs wording scan completed; remaining old wording is historical milestone context or intentional limitations.
+  - `pnpm typecheck` succeeds.
+- Next: decide whether uploaded document metadata should remain review-only or drive a constrained extraction-to-payload path.

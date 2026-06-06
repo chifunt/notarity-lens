@@ -97,13 +97,17 @@ Current automated coverage includes:
 - API smoke routes for health, fixtures, infer, price, and submit
 
 Manual browser verification covered the Joshua path from start to success on the
-local dev server.
+local dev server. Later verification also covered Robert and Elizabeth sample
+selection through final review, plus mobile selector layout at `390x844`.
 
 ## Known Limitations
 
 - PDF extraction is fixture-backed for the hackathon demo.
+- Arbitrary uploaded PDFs currently produce reviewable upload metadata, not a
+  complete deterministic payload.
 - QR phone upload is not implemented.
 - Click-to-highlight PDF coordinates are represented as evidence chips and text
   panels, not true PDF bounding-box highlights.
-- Robert and Elizabeth are fixtures but not full UI branches.
+- Robert and Elizabeth are supported fallback sample branches, but their fixture
+  inference depth is intentionally lighter than Joshua's main demo.
 - Live multipart submit is intentionally not enabled.
