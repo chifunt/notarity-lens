@@ -169,14 +169,15 @@ export function StartScreen() {
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <button
             type="button"
+            onClick={() => fileInputRef.current?.click()}
             className="rounded-xl border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <Smartphone className="h-5 w-5 text-primary" aria-hidden="true" />
             <span className="mt-3 block text-sm font-semibold text-foreground">
-              Scan from phone
+              Choose from this device
             </span>
             <span className="mt-1 block text-sm leading-6 text-muted-foreground">
-              Continue here after capturing documents on another device.
+              Use the same PDF intake when the files are already available here.
             </span>
           </button>
           <button

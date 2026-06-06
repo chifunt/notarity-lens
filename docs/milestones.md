@@ -290,3 +290,14 @@
 - Verification:
   - Browser check: `Change Price` on review routes back to `/lens/cost`.
 - Next: add a small browser-level smoke test or continue replacing fixture-only UI with real editable state where it is safe.
+
+## Sprint 20: Control audit cleanup
+
+- Status: complete
+- Scope: find and remove misleading inert controls in the Lens UI.
+- Changes:
+  - Audited Lens buttons and action cards.
+  - Replaced the inert `Scan from phone` card with a real `Choose from this device` upload action wired to the file picker.
+- Verification:
+  - Button scan shows remaining controls are wired, disabled intentionally, or conditionally rendered with handlers.
+- Next: decide whether to implement real editable participant state or add a browser-level smoke test dependency.
