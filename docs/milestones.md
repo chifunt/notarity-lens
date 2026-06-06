@@ -240,3 +240,17 @@
   - Browser check: `I am not sure` opens the route help panel.
   - Browser check: `Show cited evidence` routes back to `/lens/evidence`.
 - Next: expand uncertainty support to cost and appointment, then add automated browser smoke tests for the sample flow.
+
+## Sprint 16: Web flow regression smoke test
+
+- Status: complete
+- Scope: add automated web-side regression coverage for the sample Lens flow.
+- Changes:
+  - Added `apps/web/src/features/lens/store.test.ts`.
+  - Mocks `fetch` and exercises the actual Zustand Lens store.
+  - Covers Joshua fixture loading, pricing, country confirmation, route confirmation, submit, and reset.
+- Test-shape decision:
+  - The web package currently has Vitest but no DOM-testing or Playwright dependency. This sprint adds a focused store/API smoke test without expanding dependencies.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` now runs one passing test instead of no web tests.
+- Next: add cost and appointment uncertainty support, then consider a small browser-level smoke test dependency if the repo can afford it.
