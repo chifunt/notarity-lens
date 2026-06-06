@@ -4,13 +4,13 @@ import { statusLabel } from "../format";
 import type { FieldStatus } from "../types";
 
 const statusStyles: Record<FieldStatus, string> = {
-  inferred: "border-blue-200 bg-blue-50 text-blue-800",
-  confirmed: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  needs_review: "border-amber-200 bg-amber-50 text-amber-900",
-  conflict: "border-rose-200 bg-rose-50 text-rose-800",
-  missing: "border-slate-300 bg-slate-100 text-slate-800",
-  edited: "border-violet-200 bg-violet-50 text-violet-800",
-  not_applicable: "border-slate-200 bg-white text-slate-600",
+  inferred: "border-status-inferred bg-status-inferred text-status-inferred-foreground",
+  confirmed: "border-status-confirmed bg-status-confirmed text-status-confirmed-foreground",
+  needs_review: "border-status-needs-review bg-status-needs-review text-status-needs-review-foreground",
+  conflict: "border-status-conflict bg-status-conflict text-status-conflict-foreground",
+  missing: "border-status-missing bg-status-missing text-status-missing-foreground",
+  edited: "border-status-edited bg-status-edited text-status-edited-foreground",
+  not_applicable: "border-border bg-card text-muted-foreground",
 };
 
 const statusIcons = {

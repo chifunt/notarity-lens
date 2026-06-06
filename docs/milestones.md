@@ -169,3 +169,22 @@
   - `pnpm build` succeeds.
   - Browser check: desktop start page, sample-request analyze transition, evidence arrival, and mobile start page layout verified at `390x844`.
 - Next: align the evidence screen with Lovable's document tabs while adding highlighted cited quotes across all uploaded documents.
+
+## Sprint 12: Evidence tabs and cited-quote highlights
+
+- Status: complete
+- Scope: make `/lens/evidence` behave like the Lovable evidence review screen while adding the missing inspection depth requested in the critique.
+- Changes:
+  - Replaced the static document list with a tabbed document evidence panel.
+  - Added per-document citation counts in tabs and per-page citation counts inside the active document.
+  - Highlighted cited quote ranges directly in the extracted document text.
+  - Made field-card evidence chips clickable so selecting a citation switches the active document tab.
+  - Updated evidence chips, inference cards, and status badges to use the Notarity/Lovable token system.
+- Evidence handling decision:
+  - Some fixture quotes overlap, such as `Foreign Identity Number (NIE)` inside `obtaining a Foreign Identity Number (NIE)`.
+  - The UI highlights the merged span in the document text and still renders each citation as a chip, so all evidence remains inspectable without invalid nested highlights.
+- Verification:
+  - Browser check: desktop evidence screen shows both document tabs and highlighted cited quotes.
+  - Browser check: clicking the `NIE personal details form` field-card citation switches to the personal-details document tab.
+  - Browser check: mobile evidence layout stacks without text overlap at `390x844`; DOM has one app shell despite a full-page screenshot stitching artifact.
+- Next: continue Lovable alignment for country, route, cost, appointment, review, and success screens, then add deeper unsure/help flows.
