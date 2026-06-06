@@ -1,0 +1,21 @@
+{
+  "name": "notarity-lens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.3.0",
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @notarity-lens/api dev\" \"pnpm --filter @notarity-lens/web dev\"",
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "pnpm -r --if-present lint",
+    "test": "pnpm -r --if-present test",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.7.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
+  }
+}
