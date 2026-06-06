@@ -254,3 +254,15 @@
 - Verification:
   - `pnpm --filter @notarity-lens/web test` now runs one passing test instead of no web tests.
 - Next: add cost and appointment uncertainty support, then consider a small browser-level smoke test dependency if the repo can afford it.
+
+## Sprint 17: Appointment participant help
+
+- Status: complete
+- Scope: remove the remaining inert appointment control and replace it with real participant guidance.
+- Changes:
+  - Replaced `Add another participant` with `Who needs to join?`.
+  - Added an inline participant help panel explaining that every signer must be listed and verify identity.
+  - Kept the Joshua sample payload unchanged; the panel informs without mutating participants.
+- Verification:
+  - Browser check: appointment screen opens the participant help panel.
+- Next: add cost uncertainty support and evaluate whether participant editing should become real state in a later non-P0 sprint.

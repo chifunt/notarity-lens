@@ -8,6 +8,7 @@ import {
   FileText,
   FileUp,
   Globe2,
+  HelpCircle,
   Mail,
   MapPin,
   PackageCheck,
@@ -480,6 +481,7 @@ export function CostScreen() {
 
 export function AppointmentScreen() {
   const navigate = useNavigate();
+  const [participantHelpOpen, setParticipantHelpOpen] = useState(false);
 
   return (
     <RequireFixture>
@@ -506,10 +508,33 @@ export function AppointmentScreen() {
                         {fixture.payload.participants[0]?.email}
                       </p>
                     </div>
-                    <Button type="button" variant="ghost" size="sm" className="mt-3 text-primary">
-                      <Mail className="h-4 w-4" aria-hidden="true" />
-                      Add another participant
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="mt-3 text-primary"
+                      aria-controls="participant-help"
+                      aria-expanded={participantHelpOpen}
+                      onClick={() => setParticipantHelpOpen((open) => !open)}
+                    >
+                      <HelpCircle className="h-4 w-4" aria-hidden="true" />
+                      Who needs to join?
                     </Button>
+                    {participantHelpOpen ? (
+                      <div
+                        id="participant-help"
+                        className="mt-3 rounded-lg border border-border bg-card p-3 text-sm leading-6 text-muted-foreground"
+                      >
+                        <div className="flex items-start gap-2">
+                          <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                          <p>
+                            Every signer must be listed as a participant and verify
+                            identity during the appointment. Joshua is the only
+                            signer in this sample request.
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
                   </article>
 
                   <article className="rounded-lg border border-border bg-lens-surface-muted p-4">
