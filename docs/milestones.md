@@ -79,3 +79,30 @@
   - `pnpm build` succeeds.
   - Built API manually returns Joshua fixture, EUR 580 mock price, and mock submit success.
 - Next: build the web flow using the Lovable design reference and connect it to the mock API.
+
+## Sprint 5/6: Joshua happy path web flow
+
+- Status: complete
+- Scope: replace the placeholder web app with a routed Lens flow using the Lovable reference structure and calm Notarity-style UI.
+- Screens:
+  - `/` upload/intake with “Load Joshua demo” and upload-later path.
+  - `/lens/analyze` document list, canonical filename mapping, reading progress, and receipt sidebar.
+  - `/lens/evidence` split evidence/document panel and inferred fields.
+  - `/lens/country` country-of-use semantics and confirmation.
+  - `/lens/plan` product route and required companion document.
+  - `/lens/cost` mock-priced receipt and preparation timeline.
+  - `/lens/appointment` participant, timeslot, and shipping summary.
+  - `/lens/review` grouped final review, payload preview, submit gating, and mock submit CTA.
+  - `/lens/success` mock booking success and next steps.
+- Browser verification:
+  - Start to success Joshua flow works against local API.
+  - Receipt shows EUR 580 from mock price endpoint.
+  - Mock submit returns a `mock_appt_*` id.
+  - Desktop review screenshot checked.
+  - Mobile review layout checked; submit is gated unless required fields were confirmed.
+- Checks:
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add the DeepSeek prompt/schema package and live-safe AI adapter fallback, then document setup and demo.
