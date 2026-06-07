@@ -968,3 +968,19 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking review status derivation against payload facts.
+
+## Sprint 59: Analyze delayed-navigation cleanup
+
+- Status: complete
+- Scope: prevent stale analysis completion timers from navigating after the user leaves Analyze.
+- Changes:
+  - Analyze now tracks and clears the delayed Evidence navigation timeout in effect cleanup, not just the progress interval.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - Browser check: selecting the Joshua Timms sample still auto-advances from Analyze to Evidence.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking route effects for stale timers and unmounted navigation.

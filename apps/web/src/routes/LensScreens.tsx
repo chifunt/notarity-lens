@@ -441,19 +441,23 @@ export function AnalyzeScreen() {
 
     setActiveStep(0);
     setComplete(false);
+    let evidenceTimer: number | undefined;
     const timer = window.setInterval(() => {
       setActiveStep((current) => {
         if (current >= analyzeSteps.length - 1) {
           window.clearInterval(timer);
           setComplete(true);
-          window.setTimeout(() => navigate("/lens/evidence"), 500);
+          evidenceTimer = window.setTimeout(() => navigate("/lens/evidence"), 500);
           return current;
         }
         return current + 1;
       });
     }, 650);
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+      if (evidenceTimer) window.clearTimeout(evidenceTimer);
+    };
   }, [fixture, navigate]);
 
   const progressItems = useMemo(
