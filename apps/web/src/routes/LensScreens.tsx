@@ -20,6 +20,7 @@ import {
   Send,
   ShieldCheck,
   UserRound,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/features/lens/components/AppShell";
@@ -731,6 +732,7 @@ export function StartScreen() {
   const uploadDocuments = useLensStore((state) => state.uploadDocuments);
   const loading = useLensStore((state) => state.loading);
   const [dragActive, setDragActive] = useState(false);
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadAndContinue = async (persona: PersonaFixture["id"]) => {
@@ -738,13 +740,38 @@ export function StartScreen() {
     if (loaded) navigate("/lens/analyze");
   };
 
-  const uploadAndContinue = async (files: FileList | File[] | null) => {
+  const stageFiles = (files: FileList | File[] | null) => {
     const selectedFiles = Array.from(files ?? []).filter(
       (file) => file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"),
     );
     if (!selectedFiles.length) return;
 
-    void uploadDocuments(selectedFiles);
+    setStagedFiles((currentFiles) => {
+      const seen = new Set(
+        currentFiles.map((file) => `${file.name}:${file.size}:${file.lastModified}`),
+      );
+      const newFiles = selectedFiles.filter((file) => {
+        const key = `${file.name}:${file.size}:${file.lastModified}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      return [...currentFiles, ...newFiles];
+    });
+  };
+
+  const removeStagedFile = (fileToRemove: File) => {
+    const keyToRemove = `${fileToRemove.name}:${fileToRemove.size}:${fileToRemove.lastModified}`;
+    setStagedFiles((currentFiles) =>
+      currentFiles.filter(
+        (file) => `${file.name}:${file.size}:${file.lastModified}` !== keyToRemove,
+      ),
+    );
+  };
+
+  const uploadStagedAndContinue = () => {
+    if (!stagedFiles.length) return;
+    void uploadDocuments(stagedFiles);
     navigate("/lens/analyze");
   };
 
@@ -792,7 +819,7 @@ export function StartScreen() {
           onDrop={(event) => {
             handleDragEvent(event);
             setDragActive(false);
-            void uploadAndContinue(Array.from(event.dataTransfer.files));
+            stageFiles(Array.from(event.dataTransfer.files));
           }}
         >
           <input
@@ -805,9 +832,8 @@ export function StartScreen() {
             tabIndex={-1}
             onChange={(event) => {
               const input = event.currentTarget;
-              void uploadAndContinue(input.files).finally(() => {
-                input.value = "";
-              });
+              stageFiles(input.files);
+              input.value = "";
             }}
           />
           <button
@@ -824,15 +850,68 @@ export function StartScreen() {
                 ? "Reading documents..."
                 : dragActive
                   ? "Drop PDF documents"
-                  : "Drop PDFs here or choose documents"}
+                  : stagedFiles.length
+                    ? "Add more PDFs"
+                    : "Drop PDFs here or choose documents"}
             </span>
             <span className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
-              Upload the notarisation documents you already have. We keep the
-              route as a draft until you approve it.
+              Stage every document first. The upload starts only when you continue.
             </span>
           </button>
 
+          {stagedFiles.length ? (
+            <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card text-left">
+              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Staged documents
+                </h2>
+                <span className="text-xs text-muted-foreground">
+                  {stagedFiles.length} file{stagedFiles.length === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div className="divide-y divide-border">
+                {stagedFiles.map((file) => (
+                  <div
+                    key={`${file.name}:${file.size}:${file.lastModified}`}
+                    className="flex items-center gap-3 px-4 py-3"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <FileText className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {file.name}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {file.type || "application/pdf"} - {formatDocumentSize(file.size)}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Remove ${file.name}`}
+                      onClick={() => removeStagedFile(file)}
+                      disabled={loading}
+                    >
+                      <X className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <div className="mt-5 flex flex-wrap justify-center gap-3">
+            <Button
+              type="button"
+              onClick={uploadStagedAndContinue}
+              disabled={loading || !stagedFiles.length}
+            >
+              Continue with {stagedFiles.length} file
+              {stagedFiles.length === 1 ? "" : "s"}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
             <Button
               variant="outline"
               onClick={() => navigate("/lens/analyze")}
