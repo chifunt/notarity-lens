@@ -45,7 +45,7 @@ export function TopStepper() {
                 {reachable ? (
                   <Link
                     to={step.path}
-                    aria-label={step.label}
+                    aria-label={`Go to ${step.label} step`}
                     aria-current={active ? "step" : undefined}
                     className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >

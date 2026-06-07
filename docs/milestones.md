@@ -649,3 +649,20 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue auditing review and route summaries for stale or misleading state.
+
+## Sprint 40: Stepper accessible-name polish
+
+- Status: complete
+- Scope: make duplicated top-stepper controls distinguishable to assistive tech and browser automation.
+- Changes:
+  - Progress-bar step links now expose names like `Go to Evidence step`.
+  - Visible text step links keep their concise step names, so reachable progress markers and labels no longer collide on exact accessible-name checks.
+- Verification:
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - Browser check: on the Joshua evidence screen, exact `Evidence` and `Go to Evidence step` links each resolve once.
+  - Browser check: exact `Analyze` and `Go to Analyze step` links each resolve once, while future `Success` remains unavailable.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue accessibility checks for repeated controls and mobile stepper behavior.
