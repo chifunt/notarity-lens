@@ -207,6 +207,36 @@ describe("api routes", () => {
     expect(body.error).toBe("Only PDF documents are supported");
   });
 
+  it("creates a mobile upload session with an upload URL", async () => {
+    const previousMobileWebBaseUrl = process.env.MOBILE_WEB_BASE_URL;
+    process.env.MOBILE_WEB_BASE_URL = "http://192.168.0.10:5173";
+
+    try {
+      const response = await app.request("/api/mobile-sessions", {
+        method: "POST",
+        body: JSON.stringify({ webOrigin: "http://localhost:5173" }),
+        headers: { "content-type": "application/json" },
+      });
+      const body = await response.json();
+      const pollResponse = await app.request(`/api/mobile-sessions/${body.sessionId}`);
+      const pollBody = await pollResponse.json();
+
+      expect(response.status).toBe(200);
+      expect(body.status).toBe("waiting");
+      expect(body.uploadUrl).toBe(
+        `http://192.168.0.10:5173/mobile-upload/${body.sessionId}`,
+      );
+      expect(pollResponse.status).toBe(200);
+      expect(pollBody.sessionId).toBe(body.sessionId);
+    } finally {
+      if (previousMobileWebBaseUrl === undefined) {
+        delete process.env.MOBILE_WEB_BASE_URL;
+      } else {
+        process.env.MOBILE_WEB_BASE_URL = previousMobileWebBaseUrl;
+      }
+    }
+  });
+
   it("extracts text from uploaded text-layer PDFs", async () => {
     const pdf = await readFile(
       new URL(
@@ -233,6 +263,43 @@ describe("api routes", () => {
     expect(body.documents[0].extractionStatus).toBe("extracted");
     expect(body.documents[0].textByPage[0].text).toContain("Amara Okafor");
     expect(body.documents[0].textByPage[0].text).toContain("Germany");
+  });
+
+  it("processes a mobile session upload into a ready laptop result", async () => {
+    const sessionResponse = await app.request("/api/mobile-sessions", {
+      method: "POST",
+      body: JSON.stringify({ webOrigin: "http://localhost:5173" }),
+      headers: { "content-type": "application/json" },
+    });
+    const sessionBody = await sessionResponse.json();
+    const pdf = await readFile(
+      new URL(
+        "../../../docs/generated-personas/amara-okafor/Signature_Authorisation_Amara_Okafor.pdf",
+        import.meta.url,
+      ),
+    );
+    const formData = new FormData();
+    formData.append(
+      "files",
+      new File([pdf], "Signature_Authorisation_Amara_Okafor.pdf", {
+        type: "application/pdf",
+      }),
+    );
+
+    const uploadResponse = await app.request(
+      `/api/mobile-sessions/${sessionBody.sessionId}/upload`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+    const uploadBody = await uploadResponse.json();
+
+    expect(uploadResponse.status).toBe(200);
+    expect(uploadBody.status).toBe("ready");
+    expect(uploadBody.result.fixture.inference.persona).toBe("upload");
+    expect(uploadBody.result.fixture.payload.destinationCountry).toBe("DE");
+    expect(uploadBody.result.price.confirmedPrice).toBe(120);
   });
 
   it("infers facts from uploaded PDF text instead of fixture fallback", async () => {

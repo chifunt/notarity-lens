@@ -125,6 +125,25 @@ export type UploadDocumentsResponse = {
   source: "fixture" | "upload";
 };
 
+export type MobileUploadStatus = "waiting" | "processing" | "ready" | "error";
+
+export type MobileUploadResult = {
+  fixture: LensFixture;
+  price: PriceResponse | null;
+  blockers: string[];
+  warnings: string[];
+};
+
+export type MobileUploadSession = {
+  sessionId: string;
+  status: MobileUploadStatus;
+  createdAt: string;
+  updatedAt: string;
+  uploadUrl: string;
+  result?: MobileUploadResult;
+  error?: string;
+};
+
 export type SubmitResponse = {
   ok: boolean;
   id: string;

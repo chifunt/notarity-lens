@@ -5,6 +5,7 @@ import {
   CostScreen,
   CountryScreen,
   EvidenceScreen,
+  MobileUploadScreen,
   PlanScreen,
   ReviewScreen,
   StartScreen,
@@ -15,6 +16,7 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<StartScreen />} />
+      <Route path="/mobile-upload/:sessionId" element={<MobileUploadScreen />} />
       <Route path="/lens/analyze" element={<AnalyzeScreen />} />
       <Route path="/lens/evidence" element={<EvidenceScreen />} />
       <Route path="/lens/country" element={<CountryScreen />} />

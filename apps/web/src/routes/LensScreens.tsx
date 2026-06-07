@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
   CalendarDays,
@@ -15,14 +15,23 @@ import {
   Mail,
   MapPin,
   PackageCheck,
+  QrCode,
   Receipt as ReceiptIcon,
+  RefreshCw,
   RotateCcw,
   Send,
   ShieldCheck,
+  Smartphone,
   UserRound,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  getFixturePdfUrl,
+  getMobileUploadSession,
+  getPersonaFixture,
+  uploadMobileSessionFiles,
+} from "@/features/lens/api";
 import { AppShell } from "@/features/lens/components/AppShell";
 import { CountrySemanticsCard } from "@/features/lens/components/CountrySemanticsCard";
 import { DocumentFileList } from "@/features/lens/components/DocumentFileList";
@@ -50,7 +59,7 @@ import {
   formatShippingSummary,
 } from "@/features/lens/display";
 import { formatEuro } from "@/features/lens/format";
-import { getFixturePdfUrl, getPersonaFixture } from "@/features/lens/api";
+import { createQrMatrix } from "@/features/lens/qr";
 import {
   readyForSubmit,
   unresolvedConfirmationFields,
@@ -697,6 +706,166 @@ function DemoError() {
   );
 }
 
+function QrCodeGraphic({ value }: { value: string }) {
+  const matrix = useMemo(() => {
+    try {
+      return createQrMatrix(value);
+    } catch {
+      return null;
+    }
+  }, [value]);
+
+  if (!matrix) {
+    return (
+      <div className="flex aspect-square w-full items-center justify-center rounded-lg border border-border bg-lens-surface-muted p-4 text-center text-xs text-muted-foreground">
+        Link is too long for the local QR encoder.
+      </div>
+    );
+  }
+
+  const quietZone = 4;
+  const size = matrix.length + quietZone * 2;
+
+  return (
+    <svg
+      viewBox={`0 0 ${size} ${size}`}
+      role="img"
+      aria-label="Mobile upload QR code"
+      className="aspect-square w-full rounded-lg bg-white p-2"
+      shapeRendering="crispEdges"
+    >
+      <rect width={size} height={size} fill="#ffffff" />
+      {matrix.flatMap((row, y) =>
+        row.map((dark, x) =>
+          dark ? (
+            <rect
+              key={`${x}-${y}`}
+              x={x + quietZone}
+              y={y + quietZone}
+              width={1}
+              height={1}
+              fill="#13044f"
+            />
+          ) : null,
+        ),
+      )}
+    </svg>
+  );
+}
+
+function MobileUploadPanel() {
+  const navigate = useNavigate();
+  const mobileSession = useLensStore((state) => state.mobileSession);
+  const loading = useLensStore((state) => state.loading);
+  const createSession = useLensStore((state) => state.createMobileUploadSession);
+  const pollSession = useLensStore((state) => state.pollMobileUploadSession);
+  const resetSession = useLensStore((state) => state.resetMobileUploadSession);
+  const sessionId = mobileSession?.sessionId;
+  const sessionStatus = mobileSession?.status;
+
+  useEffect(() => {
+    if (!sessionId || sessionStatus === "ready" || sessionStatus === "error") {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const checkSession = async () => {
+      if (!cancelled) await pollSession(sessionId);
+    };
+    void checkSession();
+    const interval = window.setInterval(() => {
+      void checkSession();
+    }, 1500);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [pollSession, sessionId, sessionStatus]);
+
+  const startSession = () => {
+    void createSession(window.location.origin);
+  };
+
+  const statusLabel =
+    mobileSession?.status === "processing"
+      ? "Processing upload"
+      : mobileSession?.status === "ready"
+        ? "Upload received"
+        : mobileSession?.status === "error"
+          ? "Upload failed"
+          : "Waiting for phone";
+
+  return (
+    <section className="rounded-xl border border-border bg-card p-4 text-left shadow-[var(--shadow-card)]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <QrCode className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h2 className="text-base font-semibold text-foreground">
+              Scan from phone
+            </h2>
+          </div>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Create a phone upload session and send the scanned PDF back to this
+            draft.
+          </p>
+        </div>
+        <div className="flex shrink-0 gap-2">
+          {mobileSession ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                void resetSession();
+              }}
+              disabled={loading}
+            >
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              Reset
+            </Button>
+          ) : null}
+          <Button type="button" onClick={startSession} disabled={loading}>
+            <Smartphone className="h-4 w-4" aria-hidden="true" />
+            {mobileSession ? "New QR" : "Show QR"}
+          </Button>
+        </div>
+      </div>
+
+      {mobileSession ? (
+        <div className="mt-4 grid gap-4 sm:grid-cols-[180px_minmax(0,1fr)] sm:items-center">
+          <div className="rounded-xl border border-border bg-white p-2">
+            <QrCodeGraphic value={mobileSession.uploadUrl} />
+          </div>
+          <div className="min-w-0">
+            <div className="inline-flex rounded-full bg-lens-surface-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+              {statusLabel}
+            </div>
+            <p className="mt-3 break-all text-sm font-semibold text-foreground">
+              {mobileSession.uploadUrl}
+            </p>
+            {mobileSession.error ? (
+              <p className="mt-2 text-sm text-status-conflict-foreground">
+                {mobileSession.error}
+              </p>
+            ) : null}
+            {mobileSession.status === "ready" ? (
+              <Button
+                type="button"
+                className="mt-4"
+                onClick={() => navigate("/lens/analyze")}
+              >
+                View uploaded document
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function RequireFixture({
   children,
 }: {
@@ -730,10 +899,12 @@ export function StartScreen() {
   const navigate = useNavigate();
   const loadPersona = useLensStore((state) => state.loadPersona);
   const uploadDocuments = useLensStore((state) => state.uploadDocuments);
+  const uploadedDocuments = useLensStore((state) => state.uploadedDocuments);
   const loading = useLensStore((state) => state.loading);
   const [dragActive, setDragActive] = useState(false);
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasReceivedPhoneDocuments = !stagedFiles.length && uploadedDocuments.length > 0;
 
   const loadAndContinue = async (persona: PersonaFixture["id"]) => {
     const loaded = await loadPersona(persona);
@@ -769,7 +940,12 @@ export function StartScreen() {
     );
   };
 
-  const uploadStagedAndContinue = () => {
+  const continueWithDocuments = () => {
+    if (hasReceivedPhoneDocuments) {
+      navigate("/lens/analyze");
+      return;
+    }
+
     if (!stagedFiles.length) return;
     void uploadDocuments(stagedFiles);
     navigate("/lens/analyze");
@@ -852,10 +1028,14 @@ export function StartScreen() {
                   ? "Drop PDF documents"
                   : stagedFiles.length
                     ? "Add more PDFs"
+                    : hasReceivedPhoneDocuments
+                      ? "Phone upload received"
                     : "Drop PDFs here or choose documents"}
             </span>
             <span className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
-              Stage every document first. The upload starts only when you continue.
+              {hasReceivedPhoneDocuments
+                ? "Review the received document below, then continue when ready."
+                : "Stage every document first. The upload starts only when you continue."}
             </span>
           </button>
 
@@ -902,18 +1082,59 @@ export function StartScreen() {
             </div>
           ) : null}
 
+          {hasReceivedPhoneDocuments ? (
+            <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card text-left">
+              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Received from phone
+                </h2>
+                <span className="text-xs text-muted-foreground">
+                  {uploadedDocuments.length} file
+                  {uploadedDocuments.length === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div className="divide-y divide-border">
+                {uploadedDocuments.map((document) => (
+                  <div key={document.id} className="flex items-center gap-3 px-4 py-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <FileText className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {document.canonicalName || document.filename}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {document.mimeType || "application/pdf"} -{" "}
+                        {formatDocumentSize(document.size)}
+                      </p>
+                    </div>
+                    <StatusBadge status="inferred" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             <Button
               type="button"
-              onClick={uploadStagedAndContinue}
-              disabled={loading || !stagedFiles.length}
+              onClick={continueWithDocuments}
+              disabled={loading || (!stagedFiles.length && !hasReceivedPhoneDocuments)}
             >
               {stagedFiles.length
                 ? `Continue with ${stagedFiles.length} file${stagedFiles.length === 1 ? "" : "s"}`
-                : "Add PDFs to continue"}
+                : hasReceivedPhoneDocuments
+                  ? `Continue with ${uploadedDocuments.length} received file${
+                      uploadedDocuments.length === 1 ? "" : "s"
+                    }`
+                  : "Add PDFs to continue"}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
+        </div>
+
+        <div className="mt-4">
+          <MobileUploadPanel />
         </div>
 
         <div className="mt-6">
@@ -923,6 +1144,140 @@ export function StartScreen() {
               void loadAndContinue(persona);
             }}
           />
+        </div>
+      </section>
+    </AppShell>
+  );
+}
+
+export function MobileUploadScreen() {
+  const { sessionId } = useParams();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [status, setStatus] = useState("Checking session...");
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (!sessionId) {
+      setError("Mobile upload session is missing.");
+      return;
+    }
+
+    let cancelled = false;
+    void getMobileUploadSession(sessionId)
+      .then((session) => {
+        if (cancelled) return;
+        setStatus(
+          session.status === "ready"
+            ? "Upload already received"
+            : "Ready for scanned PDF",
+        );
+        setDone(session.status === "ready");
+        setError(session.status === "error" ? session.error ?? "Upload failed" : null);
+      })
+      .catch((requestError) => {
+        if (cancelled) return;
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Unable to load mobile upload session",
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
+
+  const uploadFiles = async (files: FileList | null) => {
+    if (!sessionId) return;
+
+    const selectedFiles = Array.from(files ?? []);
+    if (!selectedFiles.length) return;
+
+    setUploading(true);
+    setError(null);
+    setStatus("Uploading PDF...");
+    try {
+      const session = await uploadMobileSessionFiles(sessionId, selectedFiles);
+      setDone(session.status === "ready");
+      setStatus(
+        session.status === "ready"
+          ? "Upload received"
+          : session.status === "processing"
+            ? "Processing PDF..."
+            : "Waiting for laptop",
+      );
+      setError(session.status === "error" ? session.error ?? "Upload failed" : null);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to upload scanned PDF",
+      );
+      setStatus("Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <AppShell>
+      <section className="mx-auto flex min-h-[calc(100vh-14rem)] w-full max-w-xl flex-col justify-center py-8">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
+          <div className="flex items-center gap-2">
+            <Smartphone className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h1 className="text-2xl font-semibold text-foreground">Mobile upload</h1>
+          </div>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">{status}</p>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            multiple
+            hidden
+            aria-hidden="true"
+            tabIndex={-1}
+            onChange={(event) => {
+              const input = event.currentTarget;
+              void uploadFiles(input.files).finally(() => {
+                input.value = "";
+              });
+            }}
+          />
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading || done || !sessionId}
+            className="mt-5 flex min-h-48 w-full flex-col items-center justify-center rounded-xl border border-dashed border-primary/35 bg-secondary/60 px-5 py-8 text-center transition-colors hover:border-primary/45 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
+          >
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              {done ? (
+                <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+              ) : (
+                <FileUp className="h-5 w-5" aria-hidden="true" />
+              )}
+            </span>
+            <span className="mt-4 text-base font-semibold text-foreground">
+              {done
+                ? "Sent to laptop"
+                : uploading
+                  ? "Uploading..."
+                  : "Choose scanned PDF"}
+            </span>
+            <span className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+              PDF files only for this demo.
+            </span>
+          </button>
+
+          {error ? (
+            <div className="mt-4 rounded-md border border-status-conflict bg-status-conflict px-4 py-3 text-sm text-status-conflict-foreground">
+              {error}
+            </div>
+          ) : null}
         </div>
       </section>
     </AppShell>
@@ -971,7 +1326,11 @@ function progressItemsForStage({
     let status: ProgressItem["status"] = "pending";
 
     if (stage === "ready") {
-      status = "done";
+      if (error) {
+        status = index < 2 ? "done" : index === 2 ? "failed" : "pending";
+      } else {
+        status = "done";
+      }
     } else if (currentIndex >= 0) {
       if (index < currentIndex) {
         status = "done";
@@ -997,10 +1356,12 @@ function formatDocumentSize(size: number) {
 function AnalyzeDocumentRail({
   documents,
   canContinue,
+  blocked,
   onContinue,
 }: {
   documents: ExtractedDocument[];
   canContinue: boolean;
+  blocked: boolean;
   onContinue: () => void;
 }) {
   return (
@@ -1013,10 +1374,12 @@ function AnalyzeDocumentRail({
           className={`rounded-full px-2 py-1 text-xs font-medium ${
             canContinue
               ? "bg-status-confirmed text-status-confirmed-foreground"
+              : blocked
+                ? "bg-status-needs-review text-status-needs-review-foreground"
               : "bg-status-inferred text-status-inferred-foreground"
           }`}
         >
-          {canContinue ? "Ready" : "Reading"}
+          {canContinue ? "Ready" : blocked ? "Needs review" : "Reading"}
         </span>
       </div>
 
@@ -1088,7 +1451,7 @@ export function AnalyzeScreen() {
     analysisStage === "drafting" ||
     analysisStage === "pricing" ||
     analysisStage === "ready";
-  const canContinue = Boolean(fixture) && analysisStage === "ready";
+  const canContinue = Boolean(fixture?.payload) && analysisStage === "ready" && !error;
 
   return (
     <ScreenFrame
@@ -1096,6 +1459,7 @@ export function AnalyzeScreen() {
         <AnalyzeDocumentRail
           documents={analyzeDocuments}
           canContinue={canContinue}
+          blocked={Boolean(error) && analysisStage === "ready"}
           onContinue={() => navigate("/lens/evidence")}
         />
       }

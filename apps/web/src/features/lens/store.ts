@@ -1,9 +1,12 @@
 import { create } from "zustand";
 import {
+  createMobileUploadSession,
   draftPayload,
   getPersonaFixture,
+  getMobileUploadSession,
   inferDocuments,
   pricePayload,
+  resetMobileUploadSession as resetMobileUploadSessionApi,
   submitPayload,
   uploadDocumentFiles,
 } from "./api";
@@ -13,6 +16,7 @@ import type {
   FieldStatus,
   InferredField,
   LensFixture,
+  MobileUploadSession,
   PersonaFixture,
   PriceResponse,
   SubmitResponse,
@@ -30,6 +34,7 @@ export type AnalysisStage =
 type LensStore = {
   fixture: LensFixture | null;
   uploadedDocuments: ExtractedDocument[];
+  mobileSession: MobileUploadSession | null;
   price: PriceResponse | null;
   submitResult: SubmitResponse | null;
   analysisStage: AnalysisStage;
@@ -38,6 +43,9 @@ type LensStore = {
   loadPersona: (persona?: PersonaFixture["id"]) => Promise<boolean>;
   loadJoshuaDemo: () => Promise<boolean>;
   uploadDocuments: (files: File[]) => Promise<boolean>;
+  createMobileUploadSession: (webOrigin: string) => Promise<boolean>;
+  pollMobileUploadSession: (sessionId: string) => Promise<boolean>;
+  resetMobileUploadSession: () => Promise<boolean>;
   confirmEvidence: () => void;
   confirmCountry: () => void;
   confirmRoute: () => void;
@@ -82,9 +90,14 @@ function pendingUploadDocuments(files: File[]): ExtractedDocument[] {
   }));
 }
 
+function blockersMessage(blockers: string[]) {
+  return blockers.length ? blockers.join(" ") : null;
+}
+
 export const useLensStore = create<LensStore>((set, get) => ({
   fixture: null,
   uploadedDocuments: [],
+  mobileSession: null,
   price: null,
   submitResult: null,
   analysisStage: "idle",
@@ -96,6 +109,7 @@ export const useLensStore = create<LensStore>((set, get) => ({
     set({
       fixture: null,
       uploadedDocuments: [],
+      mobileSession: null,
       price: null,
       submitResult: null,
       analysisStage: "loading_sample",
@@ -124,6 +138,7 @@ export const useLensStore = create<LensStore>((set, get) => ({
     set({
       fixture: null,
       uploadedDocuments: pendingUploadDocuments(files),
+      mobileSession: null,
       price: null,
       submitResult: null,
       analysisStage: "uploading",
@@ -179,6 +194,75 @@ export const useLensStore = create<LensStore>((set, get) => ({
           loading: false,
         });
       }
+      return false;
+    }
+  },
+
+  createMobileUploadSession: async (webOrigin) => {
+    set({
+      fixture: null,
+      uploadedDocuments: [],
+      mobileSession: null,
+      price: null,
+      submitResult: null,
+      loading: true,
+      error: null,
+    });
+    try {
+      const mobileSession = await createMobileUploadSession(webOrigin);
+      set({ mobileSession, loading: false });
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to create mobile upload session";
+      set({ error: message, loading: false });
+      return false;
+    }
+  },
+
+  pollMobileUploadSession: async (sessionId) => {
+    try {
+      const mobileSession = await getMobileUploadSession(sessionId);
+      if (mobileSession.status === "ready" && mobileSession.result) {
+        const { fixture, price, blockers } = mobileSession.result;
+        set({
+          mobileSession,
+          fixture,
+          uploadedDocuments: fixture.documents,
+          price,
+          submitResult: null,
+          analysisStage: "ready",
+          loading: false,
+          error: blockersMessage(blockers),
+        });
+        return true;
+      }
+
+      set({
+        mobileSession,
+        analysisStage: mobileSession.status === "error" ? "idle" : get().analysisStage,
+        loading: false,
+        error: mobileSession.status === "error" ? mobileSession.error ?? null : null,
+      });
+      return false;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to check mobile upload session";
+      set({ error: message, loading: false });
+      return false;
+    }
+  },
+
+  resetMobileUploadSession: async () => {
+    const sessionId = get().mobileSession?.sessionId;
+    try {
+      if (sessionId) await resetMobileUploadSessionApi(sessionId);
+      set({ mobileSession: null, error: null, loading: false });
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to reset mobile upload session";
+      set({ error: message, loading: false });
       return false;
     }
   },
@@ -242,6 +326,7 @@ export const useLensStore = create<LensStore>((set, get) => ({
       return {
         fixture: null,
         uploadedDocuments: [],
+        mobileSession: null,
         price: null,
         submitResult: null,
         analysisStage: "idle",

@@ -62,6 +62,7 @@ function resetStore() {
   useLensStore.setState({
     fixture: null,
     uploadedDocuments: [],
+    mobileSession: null,
     price: null,
     submitResult: null,
     analysisStage: "idle",

@@ -1,4 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { networkInterfaces } from "node:os";
 import { Hono } from "hono";
 import { z } from "zod";
 import {
@@ -7,6 +9,10 @@ import {
   ExtractedDocumentSchema,
   PersonaFixtureSchema,
   personaFixtures,
+  type AppointmentPayload,
+  type DocumentFactExtraction,
+  type ExtractedDocument,
+  type PriceLine,
 } from "@notarity-lens/shared";
 import { buildJoshuaPayload, buildUploadedPayload } from "@notarity-lens/notarity";
 import { inferDocuments } from "../ai/inference-client.js";
@@ -45,6 +51,44 @@ const InferBodySchema = z.object({
 const DraftBodySchema = z.object({
   inference: DocumentFactExtractionSchema,
 });
+
+const MobileSessionBodySchema = z.object({
+  webOrigin: z.string().optional(),
+});
+
+type PriceResponse = {
+  lines: PriceLine[];
+  confirmedPrice: number;
+  source: "mock" | "live" | "rule";
+};
+
+type UploadedFixture = {
+  id: "upload";
+  name: string;
+  scenario: string;
+  documents: ExtractedDocument[];
+  inference: DocumentFactExtraction;
+  payload?: AppointmentPayload;
+};
+
+type MobileUploadResult = {
+  fixture: UploadedFixture;
+  price: PriceResponse | null;
+  blockers: string[];
+  warnings: string[];
+};
+
+type MobileUploadSession = {
+  sessionId: string;
+  status: "waiting" | "processing" | "ready" | "error";
+  createdAt: string;
+  updatedAt: string;
+  uploadUrl: string;
+  result?: MobileUploadResult;
+  error?: string;
+};
+
+const mobileSessions = new Map<string, MobileUploadSession>();
 
 function jsonError(message: string, status = 400) {
   return { error: message, status };
@@ -116,6 +160,89 @@ function contentDispositionFilename(filename: string) {
   return filename.replace(/["\\]/g, "_");
 }
 
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function isLoopbackHost(hostname: string) {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+}
+
+function localNetworkAddress() {
+  for (const addresses of Object.values(networkInterfaces())) {
+    for (const address of addresses ?? []) {
+      if (address.family === "IPv4" && !address.internal) return address.address;
+    }
+  }
+
+  return undefined;
+}
+
+function mobileOriginFromWebOrigin(webOrigin: string | undefined) {
+  if (process.env.MOBILE_WEB_BASE_URL) return process.env.MOBILE_WEB_BASE_URL;
+
+  try {
+    const url = new URL(webOrigin ?? "http://localhost:5173");
+    if (isLoopbackHost(url.hostname)) {
+      url.hostname = process.env.MOBILE_HOST ?? localNetworkAddress() ?? url.hostname;
+    }
+    return url.origin;
+  } catch {
+    return "http://localhost:5173";
+  }
+}
+
+function createSessionId() {
+  return `m_${Date.now().toString(36)}_${randomUUID().slice(0, 8)}`;
+}
+
+function mobileSessionSnapshot(session: MobileUploadSession) {
+  return {
+    sessionId: session.sessionId,
+    status: session.status,
+    createdAt: session.createdAt,
+    updatedAt: session.updatedAt,
+    uploadUrl: session.uploadUrl,
+    result: session.result,
+    error: session.error,
+  };
+}
+
+function purgeOldMobileSessions() {
+  const cutoff = Date.now() - 60 * 60 * 1000;
+  for (const [sessionId, session] of mobileSessions) {
+    if (Date.parse(session.createdAt) < cutoff) mobileSessions.delete(sessionId);
+  }
+}
+
+async function buildUploadedResult(
+  documents: ExtractedDocument[],
+): Promise<MobileUploadResult> {
+  const config = getApiConfig();
+  const inferred = await inferDocuments({ documents }, config);
+  const draft = buildUploadedPayload(inferred.inference);
+  const price = draft.payload
+    ? ((await createNotarityClient(config).price(draft.payload)) as PriceResponse)
+    : null;
+  const payload = draft.payload
+    ? { ...draft.payload, confirmedPrice: price?.confirmedPrice }
+    : undefined;
+
+  return {
+    fixture: {
+      id: "upload",
+      name: "Uploaded documents",
+      scenario: "Mobile PDF draft",
+      documents,
+      inference: inferred.inference,
+      payload,
+    },
+    price,
+    blockers: draft.blockers,
+    warnings: inferred.warning ? [inferred.warning, ...draft.warnings] : draft.warnings,
+  };
+}
+
 export function createLensRoutes() {
   const app = new Hono();
 
@@ -185,6 +312,77 @@ export function createLensRoutes() {
       documents: await uploadedDocuments(files),
       source: "upload",
     });
+  });
+
+  app.post("/mobile-sessions", async (c) => {
+    purgeOldMobileSessions();
+    const body = MobileSessionBodySchema.safeParse(await c.req.json().catch(() => ({})));
+    if (!body.success) return c.json(jsonError("Invalid mobile session request"), 400);
+
+    const sessionId = createSessionId();
+    const createdAt = nowIso();
+    const uploadUrl = `${mobileOriginFromWebOrigin(
+      body.data.webOrigin,
+    )}/mobile-upload/${sessionId}`;
+    const session: MobileUploadSession = {
+      sessionId,
+      status: "waiting",
+      createdAt,
+      updatedAt: createdAt,
+      uploadUrl,
+    };
+    mobileSessions.set(sessionId, session);
+
+    return c.json(mobileSessionSnapshot(session));
+  });
+
+  app.get("/mobile-sessions/:sessionId", (c) => {
+    const session = mobileSessions.get(c.req.param("sessionId"));
+    if (!session) return c.json(jsonError("Mobile upload session not found", 404), 404);
+
+    return c.json(mobileSessionSnapshot(session));
+  });
+
+  app.delete("/mobile-sessions/:sessionId", (c) => {
+    mobileSessions.delete(c.req.param("sessionId"));
+    return c.json({ ok: true });
+  });
+
+  app.post("/mobile-sessions/:sessionId/upload", async (c) => {
+    const session = mobileSessions.get(c.req.param("sessionId"));
+    if (!session) return c.json(jsonError("Mobile upload session not found", 404), 404);
+
+    const formData = await c.req.formData();
+    const files = formData
+      .getAll("files")
+      .filter((entry): entry is File => entry instanceof File);
+
+    if (files.length === 0) {
+      return c.json(jsonError("Choose at least one PDF document"), 400);
+    }
+
+    if (files.some((file) => !isPdfFile(file))) {
+      return c.json(jsonError("Only PDF documents are supported"), 400);
+    }
+
+    session.status = "processing";
+    session.updatedAt = nowIso();
+    session.error = undefined;
+    session.result = undefined;
+
+    try {
+      const documents = await uploadedDocuments(files);
+      session.result = await buildUploadedResult(documents);
+      session.status = "ready";
+    } catch (error) {
+      session.status = "error";
+      session.error =
+        error instanceof Error ? error.message : "Unable to process mobile upload";
+    } finally {
+      session.updatedAt = nowIso();
+    }
+
+    return c.json(mobileSessionSnapshot(session));
   });
 
   app.post("/extract", async (c) => {
