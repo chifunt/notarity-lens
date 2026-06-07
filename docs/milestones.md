@@ -936,3 +936,19 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking loading-state consistency for review row change actions.
+
+## Sprint 57: Review row loading guard
+
+- Status: complete
+- Scope: prevent review row change actions from navigating while submit is in flight.
+- Changes:
+  - `ReviewSection` now accepts a shared disabled state.
+  - Final review disables all row `Change` actions during submit loading.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking async-action locking across country, route, and appointment screens.

@@ -6,8 +6,10 @@ import type { FieldStatus } from "../types";
 export function ReviewSection({
   title,
   rows,
+  disabled = false,
 }: {
   title: string;
+  disabled?: boolean;
   rows: Array<{
     label: string;
     value: ReactNode;
@@ -33,6 +35,7 @@ export function ReviewSection({
                 className="justify-self-start md:justify-self-end"
                 onClick={row.onChange}
                 aria-label={`Change ${row.label}`}
+                disabled={disabled}
               >
                 Change
               </Button>

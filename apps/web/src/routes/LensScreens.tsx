@@ -977,6 +977,7 @@ export function ReviewScreen() {
                 ) : null}
                 <ReviewSection
                   title="Country and route"
+                  disabled={loading}
                   rows={[
                     {
                       label: "Country of use",
@@ -1012,6 +1013,7 @@ export function ReviewScreen() {
                 />
                 <ReviewSection
                   title="People and addresses"
+                  disabled={loading}
                   rows={[
                     {
                       label: "Participant",
