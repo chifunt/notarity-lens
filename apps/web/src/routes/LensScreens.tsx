@@ -908,17 +908,10 @@ export function StartScreen() {
               onClick={uploadStagedAndContinue}
               disabled={loading || !stagedFiles.length}
             >
-              Continue with {stagedFiles.length} file
-              {stagedFiles.length === 1 ? "" : "s"}
+              {stagedFiles.length
+                ? `Continue with ${stagedFiles.length} file${stagedFiles.length === 1 ? "" : "s"}`
+                : "Add PDFs to continue"}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate("/lens/analyze")}
-              disabled={loading}
-            >
-              <FileText className="h-4 w-4" aria-hidden="true" />
-              Continue without files
             </Button>
           </div>
         </div>
