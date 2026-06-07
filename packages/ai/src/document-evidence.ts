@@ -2,10 +2,13 @@ import type { EvidenceRef, ExtractedDocument } from "@notarity-lens/shared";
 
 export type EvidenceKind =
   | "apostille"
+  | "apostille_not_required"
+  | "billing_address"
   | "country"
   | "country_of_use"
   | "email"
   | "hard_copy"
+  | "hard_copy_not_required"
   | "missing_country"
   | "participant"
   | "participant_ambiguity"
@@ -129,14 +132,27 @@ const SIGNAL_PATTERNS: PatternDefinition[] = [
     confidence: 0.25,
   },
   {
+    kind: "apostille_not_required",
+    value: "not_required",
+    pattern: /\b(no apostille requested|apostille not required|without apostille)\b/i,
+    confidence: 0.86,
+  },
+  {
+    kind: "hard_copy_not_required",
+    value: "not_required",
+    pattern: /\b(no hard copy shipment required|no hard copy required|digital notarised copy is sufficient)\b/i,
+    confidence: 0.86,
+  },
+  {
     kind: "apostille",
     value: "required",
-    pattern: /\bapostill(?:e|ed)\b/i,
+    pattern: /\b(apostille required|required apostille|apostilled hard copy)\b/i,
   },
   {
     kind: "hard_copy",
     value: "required",
-    pattern: /\b(hard copy|physical original)\b/i,
+    pattern:
+      /\b(address for hard copy|(?<!no )(?:hard copy|physical original)[^.]{0,60}\brequired|required[^.]{0,60}\b(?:hard copy|physical original))\b/i,
   },
   {
     kind: "participant_ambiguity",
@@ -157,6 +173,16 @@ const PARTICIPANT_PATTERNS: PatternDefinition[] = [
     kind: "email",
     value: "$1",
     pattern: /\b([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})\b/i,
+  },
+];
+
+const ADDRESS_PATTERNS: PatternDefinition[] = [
+  {
+    kind: "billing_address",
+    value: "$1",
+    pattern:
+      /\b(?:Residence and billing address|Billing residence|Billing address|Residence|Address):\s*([^.\n]+)/i,
+    confidence: 0.78,
   },
 ];
 
@@ -220,6 +246,7 @@ export function collectEvidenceFindings(documents: ExtractedDocument[]) {
       ...collectPatternFindings(document, page, ROUTE_PATTERNS),
       ...collectPatternFindings(document, page, SIGNAL_PATTERNS),
       ...collectPatternFindings(document, page, PARTICIPANT_PATTERNS),
+      ...collectPatternFindings(document, page, ADDRESS_PATTERNS),
     ]),
   );
 

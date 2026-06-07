@@ -2,11 +2,12 @@ import { Hono } from "hono";
 import { z } from "zod";
 import {
   AppointmentPayloadSchema,
+  DocumentFactExtractionSchema,
   ExtractedDocumentSchema,
   PersonaFixtureSchema,
   personaFixtures,
 } from "@notarity-lens/shared";
-import { buildJoshuaPayload } from "@notarity-lens/notarity";
+import { buildJoshuaPayload, buildUploadedPayload } from "@notarity-lens/notarity";
 import { inferDocuments } from "../ai/inference-client.js";
 import { createNotarityClient } from "../clients/notarity-client.js";
 import { fixtureDocuments, uploadedDocuments } from "../extraction/mock-extraction.js";
@@ -34,6 +35,10 @@ const PersonaBodySchema = z.object({
 const InferBodySchema = z.object({
   persona: PersonaSchema.optional(),
   documents: z.array(ExtractedDocumentSchema).optional(),
+});
+
+const DraftBodySchema = z.object({
+  inference: DocumentFactExtractionSchema,
 });
 
 function jsonError(message: string, status = 400) {
@@ -108,6 +113,13 @@ export function createLensRoutes() {
 
     const response = await inferDocuments(body.data, config);
     return c.json(response);
+  });
+
+  app.post("/draft", async (c) => {
+    const body = DraftBodySchema.safeParse(await c.req.json().catch(() => ({})));
+    if (!body.success) return c.json(jsonError("Invalid inference draft"), 400);
+
+    return c.json(buildUploadedPayload(body.data.inference));
   });
 
   app.get("/booking-form", async (c) => {

@@ -274,11 +274,44 @@ function inferPeople(findings: EvidenceFinding[]) {
   return [...participants, ...emails, ...ambiguity];
 }
 
+function inferBillingAddress(findings: EvidenceFinding[]) {
+  const billingAddress = uniqueByValue(byKind(findings, "billing_address"))[0];
+  if (!billingAddress) return undefined;
+
+  return field({
+    key: "billingAddress",
+    label: "Billing/home address",
+    value: billingAddress.value,
+    status: "inferred",
+    evidence: [billingAddress.evidence],
+    explanation: "A residence or billing address was found in the uploaded PDF text.",
+    requiresConfirmation: false,
+  });
+}
+
 function inferBooleanSignal(
   findings: EvidenceFinding[],
   kind: "apostille" | "hard_copy",
 ) {
+  const negativeKind =
+    kind === "apostille" ? "apostille_not_required" : "hard_copy_not_required";
+  const negativeEvidence = evidenceForKind(findings, negativeKind);
   const evidence = evidenceForKind(findings, kind);
+  if (evidence.length && negativeEvidence.length) {
+    return field({
+      key: kind === "apostille" ? "apostille" : "hardCopy",
+      label: kind === "apostille" ? "Apostille" : "Hard copy",
+      value: true,
+      status: "conflict",
+      evidence: [...evidence, ...negativeEvidence],
+      explanation:
+        kind === "apostille"
+          ? "The uploaded PDF has conflicting apostille language."
+          : "The uploaded PDF has conflicting hard-copy language.",
+      requiresConfirmation: true,
+    });
+  }
+
   if (!evidence.length) return undefined;
   return field({
     key: kind === "apostille" ? "apostille" : "hardCopy",
@@ -291,6 +324,28 @@ function inferBooleanSignal(
         ? "Apostille language appears in the uploaded PDF text."
         : "Hard-copy language appears in the uploaded PDF text.",
     requiresConfirmation: true,
+  });
+}
+
+function inferNegativeBooleanSignal(
+  findings: EvidenceFinding[],
+  kind: "apostille_not_required" | "hard_copy_not_required",
+) {
+  const evidence = evidenceForKind(findings, kind);
+  const positiveKind = kind === "apostille_not_required" ? "apostille" : "hard_copy";
+  if (!evidence.length || evidenceForKind(findings, positiveKind).length) return undefined;
+
+  return field({
+    key: kind === "apostille_not_required" ? "apostille" : "hardCopy",
+    label: kind === "apostille_not_required" ? "Apostille" : "Hard copy",
+    value: false,
+    status: "inferred",
+    evidence,
+    explanation:
+      kind === "apostille_not_required"
+        ? "The uploaded PDF says an apostille is not required."
+        : "The uploaded PDF says no hard-copy shipment is required.",
+    requiresConfirmation: false,
   });
 }
 
@@ -324,8 +379,13 @@ export function inferFactsFromUploadedDocuments(
     countryOfUse: inferCountryOfUse(findings),
     products: inferProducts(findings),
     people: inferPeople(findings),
-    hardCopy: inferBooleanSignal(findings, "hard_copy"),
-    apostille: inferBooleanSignal(findings, "apostille"),
+    billingAddress: inferBillingAddress(findings),
+    hardCopy:
+      inferBooleanSignal(findings, "hard_copy") ??
+      inferNegativeBooleanSignal(findings, "hard_copy_not_required"),
+    apostille:
+      inferBooleanSignal(findings, "apostille") ??
+      inferNegativeBooleanSignal(findings, "apostille_not_required"),
   };
 
   return {

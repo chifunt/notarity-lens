@@ -216,6 +216,55 @@ describe("api routes", () => {
     );
   });
 
+  it("builds and prices an uploaded PDF draft", async () => {
+    const pdf = await readFile(
+      new URL(
+        "../../../docs/generated-personas/amara-okafor/Signature_Authorisation_Amara_Okafor.pdf",
+        import.meta.url,
+      ),
+    );
+    const formData = new FormData();
+    formData.append(
+      "files",
+      new File([pdf], "Signature_Authorisation_Amara_Okafor.pdf", {
+        type: "application/pdf",
+      }),
+    );
+
+    const uploadResponse = await app.request("/api/documents/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const uploadBody = await uploadResponse.json();
+    const inferResponse = await app.request("/api/infer", {
+      method: "POST",
+      body: JSON.stringify({ documents: uploadBody.documents }),
+      headers: { "content-type": "application/json" },
+    });
+    const inferBody = await inferResponse.json();
+    const draftResponse = await app.request("/api/draft", {
+      method: "POST",
+      body: JSON.stringify({ inference: inferBody.inference }),
+      headers: { "content-type": "application/json" },
+    });
+    const draftBody = await draftResponse.json();
+    const priceResponse = await app.request("/api/price", {
+      method: "POST",
+      body: JSON.stringify(draftBody.payload),
+      headers: { "content-type": "application/json" },
+    });
+    const priceBody = await priceResponse.json();
+
+    expect(draftResponse.status).toBe(200);
+    expect(draftBody.blockers).toEqual([]);
+    expect(draftBody.payload.destinationCountry).toBe("DE");
+    expect(draftBody.payload.participants[0].email).toBe(
+      "amara.okafor@notarity.com",
+    );
+    expect(priceResponse.status).toBe(200);
+    expect(priceBody.confirmedPrice).toBe(120);
+  });
+
   it("returns normalized mock price", async () => {
     const response = await app.request("/api/price", {
       method: "POST",

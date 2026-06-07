@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import {
+  draftPayload,
   getPersonaFixture,
   inferDocuments,
   pricePayload,
@@ -102,6 +103,11 @@ export const useLensStore = create<LensStore>((set, get) => ({
     try {
       const upload = await uploadDocumentFiles(files);
       const infer = await inferDocuments(upload.documents);
+      const draft = await draftPayload(infer.inference);
+      const price = draft.payload ? await pricePayload(draft.payload) : null;
+      const payload = draft.payload
+        ? { ...draft.payload, confirmedPrice: price?.confirmedPrice }
+        : undefined;
       set({
         fixture: {
           id: "upload",
@@ -109,8 +115,11 @@ export const useLensStore = create<LensStore>((set, get) => ({
           scenario: "Uploaded PDF draft",
           documents: upload.documents,
           inference: infer.inference,
+          payload,
         },
         uploadedDocuments: upload.documents,
+        price,
+        error: draft.blockers.length ? draft.blockers.join(" ") : null,
         loading: false,
       });
       return true;

@@ -1,6 +1,8 @@
 import type {
+  DraftPayloadResponse,
   ExtractedDocument,
   InferDocumentsResponse,
+  DocumentFactExtraction,
   PersonaFixture,
   PriceResponse,
   SubmitResponse,
@@ -69,6 +71,13 @@ export function inferDocuments(documents: ExtractedDocument[]) {
   return requestJson<InferDocumentsResponse>("/api/infer", {
     method: "POST",
     body: JSON.stringify({ documents }),
+  });
+}
+
+export function draftPayload(inference: DocumentFactExtraction) {
+  return requestJson<DraftPayloadResponse>("/api/draft", {
+    method: "POST",
+    body: JSON.stringify({ inference }),
   });
 }
 

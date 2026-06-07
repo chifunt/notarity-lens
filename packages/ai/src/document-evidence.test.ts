@@ -41,6 +41,30 @@ describe("document evidence", () => {
     );
   });
 
+  it("distinguishes not-required apostille and hard-copy language", () => {
+    const findings = collectEvidenceFindings([
+      documentWithText(
+        [
+          "Applicant: Amara Okafor.",
+          "Residence and billing address: Herengracht 420, 1017 BZ Amsterdam, Netherlands.",
+          "No apostille requested.",
+          "Digital notarised copy is sufficient.",
+          "No hard copy shipment required.",
+        ].join(" "),
+      ),
+    ]);
+
+    expect(findings.map((finding) => [finding.kind, finding.value])).toEqual(
+      expect.arrayContaining([
+        ["billing_address", "Herengracht 420, 1017 BZ Amsterdam, Netherlands"],
+        ["apostille_not_required", "not_required"],
+        ["hard_copy_not_required", "not_required"],
+      ]),
+    );
+    expect(evidenceForKind(findings, "apostille")).toHaveLength(0);
+    expect(evidenceForKind(findings, "hard_copy")).toHaveLength(0);
+  });
+
   it("marks missing country and possible co-signer evidence", () => {
     const findings = collectEvidenceFindings([
       documentWithText(
@@ -73,11 +97,11 @@ describe("document evidence", () => {
 
     expect(evidenceForKind(findings, "hard_copy")[0]).toMatchObject({
       page: 2,
-      quote: "hard copy",
+      quote: "Address for hard copy",
     });
     expect(evidenceForKind(findings, "apostille")[0]).toMatchObject({
       page: 2,
-      quote: "Apostille",
+      quote: "Apostille required",
     });
   });
 });

@@ -2,13 +2,11 @@ import {
   mockBookingForm,
   personaFixtures,
   productFixtures,
-  ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
   type AppointmentPayload,
-  type PersonaId,
   type PriceLine,
   type ProductFixture,
 } from "@notarity-lens/shared";
-import { confirmedPriceFromLines } from "@notarity-lens/notarity";
+import { confirmedPriceFromLines, priceLinesForPayload } from "@notarity-lens/notarity";
 import type { ApiConfig } from "../utils/env.js";
 
 export type TimeslotFixture = {
@@ -42,8 +40,8 @@ export interface NotarityClient {
   submit(payload: AppointmentPayload): Promise<SubmissionResult>;
 }
 
-function personaForPayload(payload: AppointmentPayload): PersonaId {
-  const matchingFixture = Object.values(personaFixtures).find((fixture) => {
+function fixtureForExactPayload(payload: AppointmentPayload) {
+  return Object.values(personaFixtures).find((fixture) => {
     const fixtureProducts = fixture.payload.products.map((product) => product.id);
     const payloadProducts = payload.products.map((product) => product.id);
     const sameProducts =
@@ -58,16 +56,6 @@ function personaForPayload(payload: AppointmentPayload): PersonaId {
       samePrimaryParticipant
     );
   });
-
-  if (matchingFixture) return matchingFixture.id;
-  if (payload.destinationCountry === "LT") return "robert";
-  if (payload.destinationCountry === "AT") return "elizabeth";
-  if (
-    payload.products.some((product) => product.id === ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID)
-  ) {
-    return "robert";
-  }
-  return "joshua";
 }
 
 export class MockNotarityClient implements NotarityClient {
@@ -109,10 +97,11 @@ export class MockNotarityClient implements NotarityClient {
   }
 
   async price(payload: AppointmentPayload): Promise<NormalizedPriceResponse> {
-    const fixture = personaFixtures[personaForPayload(payload)];
+    const fixture = fixtureForExactPayload(payload);
+    const lines = fixture?.priceLines ?? priceLinesForPayload(payload);
     return {
-      lines: fixture.priceLines,
-      confirmedPrice: confirmedPriceFromLines(fixture.priceLines),
+      lines,
+      confirmedPrice: confirmedPriceFromLines(lines),
       source: "mock",
     };
   }

@@ -1257,3 +1257,26 @@
   - `pnpm --filter @notarity-lens/web typecheck` succeeds.
   - `pnpm --filter @notarity-lens/web test` succeeds.
 - Next: synthesize a Notarity payload and mock price from uploaded inference.
+
+## Sprint 74: Uploaded draft payload and price
+
+- Status: complete
+- Scope: turn sufficiently complete uploaded-document inference into a valid Notarity appointment payload and price.
+- Changes:
+  - Fixed extraction semantics for negated apostille/hard-copy text so `No apostille requested` and `No hard copy shipment required` do not become required services.
+  - Added billing-address evidence extraction from residence/billing address lines.
+  - Added an uploaded-payload builder that maps inferred country, route, participant, email, files, apostille, and hard-copy choices into validated Notarity payloads.
+  - Blocks payload generation when critical evidence is missing or conflicting, while keeping the inference draft reviewable.
+  - Added dynamic mock price-line generation for non-fixture payloads.
+  - Added `/api/draft` and wired the web upload flow to run upload -> infer -> draft -> price.
+  - Added AI, Notarity, API, and web regression coverage for the uploaded draft path.
+- Verification:
+  - `pnpm --filter @notarity-lens/ai typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/ai test` succeeds.
+  - `pnpm --filter @notarity-lens/notarity typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/notarity test` succeeds.
+  - `pnpm --filter @notarity-lens/api typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/api test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+- Next: add unseen uploaded-PDF regressions and run the browser sweep.

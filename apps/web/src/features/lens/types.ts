@@ -113,6 +113,12 @@ export type InferDocumentsResponse = {
   warning?: string;
 };
 
+export type DraftPayloadResponse = {
+  payload?: AppointmentPayload;
+  blockers: string[];
+  warnings: string[];
+};
+
 export type UploadDocumentsResponse = {
   sessionId: string;
   documents: ExtractedDocument[];

@@ -21,9 +21,11 @@ describe("uploaded document inference", () => {
         [
           "Applicant: Amara Okafor.",
           "Email: amara.okafor@notarity.com.",
-          "Billing residence: Amsterdam, Netherlands.",
+          "Residence and billing address: Herengracht 420, 1017 BZ Amsterdam, Netherlands.",
           "Country where this notarised document will be used: Germany.",
           "Purpose: certify Amara Okafor's signature for the German Commercial Register.",
+          "No apostille requested.",
+          "No hard copy shipment required.",
         ].join(" "),
       ),
     ]);
@@ -41,6 +43,11 @@ describe("uploaded document inference", () => {
         ["participantEmail", "amara.okafor@notarity.com"],
       ]),
     );
+    expect(inference.billingAddress?.value).toBe(
+      "Herengracht 420, 1017 BZ Amsterdam, Netherlands",
+    );
+    expect(inference.apostille?.value).toBe(false);
+    expect(inference.hardCopy?.value).toBe(false);
   });
 
   it("marks stated missing country as missing instead of using residence country", () => {

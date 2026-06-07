@@ -151,6 +151,14 @@ describe("Lens store sample flow", () => {
           });
         }
 
+        if (href.endsWith("/api/draft")) {
+          return jsonResponse({
+            payload: amaraFixture.payload,
+            blockers: [],
+            warnings: [],
+          });
+        }
+
         return jsonResponse({ ok: true });
       }),
     );
@@ -300,8 +308,9 @@ describe("Lens store sample flow", () => {
 
     expect(useLensStore.getState().fixture?.id).toBe("upload");
     expect(useLensStore.getState().fixture?.inference.persona).toBe("upload");
-    expect(useLensStore.getState().fixture?.payload).toBeUndefined();
-    expect(useLensStore.getState().price).toBeNull();
+    expect(useLensStore.getState().fixture?.payload?.destinationCountry).toBe("DE");
+    expect(useLensStore.getState().fixture?.payload?.confirmedPrice).toBe(120);
+    expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
     expect(useLensStore.getState().uploadedDocuments).toHaveLength(1);
     expect(useLensStore.getState().uploadedDocuments[0]?.filename).toBe(
       "Uploaded_Power_of_Attorney.pdf",
@@ -315,6 +324,13 @@ describe("Lens store sample flow", () => {
       expect.objectContaining({
         method: "POST",
         body: expect.stringContaining("Uploaded_Power_of_Attorney.pdf"),
+      }),
+    );
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/draft"),
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining("\"persona\":\"upload\""),
       }),
     );
   });
