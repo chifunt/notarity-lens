@@ -70,6 +70,15 @@ export function getFixturePdfUrl(
   )}/pdf`;
 }
 
+export function getUploadedPdfUrl(
+  sessionId: string,
+  documentId: ExtractedDocument["id"],
+) {
+  return `${API_BASE}/api/documents/uploads/${encodeURIComponent(
+    sessionId,
+  )}/${encodeURIComponent(documentId)}/pdf`;
+}
+
 export function uploadDocumentFiles(files: File[]) {
   const formData = new FormData();
   files.forEach((file) => formData.append("files", file));

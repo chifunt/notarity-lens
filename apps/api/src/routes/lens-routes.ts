@@ -33,6 +33,11 @@ const PersonaDocumentParamSchema = PersonaParamSchema.extend({
   documentId: z.string().min(1),
 });
 
+const UploadedDocumentParamSchema = z.object({
+  sessionId: z.string().min(1),
+  documentId: z.string().min(1),
+});
+
 const PersonaBodySchema = z.object({
   persona: PersonaSchema.default("joshua"),
 });
@@ -59,6 +64,15 @@ function isPdfFile(file: File) {
 }
 
 type Persona = z.infer<typeof PersonaSchema>;
+
+type UploadedPdfRecord = {
+  filename: string;
+  mimeType: string;
+  data: Uint8Array;
+};
+
+const maxUploadedPdfSessions = 25;
+const uploadedPdfSessions = new Map<string, Map<string, UploadedPdfRecord>>();
 
 const referencePdfDirectories: Partial<Record<Persona, string>> = {
   joshua: "joshua",
@@ -116,6 +130,41 @@ function contentDispositionFilename(filename: string) {
   return filename.replace(/["\\]/g, "_");
 }
 
+function arrayBufferFromBytes(bytes: Uint8Array) {
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return buffer;
+}
+
+async function rememberUploadedPdfs(
+  sessionId: string,
+  files: File[],
+  documents: Awaited<ReturnType<typeof uploadedDocuments>>,
+) {
+  const records = new Map<string, UploadedPdfRecord>();
+
+  await Promise.all(
+    documents.map(async (document, index) => {
+      const file = files[index];
+      if (!file) return;
+
+      records.set(document.id, {
+        filename: document.filename,
+        mimeType: document.mimeType || "application/pdf",
+        data: new Uint8Array(await file.arrayBuffer()),
+      });
+    }),
+  );
+
+  uploadedPdfSessions.set(sessionId, records);
+
+  while (uploadedPdfSessions.size > maxUploadedPdfSessions) {
+    const oldestSessionId = uploadedPdfSessions.keys().next().value;
+    if (!oldestSessionId) break;
+    uploadedPdfSessions.delete(oldestSessionId);
+  }
+}
+
 export function createLensRoutes() {
   const app = new Hono();
 
@@ -140,7 +189,7 @@ export function createLensRoutes() {
 
     try {
       const pdf = await readFixturePdf(parsed.data.persona, document.filename);
-      return new Response(new Uint8Array(pdf), {
+      return new Response(arrayBufferFromBytes(pdf), {
         status: 200,
         headers: {
           "content-type": "application/pdf",
@@ -153,6 +202,26 @@ export function createLensRoutes() {
     } catch {
       return c.json(jsonError("Fixture PDF is not available", 404), 404);
     }
+  });
+
+  app.get("/documents/uploads/:sessionId/:documentId/pdf", (c) => {
+    const parsed = UploadedDocumentParamSchema.safeParse(c.req.param());
+    if (!parsed.success) return c.json(jsonError("Unknown uploaded document", 404), 404);
+
+    const session = uploadedPdfSessions.get(parsed.data.sessionId);
+    const document = session?.get(parsed.data.documentId);
+    if (!document) return c.json(jsonError("Unknown uploaded document", 404), 404);
+
+    return new Response(arrayBufferFromBytes(document.data), {
+      status: 200,
+      headers: {
+        "content-type": document.mimeType,
+        "content-disposition": `inline; filename="${contentDispositionFilename(
+          document.filename,
+        )}"`,
+        "cache-control": "no-store",
+      },
+    });
   });
 
   app.post("/documents/upload", async (c) => {
@@ -180,9 +249,13 @@ export function createLensRoutes() {
       });
     }
 
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const documents = await uploadedDocuments(files);
+    await rememberUploadedPdfs(sessionId, files, documents);
+
     return c.json({
-      sessionId: `session_${Date.now()}`,
-      documents: await uploadedDocuments(files),
+      sessionId,
+      documents,
       source: "upload",
     });
   });

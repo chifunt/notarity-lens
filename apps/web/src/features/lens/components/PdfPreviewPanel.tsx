@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { FileText, Quote } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { resolveEvidenceDocuments } from "../evidenceDocuments";
@@ -60,7 +60,15 @@ function buildHighlightRanges(text: string, evidence: EvidenceRef[]): HighlightR
   }, []);
 }
 
-function HighlightedText({ text, evidence }: { text: string; evidence: EvidenceRef[] }) {
+function HighlightedText({
+  text,
+  evidence,
+  activeEvidenceId,
+}: {
+  text: string;
+  evidence: EvidenceRef[];
+  activeEvidenceId?: string;
+}) {
   const ranges = buildHighlightRanges(text, evidence);
   if (!ranges.length) return <>{text}</>;
 
@@ -73,10 +81,16 @@ function HighlightedText({ text, evidence }: { text: string; evidence: EvidenceR
     }
 
     const label = range.evidence.map((item) => item.quote).join(" | ");
+    const active = range.evidence.some((item) => item.id === activeEvidenceId);
     parts.push(
       <mark
         key={`${range.start}-${range.end}-${index}`}
-        className="rounded-sm bg-accent/70 px-1 text-foreground ring-1 ring-primary/15"
+        className={cn(
+          "rounded-sm px-1 ring-1",
+          active
+            ? "bg-primary text-primary-foreground ring-2 ring-primary"
+            : "bg-accent/70 text-foreground ring-primary/15",
+        )}
         title={label}
       >
         {text.slice(range.start, range.end)}
@@ -96,15 +110,18 @@ export function PdfPreviewPanel({
   inference,
   documents: fallbackDocuments = [],
   activeDocumentId,
+  activeEvidenceId,
   onActiveDocumentChange,
   pdfUrlForDocument,
 }: {
   inference: DocumentFactExtraction;
   documents?: ExtractedDocument[];
   activeDocumentId?: string;
+  activeEvidenceId?: string;
   onActiveDocumentChange?: (documentId: string) => void;
   pdfUrlForDocument?: (document: ExtractedDocument) => string | undefined;
 }) {
+  const pageRefs = useRef<Record<number, HTMLElement | null>>({});
   const allEvidence = useMemo(() => collectEvidence(inference), [inference]);
   const documents = useMemo(
     () => resolveEvidenceDocuments(inference, fallbackDocuments),
@@ -121,6 +138,23 @@ export function PdfPreviewPanel({
   const selectedPdfUrl = selectedDocument
     ? pdfUrlForDocument?.(selectedDocument) ?? selectedDocument.previewUrl
     : undefined;
+
+  useEffect(() => {
+    const activeEvidence = allEvidence.find((evidence) => evidence.id === activeEvidenceId);
+    if (
+      !activeEvidence ||
+      !selectedDocument ||
+      activeEvidence.documentId !== selectedDocument.id ||
+      !activeEvidence.page
+    ) {
+      return;
+    }
+
+    pageRefs.current[activeEvidence.page]?.scrollIntoView({
+      block: "center",
+      behavior: "smooth",
+    });
+  }, [activeEvidenceId, allEvidence, selectedDocument]);
 
   const selectDocument = (documentId: string) => {
     setInternalDocumentId(documentId);
@@ -210,6 +244,9 @@ export function PdfPreviewPanel({
                 return (
                   <article
                     key={page.page}
+                    ref={(element) => {
+                      pageRefs.current[page.page] = element;
+                    }}
                     className="rounded-lg border border-border bg-card p-4 text-sm leading-7 text-foreground shadow-sm"
                   >
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -221,7 +258,11 @@ export function PdfPreviewPanel({
                       </span>
                     </div>
                     <p>
-                      <HighlightedText text={page.text} evidence={pageEvidence} />
+                      <HighlightedText
+                        text={page.text}
+                        evidence={pageEvidence}
+                        activeEvidenceId={activeEvidenceId}
+                      />
                     </p>
                     {pageEvidence.length ? (
                       <div className="mt-3 flex flex-wrap gap-2">

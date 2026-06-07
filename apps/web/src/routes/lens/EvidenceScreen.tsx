@@ -16,6 +16,7 @@ export function EvidenceScreen() {
   const markInferenceFieldUnsure = useLensStore((state) => state.markInferenceFieldUnsure);
   const saveInferenceField = useLensStore((state) => state.saveInferenceField);
   const [activeEvidenceDocumentId, setActiveEvidenceDocumentId] = useState<string | undefined>();
+  const [activeEvidenceId, setActiveEvidenceId] = useState<string | undefined>();
 
   return (
     <RequireFixture>
@@ -28,6 +29,7 @@ export function EvidenceScreen() {
                 inference={fixture.inference}
                 documents={fixture.documents}
                 activeDocumentId={activeEvidenceDocumentId}
+                activeEvidenceId={activeEvidenceId}
                 onActiveDocumentChange={setActiveEvidenceDocumentId}
                 pdfUrlForDocument={(document) =>
                   fixture.id === "upload"
@@ -60,9 +62,10 @@ export function EvidenceScreen() {
                       onConfirm={() => confirmInferenceField(field.key)}
                       onUnsure={() => markInferenceFieldUnsure(field.key)}
                       onSave={(value) => saveInferenceField({ key: field.key, value })}
-                      onEvidenceSelect={(evidence) =>
-                        setActiveEvidenceDocumentId(evidence.documentId)
-                      }
+                      onEvidenceSelect={(evidence) => {
+                        setActiveEvidenceDocumentId(evidence.documentId);
+                        setActiveEvidenceId(evidence.id);
+                      }}
                     />
                   ))}
                 </section>

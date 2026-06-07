@@ -20,6 +20,26 @@ describe("api routes", () => {
     expect(await response.json()).toEqual({ ok: true });
   });
 
+  it("allows local web dev origins on fallback Vite ports", async () => {
+    const response = await app.request("/health", {
+      headers: { origin: "http://localhost:5176" },
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("access-control-allow-origin")).toBe(
+      "http://localhost:5176",
+    );
+  });
+
+  it("does not allow non-local CORS origins", async () => {
+    const response = await app.request("/health", {
+      headers: { origin: "https://example.com" },
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("access-control-allow-origin")).toBeNull();
+  });
+
   it("returns Joshua fixture data", async () => {
     const response = await app.request("/api/fixtures/joshua");
     const body = await response.json();
@@ -233,6 +253,24 @@ describe("api routes", () => {
     expect(body.documents[0].extractionStatus).toBe("extracted");
     expect(body.documents[0].textByPage[0].text).toContain("Amara Okafor");
     expect(body.documents[0].textByPage[0].text).toContain("Germany");
+
+    const pdfResponse = await app.request(
+      `/api/documents/uploads/${body.sessionId}/${body.documents[0].id}/pdf`,
+    );
+    const servedPdf = Buffer.from(await pdfResponse.arrayBuffer());
+
+    expect(pdfResponse.status).toBe(200);
+    expect(pdfResponse.headers.get("content-type")).toContain("application/pdf");
+    expect(pdfResponse.headers.get("content-disposition")).toContain("inline");
+    expect(Buffer.compare(servedPdf, pdf)).toBe(0);
+  });
+
+  it("rejects unknown uploaded PDF preview documents", async () => {
+    const response = await app.request("/api/documents/uploads/missing/missing/pdf");
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("Unknown uploaded document");
   });
 
   it("infers facts from uploaded PDF text instead of fixture fallback", async () => {

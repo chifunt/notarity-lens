@@ -389,6 +389,12 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().uploadedDocuments[0]?.filename).toBe(
       "Uploaded_Power_of_Attorney.pdf",
     );
+    expect(useLensStore.getState().uploadedDocuments[0]?.previewUrl).toBe(
+      "http://localhost:8787/api/documents/uploads/session_test/upload-test-0/pdf",
+    );
+    expect(useLensStore.getState().fixture?.inference.documents[0]?.previewUrl).toBe(
+      "http://localhost:8787/api/documents/uploads/session_test/upload-test-0/pdf",
+    );
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/documents/upload"),
       expect.objectContaining({ method: "POST", body: expect.any(FormData) }),

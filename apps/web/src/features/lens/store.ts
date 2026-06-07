@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import {
   ELIZABETH_FLEXCO_PRODUCT_ID,
   JOSHUA_NIE_APPLICATION_PRODUCT_ID,
@@ -8,6 +9,7 @@ import {
 import {
   draftPayload,
   getPersonaFixture,
+  getUploadedPdfUrl,
   inferDocuments,
   pricePayload,
   submitPayload,
@@ -402,235 +404,53 @@ function attachPreviewUrls(
   documents: ExtractedDocument[],
   files: File[],
   previewUrls: Map<string, string | undefined>,
+  uploadSessionId?: string,
 ) {
   return documents.map((document) => {
     const file = files.find(
       (candidate) =>
         candidate.name === document.filename && candidate.size === document.size,
     );
+    const uploadedPdfUrl = uploadSessionId
+      ? getUploadedPdfUrl(uploadSessionId, document.id)
+      : undefined;
+
     return {
       ...document,
-      previewUrl: file ? previewUrls.get(fileKey(file)) : document.previewUrl,
+      previewUrl:
+        uploadedPdfUrl ?? (file ? previewUrls.get(fileKey(file)) : document.previewUrl),
     };
   });
 }
 
-export const useLensStore = create<LensStore>((set, get) => ({
-  fixture: null,
-  uploadedDocuments: [],
-  appointmentSelection: defaultAppointmentSelection,
-  price: null,
-  submitResult: null,
-  analysisStage: "idle",
-  loading: false,
-  error: null,
+type LensPersistedState = Pick<
+  LensStore,
+  | "fixture"
+  | "uploadedDocuments"
+  | "appointmentSelection"
+  | "price"
+  | "submitResult"
+  | "analysisStage"
+>;
 
-  loadPersona: async (persona = "joshua") => {
-    activeUploadRunId += 1;
-    clearPreviewUrls();
-    set({
-      fixture: null,
-      uploadedDocuments: [],
-      appointmentSelection: defaultAppointmentSelection,
-      price: null,
-      submitResult: null,
-      analysisStage: "loading_sample",
-      loading: true,
-      error: null,
-    });
-    try {
-      const fixture = await getPersonaFixture(persona);
-      const price = await pricePayload(fixture.payload);
-      set({
-        fixture,
-        appointmentSelection: appointmentSelectionForFixture(fixture),
-        price,
-        analysisStage: "ready",
-        loading: false,
-      });
-      return true;
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unable to load sample request";
-      set({
-        fixture: null,
-        uploadedDocuments: [],
-        appointmentSelection: defaultAppointmentSelection,
-        price: null,
-        submitResult: null,
-        error: message,
-        analysisStage: "idle",
-        loading: false,
-      });
-      return false;
-    }
-  },
+function persistReadyDraft(state: LensStore): LensPersistedState {
+  const hasReadyDraft = state.analysisStage === "ready" && Boolean(state.fixture);
 
-  loadJoshuaDemo: async () => get().loadPersona("joshua"),
+  return {
+    fixture: hasReadyDraft ? state.fixture : null,
+    uploadedDocuments: hasReadyDraft ? state.uploadedDocuments : [],
+    appointmentSelection: hasReadyDraft
+      ? state.appointmentSelection
+      : defaultAppointmentSelection,
+    price: hasReadyDraft ? state.price : null,
+    submitResult: hasReadyDraft ? state.submitResult : null,
+    analysisStage: hasReadyDraft ? "ready" : "idle",
+  };
+}
 
-  uploadDocuments: async (files) => {
-    if (!files.length) return false;
-    const runId = (activeUploadRunId += 1);
-    const isCurrentRun = () => activeUploadRunId === runId;
-    clearPreviewUrls();
-    const previewUrls = previewUrlByFile(files);
-
-    set({
-      fixture: null,
-      uploadedDocuments: pendingUploadDocuments(files, previewUrls),
-      appointmentSelection: defaultAppointmentSelection,
-      price: null,
-      submitResult: null,
-      analysisStage: "uploading",
-      loading: true,
-      error: null,
-    });
-    try {
-      const upload = await uploadDocumentFiles(files);
-      if (!isCurrentRun()) return false;
-      const documents = attachPreviewUrls(upload.documents, files, previewUrls);
-      set({ uploadedDocuments: documents, analysisStage: "inferring" });
-
-      const infer = await inferDocuments(documents);
-      if (!isCurrentRun()) return false;
-      set({ analysisStage: "drafting" });
-
-      const draft = await draftPayload(infer.inference);
-      if (!isCurrentRun()) return false;
-      set({ analysisStage: "pricing" });
-
-      const price = draft.payload ? await pricePayload(draft.payload) : null;
-      if (!isCurrentRun()) return false;
-
-      const payload = draft.payload
-        ? { ...draft.payload, confirmedPrice: price?.confirmedPrice }
-        : undefined;
-      const fixture: LensFixture = {
-        id: "upload",
-        name: "Uploaded documents",
-        scenario: "Uploaded PDF draft",
-        documents,
-        inference: { ...infer.inference, documents },
-        payload,
-      };
-      set({
-        fixture,
-        appointmentSelection: payload
-          ? appointmentSelectionForFixture(fixture)
-          : defaultAppointmentSelection,
-        uploadedDocuments: documents,
-        price,
-        analysisStage: "ready",
-        error: draft.blockers.length ? draft.blockers.join(" ") : null,
-        loading: false,
-      });
-      return true;
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unable to upload documents";
-      if (isCurrentRun()) {
-        set({
-          fixture: null,
-          uploadedDocuments: [],
-          appointmentSelection: defaultAppointmentSelection,
-          price: null,
-          submitResult: null,
-          analysisStage: "idle",
-          error: message,
-          loading: false,
-        });
-      }
-      return false;
-    }
-  },
-
-  confirmEvidence: () => set((state) => ({ fixture: state.fixture })),
-
-  confirmInferenceField: (key) =>
-    set((state) => ({
-      fixture: withInference(state.fixture, (inference) =>
-        updateInferenceFieldStatus(inference, key, "confirmed"),
-      ),
-    })),
-
-  markInferenceFieldUnsure: (key) =>
-    set((state) => ({
-      fixture: withInference(state.fixture, (inference) =>
-        updateInferenceFieldStatus(inference, key, "needs_review"),
-      ),
-    })),
-
-  saveInferenceField: (input) =>
-    set((state) => ({
-      fixture: state.fixture
-        ? {
-            ...state.fixture,
-            inference: saveInferenceFieldValue(state.fixture.inference, input),
-            payload: syncPayloadWithField(state.fixture.payload, input),
-          }
-        : state.fixture,
-    })),
-
-  selectAppointmentSlot: (selection) =>
-    set(() => ({
-      appointmentSelection: selection,
-    })),
-
-  confirmCountry: () =>
-    set((state) => ({
-      fixture: withInference(state.fixture, (inference) => ({
-        ...inference,
-        countryOfUse: updateField(inference.countryOfUse, "confirmed"),
-        billingAddress: updateOptionalField(inference.billingAddress, "confirmed"),
-        shippingAddress: updateOptionalField(inference.shippingAddress, "confirmed"),
-      })),
-    })),
-
-  confirmRoute: () =>
-    set((state) => ({
-      fixture: withInference(state.fixture, (inference) => ({
-        ...inference,
-        products: inference.products.map((field) => updateField(field, "confirmed")),
-        apostille: updateOptionalField(inference.apostille, "confirmed"),
-        hardCopy: updateOptionalField(inference.hardCopy, "confirmed"),
-      })),
-    })),
-
-  confirmPeople: () =>
-    set((state) => ({
-      fixture: withInference(state.fixture, (inference) => ({
-        ...inference,
-        people: inference.people.map((field) => updateField(field, "confirmed")),
-      })),
-    })),
-
-  submitBooking: async () => {
-    const fixture = get().fixture;
-    if (!fixture) return false;
-    if (!fixture.payload) {
-      set({
-        error: "Payload is not ready for uploaded documents yet",
-        loading: false,
-      });
-      return false;
-    }
-
-    set({ submitResult: null, loading: true, error: null });
-    try {
-      const submitResult = await submitPayload(fixture.payload);
-      set({ submitResult, loading: false });
-      return true;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Submit failed";
-      set({ error: message, loading: false });
-      return false;
-    }
-  },
-
-  reset: () =>
-    set(() => {
-      activeUploadRunId += 1;
-      clearPreviewUrls();
+export const useLensStore = create<LensStore>()(
+  persist(
+    (set, get) => {
       return {
         fixture: null,
         uploadedDocuments: [],
@@ -640,6 +460,242 @@ export const useLensStore = create<LensStore>((set, get) => ({
         analysisStage: "idle",
         loading: false,
         error: null,
+
+        loadPersona: async (persona = "joshua") => {
+          activeUploadRunId += 1;
+          clearPreviewUrls();
+          set({
+            fixture: null,
+            uploadedDocuments: [],
+            appointmentSelection: defaultAppointmentSelection,
+            price: null,
+            submitResult: null,
+            analysisStage: "loading_sample",
+            loading: true,
+            error: null,
+          });
+          try {
+            const fixture = await getPersonaFixture(persona);
+            const price = await pricePayload(fixture.payload);
+            set({
+              fixture,
+              appointmentSelection: appointmentSelectionForFixture(fixture),
+              price,
+              analysisStage: "ready",
+              loading: false,
+            });
+            return true;
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : "Unable to load sample request";
+            set({
+              fixture: null,
+              uploadedDocuments: [],
+              appointmentSelection: defaultAppointmentSelection,
+              price: null,
+              submitResult: null,
+              error: message,
+              analysisStage: "idle",
+              loading: false,
+            });
+            return false;
+          }
+        },
+
+        loadJoshuaDemo: async () => get().loadPersona("joshua"),
+
+        uploadDocuments: async (files) => {
+          if (!files.length) return false;
+          const runId = (activeUploadRunId += 1);
+          const isCurrentRun = () => activeUploadRunId === runId;
+          clearPreviewUrls();
+          const previewUrls = previewUrlByFile(files);
+
+          set({
+            fixture: null,
+            uploadedDocuments: pendingUploadDocuments(files, previewUrls),
+            appointmentSelection: defaultAppointmentSelection,
+            price: null,
+            submitResult: null,
+            analysisStage: "uploading",
+            loading: true,
+            error: null,
+          });
+          try {
+            const upload = await uploadDocumentFiles(files);
+            if (!isCurrentRun()) return false;
+            const documents = attachPreviewUrls(
+              upload.documents,
+              files,
+              previewUrls,
+              upload.sessionId,
+            );
+            clearPreviewUrls();
+            set({ uploadedDocuments: documents, analysisStage: "inferring" });
+
+            const infer = await inferDocuments(documents);
+            if (!isCurrentRun()) return false;
+            set({ analysisStage: "drafting" });
+
+            const draft = await draftPayload(infer.inference);
+            if (!isCurrentRun()) return false;
+            set({ analysisStage: "pricing" });
+
+            const price = draft.payload ? await pricePayload(draft.payload) : null;
+            if (!isCurrentRun()) return false;
+
+            const payload = draft.payload
+              ? { ...draft.payload, confirmedPrice: price?.confirmedPrice }
+              : undefined;
+            const fixture: LensFixture = {
+              id: "upload",
+              name: "Uploaded documents",
+              scenario: "Uploaded PDF draft",
+              documents,
+              inference: { ...infer.inference, documents },
+              payload,
+            };
+            set({
+              fixture,
+              appointmentSelection: payload
+                ? appointmentSelectionForFixture(fixture)
+                : defaultAppointmentSelection,
+              uploadedDocuments: documents,
+              price,
+              analysisStage: "ready",
+              error: draft.blockers.length ? draft.blockers.join(" ") : null,
+              loading: false,
+            });
+            return true;
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : "Unable to upload documents";
+            if (isCurrentRun()) {
+              clearPreviewUrls();
+              set({
+                fixture: null,
+                uploadedDocuments: [],
+                appointmentSelection: defaultAppointmentSelection,
+                price: null,
+                submitResult: null,
+                analysisStage: "idle",
+                error: message,
+                loading: false,
+              });
+            }
+            return false;
+          }
+        },
+
+        confirmEvidence: () => set((state) => ({ fixture: state.fixture })),
+
+        confirmInferenceField: (key) =>
+          set((state) => ({
+            fixture: withInference(state.fixture, (inference) =>
+              updateInferenceFieldStatus(inference, key, "confirmed"),
+            ),
+          })),
+
+        markInferenceFieldUnsure: (key) =>
+          set((state) => ({
+            fixture: withInference(state.fixture, (inference) =>
+              updateInferenceFieldStatus(inference, key, "needs_review"),
+            ),
+          })),
+
+        saveInferenceField: (input) =>
+          set((state) => ({
+            fixture: state.fixture
+              ? {
+                  ...state.fixture,
+                  inference: saveInferenceFieldValue(state.fixture.inference, input),
+                  payload: syncPayloadWithField(state.fixture.payload, input),
+                }
+              : state.fixture,
+          })),
+
+        selectAppointmentSlot: (selection) =>
+          set(() => ({
+            appointmentSelection: selection,
+          })),
+
+        confirmCountry: () =>
+          set((state) => ({
+            fixture: withInference(state.fixture, (inference) => ({
+              ...inference,
+              countryOfUse: updateField(inference.countryOfUse, "confirmed"),
+              billingAddress: updateOptionalField(inference.billingAddress, "confirmed"),
+              shippingAddress: updateOptionalField(
+                inference.shippingAddress,
+                "confirmed",
+              ),
+            })),
+          })),
+
+        confirmRoute: () =>
+          set((state) => ({
+            fixture: withInference(state.fixture, (inference) => ({
+              ...inference,
+              products: inference.products.map((field) =>
+                updateField(field, "confirmed"),
+              ),
+              apostille: updateOptionalField(inference.apostille, "confirmed"),
+              hardCopy: updateOptionalField(inference.hardCopy, "confirmed"),
+            })),
+          })),
+
+        confirmPeople: () =>
+          set((state) => ({
+            fixture: withInference(state.fixture, (inference) => ({
+              ...inference,
+              people: inference.people.map((field) => updateField(field, "confirmed")),
+            })),
+          })),
+
+        submitBooking: async () => {
+          const fixture = get().fixture;
+          if (!fixture) return false;
+          if (!fixture.payload) {
+            set({
+              error: "Payload is not ready for uploaded documents yet",
+              loading: false,
+            });
+            return false;
+          }
+
+          set({ submitResult: null, loading: true, error: null });
+          try {
+            const submitResult = await submitPayload(fixture.payload);
+            set({ submitResult, loading: false });
+            return true;
+          } catch (error) {
+            const message = error instanceof Error ? error.message : "Submit failed";
+            set({ error: message, loading: false });
+            return false;
+          }
+        },
+
+        reset: () =>
+          set(() => {
+            activeUploadRunId += 1;
+            clearPreviewUrls();
+            return {
+              fixture: null,
+              uploadedDocuments: [],
+              appointmentSelection: defaultAppointmentSelection,
+              price: null,
+              submitResult: null,
+              analysisStage: "idle",
+              loading: false,
+              error: null,
+            };
+          }),
       };
-    }),
-}));
+    },
+    {
+      name: "notarity-lens-ready-draft",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: persistReadyDraft,
+    },
+  ),
+);
