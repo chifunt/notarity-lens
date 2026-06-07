@@ -984,3 +984,18 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking route effects for stale timers and unmounted navigation.
+
+## Sprint 60: Research persona matrix and PDF generator
+
+- Status: complete
+- Scope: turn the deep research and planning-pack requirements into a repeatable additional-persona test matrix before adding more fixtures.
+- Changes:
+  - Added `docs/persona-research-results.md` with the source-backed persona acceptance frame and planned complete, insufficient, conflicting, hard-copy, and participant-ambiguity cases.
+  - Added `scripts/write-fixture-pdf.mjs`, a dependency-free PDF fixture writer for reproducible persona documents.
+- Verification:
+  - `node --check scripts/write-fixture-pdf.mjs` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add the first brand-new complete persona with generated PDFs, fixture/API/UI wiring, tests, and documented output.
