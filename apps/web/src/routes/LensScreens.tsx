@@ -57,6 +57,7 @@ import {
 import { useLensStore } from "@/features/lens/store";
 import type {
   DocumentFactExtraction,
+  ExtractedDocument,
   FieldStatus,
   InferredField,
   LensFixture,
@@ -662,19 +663,23 @@ function ScreenFrame({
   children,
   sidebar = true,
   railAction,
+  rightRail,
 }: {
   children: ReactNode;
   sidebar?: boolean;
   railAction?: ReactNode;
+  rightRail?: ReactNode;
 }) {
   const price = useLensStore((state) => state.price);
+  const resolvedRightRail =
+    rightRail !== undefined
+      ? rightRail
+      : sidebar
+        ? <ReceiptSidebar price={price} action={railAction} />
+        : undefined;
 
   return (
-    <AppShell
-      rightRail={
-        sidebar ? <ReceiptSidebar price={price} action={railAction} /> : undefined
-      }
-    >
+    <AppShell rightRail={resolvedRightRail}>
       {children}
     </AppShell>
   );
@@ -880,6 +885,82 @@ const analyzeSteps: ProgressItem[] = [
   },
 ];
 
+function formatDocumentSize(size: number) {
+  if (size >= 1_000_000) return `${(size / 1_000_000).toFixed(1)} MB`;
+  if (size >= 1_000) return `${(size / 1_000).toFixed(1)} KB`;
+  return `${size} B`;
+}
+
+function AnalyzeDocumentRail({
+  documents,
+  canContinue,
+  onContinue,
+}: {
+  documents: ExtractedDocument[];
+  canContinue: boolean;
+  onContinue: () => void;
+}) {
+  return (
+    <section className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Uploaded documents
+        </h2>
+        <span
+          className={`rounded-full px-2 py-1 text-xs font-medium ${
+            canContinue
+              ? "bg-status-confirmed text-status-confirmed-foreground"
+              : "bg-status-inferred text-status-inferred-foreground"
+          }`}
+        >
+          {canContinue ? "Ready" : "Reading"}
+        </span>
+      </div>
+
+      <div className="mt-3 overflow-hidden rounded-lg border border-border">
+        {documents.length ? (
+          documents.map((document, index) => (
+            <div
+              key={document.id}
+              className={`flex items-start gap-3 bg-card px-4 py-3 ${
+                index === documents.length - 1 ? "" : "border-b border-border"
+              }`}
+            >
+              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <FileText className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {document.canonicalName || document.filename}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {document.mimeType || "application/pdf"} - {formatDocumentSize(document.size)}
+                </p>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="bg-card px-4 py-3 text-sm text-muted-foreground">
+            No documents loaded yet.
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 border-t border-border pt-4">
+        <Button
+          type="button"
+          className="w-full"
+          onClick={onContinue}
+          disabled={!canContinue}
+        >
+          Continue
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Button>
+      </div>
+    </section>
+  );
+}
+
 export function AnalyzeScreen() {
   const navigate = useNavigate();
   const { fixture, loadJoshuaDemo, loading } = useEnsureFixture();
@@ -926,19 +1007,17 @@ export function AnalyzeScreen() {
       })) satisfies ProgressItem[],
     [activeStep, complete],
   );
+  const analyzeDocuments = fixture?.documents ?? uploadedDocuments;
+  const canContinue = Boolean(fixture) && complete;
 
   return (
     <ScreenFrame
-      railAction={
-        <Button
-          type="button"
-          className="w-full"
-          onClick={() => navigate("/lens/evidence")}
-          disabled={!fixture || !complete}
-        >
-          Continue
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </Button>
+      rightRail={
+        <AnalyzeDocumentRail
+          documents={analyzeDocuments}
+          canContinue={canContinue}
+          onContinue={() => navigate("/lens/evidence")}
+        />
       }
     >
       <DemoError />
@@ -950,11 +1029,8 @@ export function AnalyzeScreen() {
             product rules, and the Notarity pricing contract.
           </p>
         </div>
-        {fixture ? (
-          <DocumentFileList documents={fixture.documents} />
-        ) : uploadedDocuments.length ? (
+        {fixture ? null : uploadedDocuments.length ? (
           <div className="grid gap-4">
-            <DocumentFileList documents={uploadedDocuments} />
             <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
               <h2 className="text-xl font-semibold text-foreground">
                 Uploaded documents received
