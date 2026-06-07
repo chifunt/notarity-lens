@@ -153,6 +153,34 @@ describe("Lens store sample flow", () => {
     );
   });
 
+  it("confirms participant inference fields", async () => {
+    await useLensStore.getState().loadPersona("joshua");
+
+    useLensStore.setState((state) => ({
+      fixture: state.fixture
+        ? {
+            ...state.fixture,
+            inference: {
+              ...state.fixture.inference,
+              people: state.fixture.inference.people.map((field) => ({
+                ...field,
+                requiresConfirmation: true,
+                status: "needs_review",
+              })),
+            },
+          }
+        : state.fixture,
+    }));
+
+    useLensStore.getState().confirmPeople();
+
+    expect(
+      useLensStore
+        .getState()
+        .fixture?.inference.people.every((field) => field.status === "confirmed"),
+    ).toBe(true);
+  });
+
   it("clears stale draft state before loading a new persona", async () => {
     useLensStore.setState({
       fixture: webJoshuaFixture,

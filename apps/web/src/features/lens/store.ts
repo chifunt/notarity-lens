@@ -23,6 +23,7 @@ type LensStore = {
   confirmEvidence: () => void;
   confirmCountry: () => void;
   confirmRoute: () => void;
+  confirmPeople: () => void;
   submitBooking: () => Promise<void>;
   reset: () => void;
 };
@@ -118,6 +119,14 @@ export const useLensStore = create<LensStore>((set, get) => ({
         products: inference.products.map((field) => updateField(field, "confirmed")),
         apostille: updateOptionalField(inference.apostille, "confirmed"),
         hardCopy: updateOptionalField(inference.hardCopy, "confirmed"),
+      })),
+    })),
+
+  confirmPeople: () =>
+    set((state) => ({
+      fixture: withInference(state.fixture, (inference) => ({
+        ...inference,
+        people: inference.people.map((field) => updateField(field, "confirmed")),
       })),
     })),
 

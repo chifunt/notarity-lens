@@ -591,3 +591,23 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add clearer resolution paths for non-P0 ambiguity cases, especially participant review.
+
+## Sprint 37: Participant ambiguity resolution
+
+- Status: complete
+- Scope: give users a clear way to resolve participant ambiguity that blocks final review.
+- Changes:
+  - Added a `confirmPeople` store action.
+  - Appointment participants now show a status badge.
+  - When people inferences are unresolved, appointment shows `Confirm listed participants`.
+  - Confirming listed participants marks people inference fields as confirmed so final review can proceed.
+  - Added store coverage for participant inference confirmation.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: Elizabeth appointment shows `Confirm listed participants` while participant ambiguity is unresolved.
+  - Browser check: confirming listed participants removes the unresolved panel and enables the mock submit CTA on review.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue adding explicit resolution paths for any remaining blocked review states.

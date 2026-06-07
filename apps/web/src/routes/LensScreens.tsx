@@ -640,12 +640,24 @@ export function CostScreen() {
 
 export function AppointmentScreen() {
   const navigate = useNavigate();
+  const confirmPeople = useLensStore((state) => state.confirmPeople);
   const [participantHelpOpen, setParticipantHelpOpen] = useState(false);
 
   return (
     <RequireFixture>
       {(fixture) => (
         <ScreenFrame>
+          {(() => {
+            const participantUnresolved = unresolvedConfirmationFields(
+              fixture.inference,
+            ).filter((field) =>
+              fixture.inference.people.some((personField) => personField.key === field.key),
+            );
+            const participantStatus = participantUnresolved.length
+              ? "needs_review"
+              : "confirmed";
+
+            return (
           <div className="mx-auto max-w-5xl">
             <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
               <h1 className="text-3xl font-semibold text-foreground">Add participants and pick a time</h1>
@@ -657,9 +669,12 @@ export function AppointmentScreen() {
               <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
                 <div className="grid gap-4">
                   <article className="rounded-lg border border-border bg-lens-surface-muted p-4">
-                    <div className="flex items-center gap-2">
-                      <UserRound className="h-5 w-5 text-primary" aria-hidden="true" />
-                      <h2 className="text-base font-semibold text-foreground">Participants</h2>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <UserRound className="h-5 w-5 text-primary" aria-hidden="true" />
+                        <h2 className="text-base font-semibold text-foreground">Participants</h2>
+                      </div>
+                      <StatusBadge status={participantStatus} />
                     </div>
                     <div className="mt-4 rounded-md border border-border bg-card px-3 py-3">
                       <p className="text-xs font-medium uppercase text-muted-foreground">Participant emails</p>
@@ -692,6 +707,16 @@ export function AppointmentScreen() {
                       <HelpCircle className="h-4 w-4" aria-hidden="true" />
                       Who needs to join?
                     </Button>
+                    {participantUnresolved.length ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="mt-3"
+                        onClick={confirmPeople}
+                      >
+                        Confirm listed participants
+                      </Button>
+                    ) : null}
                     {participantHelpOpen ? (
                       <div
                         id="participant-help"
@@ -757,6 +782,8 @@ export function AppointmentScreen() {
               </Button>
             </div>
           </div>
+            );
+          })()}
         </ScreenFrame>
       )}
     </RequireFixture>
