@@ -11,7 +11,14 @@ import { createNotarityClient } from "../clients/notarity-client.js";
 import { fixtureDocuments, uploadedDocuments } from "../extraction/mock-extraction.js";
 import { getApiConfig } from "../utils/env.js";
 
-const PersonaSchema = z.enum(["joshua", "robert", "elizabeth", "amara", "noah"]);
+const PersonaSchema = z.enum([
+  "joshua",
+  "robert",
+  "elizabeth",
+  "amara",
+  "noah",
+  "sofia",
+]);
 
 const PersonaParamSchema = z.object({
   persona: PersonaSchema,

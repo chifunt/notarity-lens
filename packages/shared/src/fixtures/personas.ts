@@ -993,6 +993,233 @@ export const noahFixture: PersonaFixture = {
   payload: noahPayload,
 };
 
+export const sofiaDocuments: ExtractedDocument[] = [
+  {
+    id: "doc-sofia-bank-authorisation",
+    filename: "Spanish_Bank_Authorisation_Sofia_Rossi.pdf",
+    canonicalName: "Spanish_Bank_Authorisation_Sofia_Rossi.pdf",
+    mimeType: "application/pdf",
+    size: 1130,
+    extractionStatus: "fixture",
+    textByPage: [
+      {
+        page: 1,
+        text: [
+          "Signature authorisation for Spanish bank compliance.",
+          "Applicant: Sofia Rossi.",
+          "Email: sofia.rossi@notarity.com.",
+          "Residence and billing address: Via Torino 12, 20123 Milan, Italy.",
+          "Country where this notarised document will be used: Spain.",
+          "Receiving office: Banco Iberico branch compliance office, Madrid, Spain.",
+          "Notary action requested: certify Sofia Rossi's signature for the bank file.",
+          "Digital notarised copy is sufficient.",
+          "No hard copy shipment requested.",
+        ].join(" "),
+      },
+    ],
+  },
+];
+
+export const sofiaInference: DocumentFactExtraction = {
+  persona: "sofia",
+  documents: sofiaDocuments,
+  countryOfUse: {
+    key: "countryOfUse",
+    label: "Country of use",
+    value: "ES",
+    status: "conflict",
+    confidence: 0.88,
+    evidence: [
+      evidence(
+        "ev-sofia-spain-use",
+        "doc-sofia-bank-authorisation",
+        "Spanish_Bank_Authorisation_Sofia_Rossi.pdf",
+        1,
+        "Country where this notarised document will be used: Spain",
+      ),
+      evidence(
+        "ev-sofia-italy-billing",
+        "doc-sofia-bank-authorisation",
+        "Spanish_Bank_Authorisation_Sofia_Rossi.pdf",
+        1,
+        "Via Torino 12, 20123 Milan, Italy",
+        0.8,
+      ),
+    ],
+    explanation:
+      "The PDF says the document will be used in Spain, but it also contains an Italian residence and billing address. Spain should be confirmed as country of use.",
+    requiresConfirmation: true,
+  },
+  products: [
+    {
+      key: "recommendedProduct",
+      label: "Recommended product",
+      value: "signature_notarisation",
+      status: "inferred",
+      confidence: 0.89,
+      evidence: [
+        evidence(
+          "ev-sofia-signature",
+          "doc-sofia-bank-authorisation",
+          "Spanish_Bank_Authorisation_Sofia_Rossi.pdf",
+          1,
+          "certify Sofia Rossi's signature for the bank file",
+        ),
+      ],
+      explanation:
+        "The requested notarial action is signature certification, which maps to the generic Signature notarisation product.",
+      requiresConfirmation: false,
+    },
+  ],
+  people: [
+    {
+      key: "participant",
+      label: "Participant",
+      value: "Sofia Rossi",
+      status: "inferred",
+      confidence: 0.95,
+      evidence: [
+        evidence(
+          "ev-sofia-name",
+          "doc-sofia-bank-authorisation",
+          "Spanish_Bank_Authorisation_Sofia_Rossi.pdf",
+          1,
+          "Applicant: Sofia Rossi",
+        ),
+      ],
+      explanation: "Sofia Rossi appears as the applicant and signer.",
+      requiresConfirmation: false,
+    },
+  ],
+  billingAddress: {
+    key: "billingAddress",
+    label: "Billing/home address",
+    value: "Via Torino 12, 20123 Milan, Italy",
+    status: "inferred",
+    confidence: 0.9,
+    evidence: [
+      evidence(
+        "ev-sofia-milan",
+        "doc-sofia-bank-authorisation",
+        "Spanish_Bank_Authorisation_Sofia_Rossi.pdf",
+        1,
+        "Via Torino 12, 20123 Milan, Italy",
+      ),
+    ],
+    explanation:
+      "Italy is residence and billing context, not the country where the document will be used.",
+    requiresConfirmation: false,
+  },
+  apostille: {
+    key: "apostille",
+    label: "Apostille",
+    value: false,
+    status: "not_applicable",
+    confidence: 0.72,
+    evidence: [],
+    explanation: "No apostille requirement appears in the PDF.",
+    requiresConfirmation: false,
+  },
+  hardCopy: {
+    key: "hardCopy",
+    label: "Hard copy",
+    value: false,
+    status: "not_applicable",
+    confidence: 0.88,
+    evidence: [
+      evidence(
+        "ev-sofia-no-hard-copy",
+        "doc-sofia-bank-authorisation",
+        "Spanish_Bank_Authorisation_Sofia_Rossi.pdf",
+        1,
+        "No hard copy shipment requested",
+      ),
+    ],
+    explanation: "The document says a digital notarised copy is sufficient.",
+    requiresConfirmation: false,
+  },
+  uncertainties: [
+    "Spain is country of use while Italy is residence and billing context. This is valid but should be confirmed.",
+  ],
+};
+
+export const sofiaPriceLines: PriceLine[] = [
+  {
+    name: "Signature notarisation",
+    _product: ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
+    amount: 1,
+    pricePerUnit: 12000,
+    net: 12000,
+    identifier: 1,
+    pricingEnabled: true,
+  },
+];
+
+export const sofiaPayload: AppointmentPayload = {
+  _bookingForm: NOTARITY_BOOKING_FORM_ID,
+  language: "en",
+  origin: NOTARITY_ORIGIN,
+  confirmedPrice: 120,
+  hardCopy: { expressShipping: false, hardCopy: false },
+  newsletter: false,
+  mode: "debug",
+  _appointmentRequestDraft: NOTARITY_DRAFT_ID,
+  destinationCountry: "ES",
+  products: [
+    {
+      id: ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
+      apostille: false,
+      userInput: "",
+      documentsNotReadyYet: false,
+      needHelpDrafting: false,
+      proofOfRepresentation: false,
+      files: [],
+    },
+  ],
+  participants: [
+    { email: "sofia.rossi@notarity.com", client: true, supervisor: false },
+  ],
+  timeslots: [ROBERT_TIMESLOT_ID],
+  instantNotarisationSupported: false,
+  instant: false,
+  timezone: "Europe/Vienna",
+  billingDetails: {
+    firstName: "Sofia",
+    lastName: "Rossi",
+    business: false,
+    email: "sofia.rossi@notarity.com",
+    phoneNumber: "+39025550144",
+    address: "Via Torino 12",
+    zipCode: "20123",
+    city: "Milan",
+    stateProvince: "Lombardy",
+    countryCode: "IT",
+  },
+  contactDetails: {
+    contactDetailsSameAsBillingDetails: true,
+    firstName: "Sofia",
+    lastName: "Rossi",
+    business: false,
+    email: "sofia.rossi@notarity.com",
+    phoneNumber: "+39025550144",
+  },
+  preferredNotary: "",
+};
+
+export const sofiaFixture: PersonaFixture = {
+  id: "sofia",
+  name: "Sofia Rossi",
+  scenario:
+    "Italian resident needs a signature notarised for a Spanish bank file, creating a clear country-of-use versus billing-country conflict.",
+  documents: sofiaDocuments,
+  inference: sofiaInference,
+  products: productFixtures.filter(
+    (product) => product.id === ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
+  ),
+  priceLines: sofiaPriceLines,
+  payload: sofiaPayload,
+};
+
 export const elizabethFixture: PersonaFixture = {
   id: "elizabeth",
   name: "Elizabeth Midgley",
@@ -1117,6 +1344,7 @@ export const personaFixtures: Record<PersonaFixture["id"], PersonaFixture> = {
   elizabeth: elizabethFixture,
   amara: amaraFixture,
   noah: noahFixture,
+  sofia: sofiaFixture,
 };
 
 export const mockBookingForm = {

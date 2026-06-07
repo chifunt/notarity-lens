@@ -30,6 +30,7 @@ describe("Lens display helpers", () => {
   it("formats Amara country and product labels", () => {
     expect(formatCountry("CA")).toBe("Canada");
     expect(formatCountry("DE")).toBe("Germany");
+    expect(formatCountry("IT")).toBe("Italy");
     expect(formatCountry("NL")).toBe("Netherlands");
     expect(
       formatFieldValue({

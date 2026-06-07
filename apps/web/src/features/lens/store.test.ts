@@ -3,6 +3,7 @@ import {
   joshuaFixture,
   noahFixture,
   robertFixture,
+  sofiaFixture,
 } from "@notarity-lens/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useLensStore } from "./store";
@@ -62,10 +63,20 @@ describe("Lens store sample flow", () => {
           return jsonResponse(noahFixture);
         }
 
+        if (href.endsWith("/api/fixtures/sofia")) {
+          return jsonResponse(sofiaFixture);
+        }
+
         if (href.endsWith("/api/price")) {
           const body = init?.body ? JSON.parse(String(init.body)) : {};
           const fixture =
-            [joshuaFixture, robertFixture, amaraFixture, noahFixture].find(
+            [
+              joshuaFixture,
+              robertFixture,
+              amaraFixture,
+              noahFixture,
+              sofiaFixture,
+            ].find(
               (candidate) =>
                 candidate.payload.destinationCountry === body.destinationCountry &&
                 candidate.payload.participants[0]?.email ===
@@ -178,6 +189,20 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/fixtures/noah"),
+      expect.anything(),
+    );
+  });
+
+  it("loads Sofia with country conflict evidence through the generic persona loader", async () => {
+    await expect(useLensStore.getState().loadPersona("sofia")).resolves.toBe(true);
+
+    expect(useLensStore.getState().fixture?.id).toBe("sofia");
+    expect(useLensStore.getState().fixture?.inference.countryOfUse.status).toBe(
+      "conflict",
+    );
+    expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/fixtures/sofia"),
       expect.anything(),
     );
   });

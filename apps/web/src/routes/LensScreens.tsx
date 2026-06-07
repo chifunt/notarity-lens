@@ -120,6 +120,17 @@ const sampleRequests: Array<{
       "PDF says country not stated",
     ],
   },
+  {
+    id: "sofia",
+    name: "Sofia Rossi",
+    summary: "Spanish bank route with Italian billing context",
+    bullets: [
+      "Country of use: Spain",
+      "Billing/home: Italy",
+      "Country conflict needs review",
+      "Signature notarisation product",
+    ],
+  },
 ];
 
 function reviewStatusForFields(

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildJoshuaPayload } from "@notarity-lens/notarity";
-import { amaraPayload, noahPayload } from "@notarity-lens/shared";
+import { amaraPayload, noahPayload, sofiaPayload } from "@notarity-lens/shared";
 import { createApiApp } from "./index.js";
 
 describe("api routes", () => {
@@ -39,6 +39,17 @@ describe("api routes", () => {
     expect(body.id).toBe("noah");
     expect(body.inference.countryOfUse.status).toBe("missing");
     expect(body.payload.billingDetails.countryCode).toBe("CA");
+  });
+
+  it("returns Sofia fixture data with country conflict evidence", async () => {
+    const response = await app.request("/api/fixtures/sofia");
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.id).toBe("sofia");
+    expect(body.inference.countryOfUse.status).toBe("conflict");
+    expect(body.payload.destinationCountry).toBe("ES");
+    expect(body.payload.billingDetails.countryCode).toBe("IT");
   });
 
   it("rejects unknown fixture personas", async () => {
@@ -133,6 +144,20 @@ describe("api routes", () => {
     const response = await app.request("/api/price", {
       method: "POST",
       body: JSON.stringify(noahPayload),
+      headers: { "content-type": "application/json" },
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.confirmedPrice).toBe(120);
+    expect(body.lines).toHaveLength(1);
+    expect(body.lines[0].name).toBe("Signature notarisation");
+  });
+
+  it("returns normalized mock price for Sofia by exact fixture payload", async () => {
+    const response = await app.request("/api/price", {
+      method: "POST",
+      body: JSON.stringify(sofiaPayload),
       headers: { "content-type": "application/json" },
     });
     const body = await response.json();

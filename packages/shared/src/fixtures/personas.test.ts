@@ -6,6 +6,8 @@ import {
   noahFixture,
   noahPayload,
   personaFixtures,
+  sofiaFixture,
+  sofiaPayload,
 } from "./personas.js";
 
 describe("persona fixtures", () => {
@@ -48,6 +50,21 @@ describe("persona fixtures", () => {
     );
     expect(payload.destinationCountry).toBe("DE");
     expect(payload.billingDetails.countryCode).toBe("CA");
+    expect(payload.confirmedPrice).toBe(120);
+  });
+
+  it("keeps Sofia as a conflicting country-semantics case", () => {
+    const payload = AppointmentPayloadSchema.parse(sofiaPayload);
+
+    expect(sofiaFixture.inference.countryOfUse.status).toBe("conflict");
+    expect(
+      sofiaFixture.inference.countryOfUse.evidence.map((item) => item.quote),
+    ).toEqual([
+      "Country where this notarised document will be used: Spain",
+      "Via Torino 12, 20123 Milan, Italy",
+    ]);
+    expect(payload.destinationCountry).toBe("ES");
+    expect(payload.billingDetails.countryCode).toBe("IT");
     expect(payload.confirmedPrice).toBe(120);
   });
 });

@@ -4,6 +4,7 @@ import {
   joshuaFixture,
   noahFixture,
   robertFixture,
+  sofiaFixture,
 } from "@notarity-lens/shared";
 import { describe, expect, it } from "vitest";
 import {
@@ -19,6 +20,7 @@ const elizabethInference =
 const robertInference = robertFixture.inference as unknown as DocumentFactExtraction;
 const amaraInference = amaraFixture.inference as unknown as DocumentFactExtraction;
 const noahInference = noahFixture.inference as unknown as DocumentFactExtraction;
+const sofiaInference = sofiaFixture.inference as unknown as DocumentFactExtraction;
 
 describe("review readiness", () => {
   it("finds Joshua fields that must be confirmed before submit", () => {
@@ -100,6 +102,25 @@ describe("review readiness", () => {
       ...noahInference,
       countryOfUse: { ...noahInference.countryOfUse, status: "confirmed" },
       products: noahInference.products.map((field) => ({
+        ...field,
+        status: "confirmed",
+      })),
+    };
+
+    expect(unresolvedConfirmationFields(confirmed)).toEqual([]);
+    expect(readyForSubmit(confirmed, true)).toBe(true);
+  });
+
+  it("keeps Sofia blocked while the country conflict is unresolved", () => {
+    expect(sofiaInference.countryOfUse.status).toBe("conflict");
+    expect(
+      unresolvedConfirmationFields(sofiaInference).map((field) => field.label),
+    ).toEqual(["Country of use", "Recommended product"]);
+
+    const confirmed: DocumentFactExtraction = {
+      ...sofiaInference,
+      countryOfUse: { ...sofiaInference.countryOfUse, status: "confirmed" },
+      products: sofiaInference.products.map((field) => ({
         ...field,
         status: "confirmed",
       })),

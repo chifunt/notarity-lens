@@ -11,6 +11,7 @@ const countryNames: Record<string, string> = {
   DE: "Germany",
   ES: "Spain",
   GB: "United Kingdom",
+  IT: "Italy",
   LT: "Lithuania",
   NL: "Netherlands",
   US: "United States",

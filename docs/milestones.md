@@ -1064,3 +1064,24 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add a conflicting country-semantics persona where the PDF contains competing country signals.
+
+## Sprint 64: Sofia conflicting-country persona
+
+- Status: complete
+- Scope: add a generated-PDF persona where the country of use and billing/home country are both present and easy to confuse.
+- Changes:
+  - Generated `docs/generated-personas/sofia-rossi/Spanish_Bank_Authorisation_Sofia_Rossi.pdf` from a committed JSON source file.
+  - Added Sofia Rossi as a generic signature-notarisation fixture with Spain as country of use and Italy as billing/home context.
+  - Set `countryOfUse.status = "conflict"` with citations for both the Spanish country-of-use line and the Italian address line.
+  - Added Italy display support, schema/API/web persona coverage, exact mock price coverage, store coverage, and readiness coverage for the conflict gate.
+- Browser findings:
+  - Evidence shows both Spain and Italy.
+  - Country screen shows `Needs attention`, Spain as country of use, Italy as billing/home, and no hard copy shipment.
+  - After confirmation, final review shows Spain, Italy, EUR 120, and no unresolved blockers.
+- Verification:
+  - Generated PDF validates as a PDF 1.4 document.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add a complete hard-copy/apostille persona that differs from Joshua while still exercising the Spain/NIE route.
