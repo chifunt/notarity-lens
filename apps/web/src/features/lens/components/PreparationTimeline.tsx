@@ -44,17 +44,26 @@ export function PreparationTimeline({ fixture }: { fixture: LensFixture }) {
   ];
 
   return (
-    <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
-      <h2 className="text-2xl font-semibold text-foreground">Preparation timeline</h2>
-      <div className="mt-5 grid gap-4 lg:grid-cols-3">
+    <section className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
+      <h2 className="min-w-0 break-words text-2xl font-semibold text-foreground [overflow-wrap:anywhere]">
+        Preparation timeline
+      </h2>
+      <div className="mt-5 grid min-w-0 gap-4 lg:grid-cols-3">
         {timeline.map((section) => (
-          <article key={section.title} className="rounded-lg border border-border bg-lens-surface-muted p-4">
-            <h3 className="text-base font-semibold text-foreground">{section.title}</h3>
-            <div className="mt-3 grid gap-2">
+          <article
+            key={section.title}
+            className="min-w-0 rounded-lg border border-border bg-lens-surface-muted p-4"
+          >
+            <h3 className="min-w-0 break-words text-base font-semibold text-foreground [overflow-wrap:anywhere]">
+              {section.title}
+            </h3>
+            <div className="mt-3 grid min-w-0 gap-2">
               {section.items.map((item) => (
-                <div key={item} className="flex gap-2 text-sm text-muted-foreground">
+                <div key={item} className="flex min-w-0 gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-confirmed-foreground" aria-hidden="true" />
-                  <span>{item}</span>
+                  <span className="min-w-0 break-words [overflow-wrap:anywhere]">
+                    {item}
+                  </span>
                 </div>
               ))}
             </div>

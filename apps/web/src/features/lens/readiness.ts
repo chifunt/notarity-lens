@@ -1,6 +1,7 @@
 import type { DocumentFactExtraction, InferredField } from "./types";
 
 const resolvedStatuses = new Set(["confirmed", "edited", "not_applicable"]);
+const optionalConfirmationFieldKeys = new Set(["hardCopy"]);
 
 export function requiredConfirmationFields(inference: DocumentFactExtraction) {
   return [
@@ -12,10 +13,13 @@ export function requiredConfirmationFields(inference: DocumentFactExtraction) {
       inference.shippingAddress,
       inference.apostille,
       inference.hardCopy,
-    ].filter(
-      (field): field is InferredField =>
-        Boolean(field?.requiresConfirmation),
-    ),
+    ].filter((field): field is InferredField => {
+      if (!field) return false;
+      return (
+        field.requiresConfirmation &&
+        !optionalConfirmationFieldKeys.has(field.key)
+      );
+    }),
   ].filter((field): field is InferredField => Boolean(field));
 }
 

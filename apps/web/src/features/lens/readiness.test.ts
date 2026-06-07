@@ -36,7 +36,6 @@ describe("review readiness", () => {
       "Required companion document",
       "Shipping address",
       "Apostille",
-      "Hard copy",
     ]);
   });
 
@@ -59,6 +58,26 @@ describe("review readiness", () => {
     expect(unresolvedConfirmationFields(confirmed)).toEqual([]);
     expect(readyForSubmit(confirmed, true)).toBe(true);
     expect(readyForSubmit(confirmed, false)).toBe(false);
+  });
+
+  it("does not require hard-copy confirmation before submit", () => {
+    const confirmedExceptHardCopy: DocumentFactExtraction = {
+      ...joshuaInference,
+      countryOfUse: { ...joshuaInference.countryOfUse, status: "confirmed" },
+      products: joshuaInference.products.map((field) => ({
+        ...field,
+        status: "confirmed",
+      })),
+      shippingAddress: {
+        ...joshuaInference.shippingAddress!,
+        status: "confirmed",
+      },
+      apostille: { ...joshuaInference.apostille!, status: "confirmed" },
+      hardCopy: { ...joshuaInference.hardCopy!, status: "needs_review" },
+    };
+
+    expect(unresolvedConfirmationFields(confirmedExceptHardCopy)).toEqual([]);
+    expect(readyForSubmit(confirmedExceptHardCopy, true)).toBe(true);
   });
 
   it("keeps Elizabeth participant ambiguity unresolved after country confirmation", () => {
@@ -143,7 +162,6 @@ describe("review readiness", () => {
       "Required companion document",
       "Shipping address",
       "Apostille",
-      "Hard copy",
     ]);
   });
 
