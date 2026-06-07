@@ -7,6 +7,19 @@ import type {
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8787";
 
+async function responseErrorMessage(response: Response) {
+  try {
+    const body = (await response.json()) as { error?: unknown };
+    if (typeof body.error === "string" && body.error.trim()) {
+      return `${body.error} (${response.status})`;
+    }
+  } catch {
+    // Fall back to the generic status message below when the body is not JSON.
+  }
+
+  return `API request failed (${response.status})`;
+}
+
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -17,7 +30,7 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed (${response.status})`);
+    throw new Error(await responseErrorMessage(response));
   }
 
   return response.json() as Promise<T>;
@@ -30,7 +43,7 @@ async function requestFormJson<T>(path: string, formData: FormData): Promise<T> 
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed (${response.status})`);
+    throw new Error(await responseErrorMessage(response));
   }
 
   return response.json() as Promise<T>;

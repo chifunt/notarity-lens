@@ -808,3 +808,19 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking stale state around upload and sample-load failures.
+
+## Sprint 49: Web API error-message propagation
+
+- Status: complete
+- Scope: show useful server-provided JSON errors in web failure states.
+- Changes:
+  - Web API helpers now read `{ error }` from failed JSON responses before falling back to generic status text.
+  - Submit-failure coverage now exercises a server JSON error and verifies the Review error state receives the specific message.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking load, upload, and price failure messages in the web flow.

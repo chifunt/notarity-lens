@@ -13,6 +13,14 @@ function jsonResponse(data: unknown) {
   } as Response);
 }
 
+function jsonErrorResponse(status: number, error: string) {
+  return Promise.resolve({
+    ok: false,
+    status,
+    json: async () => ({ error }),
+  } as Response);
+}
+
 function resetStore() {
   useLensStore.setState({
     fixture: null,
@@ -144,13 +152,15 @@ describe("Lens store sample flow", () => {
         payload: joshuaFixture.payload,
       },
     });
-    vi.mocked(fetch).mockRejectedValueOnce(new Error("Submit unavailable"));
+    vi.mocked(fetch).mockImplementationOnce(() =>
+      jsonErrorResponse(403, "Live submit is disabled"),
+    );
 
     await expect(useLensStore.getState().submitBooking()).resolves.toBe(false);
 
     expect(useLensStore.getState().submitResult).toBeNull();
     expect(useLensStore.getState().loading).toBe(false);
-    expect(useLensStore.getState().error).toBe("Submit unavailable");
+    expect(useLensStore.getState().error).toBe("Live submit is disabled (403)");
   });
 
   it("stores uploaded document metadata without creating a sample fixture", async () => {
