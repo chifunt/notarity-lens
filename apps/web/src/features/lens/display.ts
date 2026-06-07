@@ -38,6 +38,13 @@ export function formatFilesSummary(payload: AppointmentPayload) {
   return files.length ? files.join(", ") : "No files attached yet";
 }
 
+export function formatParticipantsSummary(payload: AppointmentPayload) {
+  const emails = payload.participants
+    .map((participant) => participant.email)
+    .filter(Boolean);
+  return emails.length ? emails.join(", ") : "No participants added";
+}
+
 export function formatProductFiles(files: string[]) {
   return files.length ? files.join(", ") : "No files attached yet";
 }

@@ -41,6 +41,7 @@ import {
   formatAddress,
   formatCountry,
   formatFilesSummary,
+  formatParticipantsSummary,
   formatProductSummary,
   formatShippingSummary,
 } from "@/features/lens/display";
@@ -660,10 +661,23 @@ export function AppointmentScreen() {
                       <h2 className="text-base font-semibold text-foreground">Participants</h2>
                     </div>
                     <div className="mt-4 rounded-md border border-border bg-card px-3 py-3">
-                      <p className="text-xs font-medium uppercase text-muted-foreground">Client email</p>
-                      <p className="mt-1 break-all text-sm font-semibold text-foreground">
-                        {fixture.payload.participants[0]?.email}
-                      </p>
+                      <p className="text-xs font-medium uppercase text-muted-foreground">Participant emails</p>
+                      <div className="mt-2 grid gap-2">
+                        {fixture.payload.participants.length ? (
+                          fixture.payload.participants.map((participant) => (
+                            <p
+                              key={participant.email}
+                              className="break-all text-sm font-semibold text-foreground"
+                            >
+                              {participant.email}
+                            </p>
+                          ))
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            No participants added
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <Button
                       type="button"
@@ -686,8 +700,9 @@ export function AppointmentScreen() {
                           <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                           <p>
                             Every signer must be listed as a participant and verify
-                            identity during the appointment. {fixture.name} is the only
-                            signer in this sample request.
+                            identity during the appointment. This payload currently lists
+                            {` ${fixture.payload.participants.length}`} participant
+                            {fixture.payload.participants.length === 1 ? "" : "s"}.
                           </p>
                         </div>
                       </div>
@@ -850,7 +865,7 @@ export function ReviewScreen() {
                   rows={[
                     {
                       label: "Participant",
-                      value: fixture.payload.participants[0]?.email ?? "",
+                      value: formatParticipantsSummary(fixture.payload),
                       status: "confirmed",
                       onChange: () => navigate("/lens/appointment"),
                     },

@@ -550,3 +550,24 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue accessibility and interaction audits for the remaining flow controls.
+
+## Sprint 35: Participant summary robustness
+
+- Status: complete
+- Scope: remove first-participant-only assumptions from appointment and review rendering.
+- Changes:
+  - Added a participant summary display helper.
+  - Appointment now lists every participant email from the payload.
+  - Participant help text reports how many participants are currently in the payload instead of claiming the persona is the only signer.
+  - Final review participant row now summarizes all participant emails.
+  - Added display-helper coverage for multi-participant summaries.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: Elizabeth appointment lists participant emails.
+  - Browser check: participant help reports the payload participant count.
+  - Browser check: Elizabeth final review includes the participant email.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: keep auditing copy that may overstate certainty around inferred people and participant ambiguity.

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatBooleanChoice,
   formatFilesSummary,
+  formatParticipantsSummary,
   formatProductFiles,
   formatShippingSummary,
 } from "./display";
@@ -22,5 +23,17 @@ describe("Lens display helpers", () => {
 
   it("labels nullable boolean choices as not applicable", () => {
     expect(formatBooleanChoice(null)).toBe("Not applicable");
+  });
+
+  it("summarizes all participant emails", () => {
+    expect(
+      formatParticipantsSummary({
+        ...robertFixture.payload,
+        participants: [
+          { email: "first@example.com", client: true, supervisor: false },
+          { email: "second@example.com", client: false, supervisor: true },
+        ],
+      }),
+    ).toBe("first@example.com, second@example.com");
   });
 });
