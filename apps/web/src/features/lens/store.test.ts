@@ -113,7 +113,7 @@ describe("Lens store sample flow", () => {
       "confirmed",
     );
 
-    await useLensStore.getState().submitBooking();
+    await expect(useLensStore.getState().submitBooking()).resolves.toBe(true);
     expect(useLensStore.getState().submitResult?.id).toBe("mock_appt_test");
 
     useLensStore.getState().reset();
@@ -132,6 +132,17 @@ describe("Lens store sample flow", () => {
       expect.stringContaining("/api/fixtures/robert"),
       expect.anything(),
     );
+  });
+
+  it("reports submit failure without creating a stale submit result", async () => {
+    await useLensStore.getState().loadJoshuaDemo();
+    vi.mocked(fetch).mockRejectedValueOnce(new Error("Submit unavailable"));
+
+    await expect(useLensStore.getState().submitBooking()).resolves.toBe(false);
+
+    expect(useLensStore.getState().submitResult).toBeNull();
+    expect(useLensStore.getState().loading).toBe(false);
+    expect(useLensStore.getState().error).toBe("Submit unavailable");
   });
 
   it("stores uploaded document metadata without creating a sample fixture", async () => {

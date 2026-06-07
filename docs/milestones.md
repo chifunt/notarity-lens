@@ -772,3 +772,23 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue API validation audits around empty/default request bodies and live-submit failure modes.
+
+## Sprint 47: Submit failure navigation guard
+
+- Status: complete
+- Scope: keep users on Final review when submit fails instead of navigating to a no-booking success state.
+- Changes:
+  - `submitBooking` now returns a boolean success value.
+  - Final review navigates to Success only after a successful submit.
+  - Final review now renders the shared error banner so submit failures are visible in place.
+  - Added store coverage for submit failure without stale submit results.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - Browser check: confirmed Joshua review still reaches Success after successful mock submit.
+  - Browser check: success page shows booking-ready state and a `mock_appt_...` id after submit.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking failure paths for load, upload, price, and submit actions.

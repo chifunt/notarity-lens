@@ -24,7 +24,7 @@ type LensStore = {
   confirmCountry: () => void;
   confirmRoute: () => void;
   confirmPeople: () => void;
-  submitBooking: () => Promise<void>;
+  submitBooking: () => Promise<boolean>;
   reset: () => void;
 };
 
@@ -132,15 +132,17 @@ export const useLensStore = create<LensStore>((set, get) => ({
 
   submitBooking: async () => {
     const fixture = get().fixture;
-    if (!fixture) return;
+    if (!fixture) return false;
 
     set({ loading: true, error: null });
     try {
       const submitResult = await submitPayload(fixture.payload);
       set({ submitResult, loading: false });
+      return true;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Submit failed";
       set({ error: message, loading: false });
+      return false;
     }
   },
 

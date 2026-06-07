@@ -858,6 +858,7 @@ export function ReviewScreen() {
     <RequireFixture>
       {(fixture, price) => (
         <ScreenFrame>
+          <DemoError />
           {(() => {
             const unresolvedFields = unresolvedConfirmationFields(fixture.inference);
             const peopleStatus = unresolvedFields.some((field) =>
@@ -1035,8 +1036,8 @@ export function ReviewScreen() {
                   </Button>
                   <Button
                     onClick={async () => {
-                      await submitBooking();
-                      navigate("/lens/success");
+                      const submitted = await submitBooking();
+                      if (submitted) navigate("/lens/success");
                     }}
                     disabled={loading || !readyToSubmit}
                   >
