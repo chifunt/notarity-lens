@@ -3,6 +3,7 @@ import {
   joshuaFixture,
   kenjiFixture,
   noahFixture,
+  priyaFixture,
   robertFixture,
   sofiaFixture,
 } from "@notarity-lens/shared";
@@ -72,6 +73,10 @@ describe("Lens store sample flow", () => {
           return jsonResponse(kenjiFixture);
         }
 
+        if (href.endsWith("/api/fixtures/priya")) {
+          return jsonResponse(priyaFixture);
+        }
+
         if (href.endsWith("/api/price")) {
           const body = init?.body ? JSON.parse(String(init.body)) : {};
           const fixture =
@@ -82,6 +87,7 @@ describe("Lens store sample flow", () => {
               noahFixture,
               sofiaFixture,
               kenjiFixture,
+              priyaFixture,
             ].find(
               (candidate) =>
                 candidate.payload.destinationCountry === body.destinationCountry &&
@@ -221,6 +227,24 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().price?.confirmedPrice).toBe(580);
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/fixtures/kenji"),
+      expect.anything(),
+    );
+  });
+
+  it("loads Priya with participant ambiguity through the generic persona loader", async () => {
+    await expect(useLensStore.getState().loadPersona("priya")).resolves.toBe(true);
+
+    expect(useLensStore.getState().fixture?.id).toBe("priya");
+    expect(
+      useLensStore
+        .getState()
+        .fixture?.inference.people.some(
+          (field) => field.key === "participantAmbiguity",
+        ),
+    ).toBe(true);
+    expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/fixtures/priya"),
       expect.anything(),
     );
   });

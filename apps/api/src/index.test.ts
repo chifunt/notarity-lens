@@ -4,6 +4,7 @@ import {
   amaraPayload,
   kenjiPayload,
   noahPayload,
+  priyaPayload,
   sofiaPayload,
 } from "@notarity-lens/shared";
 import { createApiApp } from "./index.js";
@@ -68,6 +69,21 @@ describe("api routes", () => {
     expect(body.payload.billingDetails.countryCode).toBe("JP");
     expect(body.payload.hardCopy.hardCopy).toBe(true);
     expect(body.payload.products[0].apostille).toBe(true);
+  });
+
+  it("returns Priya fixture data with participant ambiguity", async () => {
+    const response = await app.request("/api/fixtures/priya");
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.id).toBe("priya");
+    expect(
+      body.inference.people.some(
+        (field: { key: string; status: string }) =>
+          field.key === "participantAmbiguity" && field.status === "needs_review",
+      ),
+    ).toBe(true);
+    expect(body.payload.participants).toHaveLength(1);
   });
 
   it("rejects unknown fixture personas", async () => {
@@ -202,6 +218,20 @@ describe("api routes", () => {
       "NIE Personal Data",
       "Hard Copy including shipping",
     ]);
+  });
+
+  it("returns normalized mock price for Priya by exact fixture payload", async () => {
+    const response = await app.request("/api/price", {
+      method: "POST",
+      body: JSON.stringify(priyaPayload),
+      headers: { "content-type": "application/json" },
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.confirmedPrice).toBe(120);
+    expect(body.lines).toHaveLength(1);
+    expect(body.lines[0].name).toBe("Signature notarisation");
   });
 
   it("rejects invalid price payloads", async () => {

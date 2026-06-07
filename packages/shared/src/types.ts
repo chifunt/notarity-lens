@@ -5,7 +5,8 @@ export type PersonaId =
   | "amara"
   | "noah"
   | "sofia"
-  | "kenji";
+  | "kenji"
+  | "priya";
 
 export type CountryCode =
   | "AT"

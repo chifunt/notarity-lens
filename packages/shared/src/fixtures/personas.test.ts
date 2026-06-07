@@ -8,6 +8,8 @@ import {
   noahFixture,
   noahPayload,
   personaFixtures,
+  priyaFixture,
+  priyaPayload,
   sofiaFixture,
   sofiaPayload,
 } from "./personas.js";
@@ -88,5 +90,21 @@ describe("persona fixtures", () => {
       "NIE_Application_Kenji_Tanaka.pdf",
       "NIE_Personal_Details_Kenji_Tanaka.pdf",
     ]);
+  });
+
+  it("keeps Priya as a participant-ambiguity case", () => {
+    const payload = AppointmentPayloadSchema.parse(priyaPayload);
+    const ambiguity = priyaFixture.inference.people.find(
+      (field) => field.key === "participantAmbiguity",
+    );
+
+    expect(ambiguity?.status).toBe("needs_review");
+    expect(ambiguity?.evidence[0]?.quote).toContain("Possible co-signer");
+    expect(payload.destinationCountry).toBe("DE");
+    expect(payload.billingDetails.countryCode).toBe("GB");
+    expect(payload.participants).toEqual([
+      { email: "priya.nair@notarity.com", client: true, supervisor: false },
+    ]);
+    expect(payload.confirmedPrice).toBe(120);
   });
 });

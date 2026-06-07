@@ -142,6 +142,17 @@ const sampleRequests: Array<{
       "NIE application plus companion PDF",
     ],
   },
+  {
+    id: "priya",
+    name: "Priya Nair",
+    summary: "German registry filing with possible co-signer",
+    bullets: [
+      "Country of use: Germany",
+      "Billing/home: United Kingdom",
+      "Participant ambiguity needs review",
+      "Signature notarisation product",
+    ],
+  },
 ];
 
 function reviewStatusForFields(

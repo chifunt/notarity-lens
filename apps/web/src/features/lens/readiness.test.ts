@@ -4,6 +4,7 @@ import {
   joshuaFixture,
   kenjiFixture,
   noahFixture,
+  priyaFixture,
   robertFixture,
   sofiaFixture,
 } from "@notarity-lens/shared";
@@ -23,6 +24,7 @@ const amaraInference = amaraFixture.inference as unknown as DocumentFactExtracti
 const noahInference = noahFixture.inference as unknown as DocumentFactExtraction;
 const sofiaInference = sofiaFixture.inference as unknown as DocumentFactExtraction;
 const kenjiInference = kenjiFixture.inference as unknown as DocumentFactExtraction;
+const priyaInference = priyaFixture.inference as unknown as DocumentFactExtraction;
 
 describe("review readiness", () => {
   it("finds Joshua fields that must be confirmed before submit", () => {
@@ -143,5 +145,23 @@ describe("review readiness", () => {
       "Apostille",
       "Hard copy",
     ]);
+  });
+
+  it("keeps Priya participant ambiguity unresolved after country and route confirmation", () => {
+    const confirmedCountryAndRoute: DocumentFactExtraction = {
+      ...priyaInference,
+      countryOfUse: { ...priyaInference.countryOfUse, status: "confirmed" },
+      products: priyaInference.products.map((field) => ({
+        ...field,
+        status: "confirmed",
+      })),
+    };
+
+    expect(
+      unresolvedConfirmationFields(confirmedCountryAndRoute).map(
+        (field) => field.label,
+      ),
+    ).toEqual(["Participant ambiguity"]);
+    expect(readyForSubmit(confirmedCountryAndRoute, true)).toBe(false);
   });
 });

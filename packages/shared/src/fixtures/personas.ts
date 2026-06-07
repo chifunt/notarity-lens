@@ -1558,6 +1558,252 @@ export const kenjiFixture: PersonaFixture = {
   payload: kenjiPayload,
 };
 
+export const priyaDocuments: ExtractedDocument[] = [
+  {
+    id: "doc-priya-registry-authorisation",
+    filename: "German_Subsidiary_Authorisation_Priya_Nair.pdf",
+    canonicalName: "German_Subsidiary_Authorisation_Priya_Nair.pdf",
+    mimeType: "application/pdf",
+    size: 1176,
+    extractionStatus: "fixture",
+    textByPage: [
+      {
+        page: 1,
+        text: [
+          "Share transfer authorisation for German subsidiary registry.",
+          "Applicant and primary signer: Priya Nair.",
+          "Email: priya.nair@notarity.com.",
+          "Billing address: 10 Queen Street, London EC4N 1TX, United Kingdom.",
+          "Country where this notarised document will be used: Germany.",
+          "Notary action requested: certify Priya Nair's signature for the registry filing.",
+          "Possible co-signer: Arjun Mehta may also need to sign if board approval is requested.",
+          "Digital notarised copy is sufficient.",
+          "No hard copy shipment requested.",
+        ].join(" "),
+      },
+    ],
+  },
+];
+
+export const priyaInference: DocumentFactExtraction = {
+  persona: "priya",
+  documents: priyaDocuments,
+  countryOfUse: {
+    key: "countryOfUse",
+    label: "Country of use",
+    value: "DE",
+    status: "inferred",
+    confidence: 0.92,
+    evidence: [
+      evidence(
+        "ev-priya-germany",
+        "doc-priya-registry-authorisation",
+        "German_Subsidiary_Authorisation_Priya_Nair.pdf",
+        1,
+        "Country where this notarised document will be used: Germany",
+      ),
+      evidence(
+        "ev-priya-registry",
+        "doc-priya-registry-authorisation",
+        "German_Subsidiary_Authorisation_Priya_Nair.pdf",
+        1,
+        "German subsidiary registry",
+      ),
+    ],
+    explanation:
+      "The document explicitly says it will be used in Germany for a registry filing.",
+    requiresConfirmation: false,
+  },
+  products: [
+    {
+      key: "recommendedProduct",
+      label: "Recommended product",
+      value: "signature_notarisation",
+      status: "inferred",
+      confidence: 0.88,
+      evidence: [
+        evidence(
+          "ev-priya-signature",
+          "doc-priya-registry-authorisation",
+          "German_Subsidiary_Authorisation_Priya_Nair.pdf",
+          1,
+          "certify Priya Nair's signature",
+        ),
+      ],
+      explanation:
+        "The requested notarial action is signature certification, which maps to the generic Signature notarisation product.",
+      requiresConfirmation: false,
+    },
+  ],
+  people: [
+    {
+      key: "participant",
+      label: "Participant",
+      value: "Priya Nair",
+      status: "inferred",
+      confidence: 0.95,
+      evidence: [
+        evidence(
+          "ev-priya-name",
+          "doc-priya-registry-authorisation",
+          "German_Subsidiary_Authorisation_Priya_Nair.pdf",
+          1,
+          "Applicant and primary signer: Priya Nair",
+        ),
+      ],
+      explanation: "Priya Nair appears as the applicant and primary signer.",
+      requiresConfirmation: false,
+    },
+    {
+      key: "participantAmbiguity",
+      label: "Participant ambiguity",
+      value: "Priya Nair; possible co-signer Arjun Mehta",
+      status: "needs_review",
+      confidence: 0.62,
+      evidence: [
+        evidence(
+          "ev-priya-cosigner",
+          "doc-priya-registry-authorisation",
+          "German_Subsidiary_Authorisation_Priya_Nair.pdf",
+          1,
+          "Possible co-signer: Arjun Mehta may also need to sign",
+          0.62,
+        ),
+      ],
+      explanation:
+        "The PDF names Arjun Mehta as a possible co-signer, but the draft payload includes Priya only. Confirm whether another participant must join.",
+      requiresConfirmation: true,
+    },
+  ],
+  billingAddress: {
+    key: "billingAddress",
+    label: "Billing/home address",
+    value: "10 Queen Street, London EC4N 1TX, United Kingdom",
+    status: "inferred",
+    confidence: 0.88,
+    evidence: [
+      evidence(
+        "ev-priya-uk",
+        "doc-priya-registry-authorisation",
+        "German_Subsidiary_Authorisation_Priya_Nair.pdf",
+        1,
+        "10 Queen Street, London EC4N 1TX, United Kingdom",
+      ),
+    ],
+    explanation:
+      "The United Kingdom is billing context, not country of use.",
+    requiresConfirmation: false,
+  },
+  apostille: {
+    key: "apostille",
+    label: "Apostille",
+    value: false,
+    status: "not_applicable",
+    confidence: 0.72,
+    evidence: [],
+    explanation: "No apostille requirement appears in the PDF.",
+    requiresConfirmation: false,
+  },
+  hardCopy: {
+    key: "hardCopy",
+    label: "Hard copy",
+    value: false,
+    status: "not_applicable",
+    confidence: 0.88,
+    evidence: [
+      evidence(
+        "ev-priya-no-hard-copy",
+        "doc-priya-registry-authorisation",
+        "German_Subsidiary_Authorisation_Priya_Nair.pdf",
+        1,
+        "No hard copy shipment requested",
+      ),
+    ],
+    explanation: "The document says a digital notarised copy is sufficient.",
+    requiresConfirmation: false,
+  },
+  uncertainties: [
+    "Arjun Mehta is named as a possible co-signer but is not included in the draft payload.",
+  ],
+};
+
+export const priyaPriceLines: PriceLine[] = [
+  {
+    name: "Signature notarisation",
+    _product: ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
+    amount: 1,
+    pricePerUnit: 12000,
+    net: 12000,
+    identifier: 1,
+    pricingEnabled: true,
+  },
+];
+
+export const priyaPayload: AppointmentPayload = {
+  _bookingForm: NOTARITY_BOOKING_FORM_ID,
+  language: "en",
+  origin: NOTARITY_ORIGIN,
+  confirmedPrice: 120,
+  hardCopy: { expressShipping: false, hardCopy: false },
+  newsletter: false,
+  mode: "debug",
+  _appointmentRequestDraft: NOTARITY_DRAFT_ID,
+  destinationCountry: "DE",
+  products: [
+    {
+      id: ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
+      apostille: false,
+      userInput: "",
+      documentsNotReadyYet: false,
+      needHelpDrafting: false,
+      proofOfRepresentation: false,
+      files: [],
+    },
+  ],
+  participants: [
+    { email: "priya.nair@notarity.com", client: true, supervisor: false },
+  ],
+  timeslots: [ROBERT_TIMESLOT_ID],
+  instantNotarisationSupported: false,
+  instant: false,
+  timezone: "Europe/Vienna",
+  billingDetails: {
+    firstName: "Priya",
+    lastName: "Nair",
+    business: false,
+    email: "priya.nair@notarity.com",
+    phoneNumber: "+44205550133",
+    address: "10 Queen Street",
+    zipCode: "EC4N 1TX",
+    city: "London",
+    stateProvince: "England",
+    countryCode: "GB",
+  },
+  contactDetails: {
+    contactDetailsSameAsBillingDetails: true,
+    firstName: "Priya",
+    lastName: "Nair",
+    business: false,
+    email: "priya.nair@notarity.com",
+    phoneNumber: "+44205550133",
+  },
+  preferredNotary: "",
+};
+
+export const priyaFixture: PersonaFixture = {
+  id: "priya",
+  name: "Priya Nair",
+  scenario:
+    "UK-based founder needs a signature notarised for a German registry filing, but the PDF names a possible co-signer who may also need to join.",
+  documents: priyaDocuments,
+  inference: priyaInference,
+  products: productFixtures.filter(
+    (product) => product.id === ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
+  ),
+  priceLines: priyaPriceLines,
+  payload: priyaPayload,
+};
+
 export const elizabethFixture: PersonaFixture = {
   id: "elizabeth",
   name: "Elizabeth Midgley",
@@ -1684,6 +1930,7 @@ export const personaFixtures: Record<PersonaFixture["id"], PersonaFixture> = {
   noah: noahFixture,
   sofia: sofiaFixture,
   kenji: kenjiFixture,
+  priya: priyaFixture,
 };
 
 export const mockBookingForm = {

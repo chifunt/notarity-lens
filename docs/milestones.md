@@ -1108,3 +1108,25 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add a participant-ambiguity persona where the PDF names more than one possible signer.
+
+## Sprint 66: Priya participant-ambiguity persona
+
+- Status: complete
+- Scope: add a generated-PDF persona where country/product evidence is sufficient but participant setup is ambiguous.
+- Changes:
+  - Generated `docs/generated-personas/priya-nair/German_Subsidiary_Authorisation_Priya_Nair.pdf` from a committed JSON source file.
+  - Added Priya Nair as a generic signature-notarisation fixture with Germany as country of use, United Kingdom billing/home, and EUR 120 price.
+  - Added `participantAmbiguity` evidence for possible co-signer Arjun Mehta while keeping the draft payload to Priya only.
+  - Added schema/API/web persona coverage, exact mock price coverage, store coverage, and readiness coverage for the participant gate.
+- Browser findings:
+  - Evidence shows the possible co-signer line.
+  - Appointment screen shows `Confirm listed participants`.
+  - Final review blocks on `Participant ambiguity` before participant confirmation.
+  - After confirmation, final review has no blockers and shows EUR 120.
+- Verification:
+  - Generated PDF validates as a PDF 1.4 document.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: improve the start/sample selection surface now that there are eight personas.

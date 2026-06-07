@@ -85,7 +85,8 @@ export type PersonaFixture = {
     | "amara"
     | "noah"
     | "sofia"
-    | "kenji";
+    | "kenji"
+    | "priya";
   name: string;
   scenario: string;
   documents: ExtractedDocument[];
