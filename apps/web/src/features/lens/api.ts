@@ -1,4 +1,6 @@
 import type {
+  ExtractedDocument,
+  InferDocumentsResponse,
   PersonaFixture,
   PriceResponse,
   SubmitResponse,
@@ -61,6 +63,13 @@ export function uploadDocumentFiles(files: File[]) {
   const formData = new FormData();
   files.forEach((file) => formData.append("files", file));
   return requestFormJson<UploadDocumentsResponse>("/api/documents/upload", formData);
+}
+
+export function inferDocuments(documents: ExtractedDocument[]) {
+  return requestJson<InferDocumentsResponse>("/api/infer", {
+    method: "POST",
+    body: JSON.stringify({ documents }),
+  });
 }
 
 export function pricePayload(payload: unknown) {

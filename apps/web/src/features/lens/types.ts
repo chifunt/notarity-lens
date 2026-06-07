@@ -95,10 +95,22 @@ export type PersonaFixture = {
   payload: AppointmentPayload;
 };
 
+export type LensFixture = Omit<PersonaFixture, "id" | "payload" | "priceLines"> & {
+  id: PersonaFixture["id"] | "upload";
+  payload?: AppointmentPayload;
+  priceLines?: PriceLine[];
+};
+
 export type PriceResponse = {
   lines: PriceLine[];
   confirmedPrice: number;
-  source: "mock" | "live";
+  source: "mock" | "live" | "rule";
+};
+
+export type InferDocumentsResponse = {
+  inference: DocumentFactExtraction;
+  source: "mock" | "live" | "fallback" | "rule";
+  warning?: string;
 };
 
 export type UploadDocumentsResponse = {

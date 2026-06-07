@@ -1241,3 +1241,19 @@
   - `pnpm --filter @notarity-lens/api typecheck` succeeds.
   - `pnpm --filter @notarity-lens/api test` succeeds.
 - Next: route uploaded PDFs through the Evidence, Country, Route, and Review screens using the uploaded inference.
+
+## Sprint 73: Uploaded PDF review flow
+
+- Status: complete
+- Scope: make uploaded PDFs create a first-class frontend draft and move through the existing review flow.
+- Changes:
+  - Added a web `/api/infer` client and store wiring so upload calls now run extraction, deterministic inference, and create an `upload` draft fixture.
+  - Changed upload navigation so uploaded PDFs proceed through Analyze and Evidence instead of stopping at sample selection.
+  - Added a payload-optional fixture type for the web app.
+  - Updated Country, Product Route, Cost, Appointment, Review, and Success screens to render uploaded inference drafts without crashing when payload/price are not built yet.
+  - Kept submit disabled for uploaded drafts until Sprint 74 generates payload and price.
+  - Added store regression coverage for upload-draft creation and `/api/infer` calls.
+- Verification:
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+- Next: synthesize a Notarity payload and mock price from uploaded inference.

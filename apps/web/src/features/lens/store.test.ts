@@ -130,6 +130,27 @@ describe("Lens store sample flow", () => {
           });
         }
 
+        if (href.endsWith("/api/infer")) {
+          return jsonResponse({
+            inference: {
+              ...amaraFixture.inference,
+              persona: "upload",
+              documents: [
+                {
+                  id: "upload-test-0",
+                  filename: "Uploaded_Power_of_Attorney.pdf",
+                  canonicalName: "Uploaded_Power_of_Attorney.pdf",
+                  mimeType: "application/pdf",
+                  size: 12,
+                  extractionStatus: "extracted",
+                  textByPage: [{ page: 1, text: "Applicant: Amara Okafor." }],
+                },
+              ],
+            },
+            source: "rule",
+          });
+        }
+
         return jsonResponse({ ok: true });
       }),
     );
@@ -270,14 +291,16 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().error).toBe("Live submit is disabled (403)");
   });
 
-  it("stores uploaded document metadata without creating a sample fixture", async () => {
+  it("creates an uploaded draft fixture from uploaded document inference", async () => {
     const file = new File(["sample"], "Uploaded_Power_of_Attorney.pdf", {
       type: "application/pdf",
     });
 
     await expect(useLensStore.getState().uploadDocuments([file])).resolves.toBe(true);
 
-    expect(useLensStore.getState().fixture).toBeNull();
+    expect(useLensStore.getState().fixture?.id).toBe("upload");
+    expect(useLensStore.getState().fixture?.inference.persona).toBe("upload");
+    expect(useLensStore.getState().fixture?.payload).toBeUndefined();
     expect(useLensStore.getState().price).toBeNull();
     expect(useLensStore.getState().uploadedDocuments).toHaveLength(1);
     expect(useLensStore.getState().uploadedDocuments[0]?.filename).toBe(
@@ -286,6 +309,13 @@ describe("Lens store sample flow", () => {
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/documents/upload"),
       expect.objectContaining({ method: "POST", body: expect.any(FormData) }),
+    );
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/infer"),
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining("Uploaded_Power_of_Attorney.pdf"),
+      }),
     );
   });
 

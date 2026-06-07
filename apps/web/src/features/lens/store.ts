@@ -1,17 +1,24 @@
 import { create } from "zustand";
-import { getPersonaFixture, pricePayload, submitPayload, uploadDocumentFiles } from "./api";
+import {
+  getPersonaFixture,
+  inferDocuments,
+  pricePayload,
+  submitPayload,
+  uploadDocumentFiles,
+} from "./api";
 import type {
   DocumentFactExtraction,
   ExtractedDocument,
   FieldStatus,
   InferredField,
+  LensFixture,
   PersonaFixture,
   PriceResponse,
   SubmitResponse,
 } from "./types";
 
 type LensStore = {
-  fixture: PersonaFixture | null;
+  fixture: LensFixture | null;
   uploadedDocuments: ExtractedDocument[];
   price: PriceResponse | null;
   submitResult: SubmitResponse | null;
@@ -40,7 +47,7 @@ function updateOptionalField<T>(
 }
 
 function withInference(
-  fixture: PersonaFixture | null,
+  fixture: LensFixture | null,
   updater: (inference: DocumentFactExtraction) => DocumentFactExtraction,
 ) {
   if (!fixture) return fixture;
@@ -94,7 +101,18 @@ export const useLensStore = create<LensStore>((set, get) => ({
     });
     try {
       const upload = await uploadDocumentFiles(files);
-      set({ uploadedDocuments: upload.documents, loading: false });
+      const infer = await inferDocuments(upload.documents);
+      set({
+        fixture: {
+          id: "upload",
+          name: "Uploaded documents",
+          scenario: "Uploaded PDF draft",
+          documents: upload.documents,
+          inference: infer.inference,
+        },
+        uploadedDocuments: upload.documents,
+        loading: false,
+      });
       return true;
     } catch (error) {
       const message =
@@ -137,6 +155,13 @@ export const useLensStore = create<LensStore>((set, get) => ({
   submitBooking: async () => {
     const fixture = get().fixture;
     if (!fixture) return false;
+    if (!fixture.payload) {
+      set({
+        error: "Payload is not ready for uploaded documents yet",
+        loading: false,
+      });
+      return false;
+    }
 
     set({ submitResult: null, loading: true, error: null });
     try {

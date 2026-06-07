@@ -40,6 +40,7 @@ import { StatusBadge } from "@/features/lens/components/StatusBadge";
 import {
   formatAddress,
   formatCountry,
+  formatFieldValue,
   formatFilesSummary,
   formatParticipantsSummary,
   formatProductSummary,
@@ -55,6 +56,7 @@ import type {
   DocumentFactExtraction,
   FieldStatus,
   InferredField,
+  LensFixture,
   PersonaFixture,
   PriceResponse,
 } from "@/features/lens/types";
@@ -215,10 +217,15 @@ function reviewStatuses(
   {
     hasHardCopy,
     hasShippingDetails,
-  }: { hasHardCopy: boolean; hasShippingDetails: boolean },
+    hasPayloadProducts,
+  }: { hasHardCopy: boolean; hasShippingDetails: boolean; hasPayloadProducts: boolean },
 ) {
   return {
-    products: reviewStatusForFields(inference.products),
+    products: inference.products.length
+      ? reviewStatusForFields(inference.products)
+      : hasPayloadProducts
+        ? "confirmed"
+        : "missing",
     billing: reviewStatusForFields([inference.billingAddress]),
     shipping: hasShippingDetails
       ? reviewStatusForFields([inference.shippingAddress], "needs_review")
@@ -227,6 +234,54 @@ function reviewStatuses(
       ? reviewStatusForFields([inference.hardCopy], "needs_review")
       : "not_applicable",
   } satisfies Record<string, FieldStatus>;
+}
+
+function fixtureCountrySummary(fixture: LensFixture) {
+  return fixture.payload
+    ? formatCountry(fixture.payload.destinationCountry)
+    : formatCountry(fixture.inference.countryOfUse.value);
+}
+
+function fixtureProductSummary(fixture: LensFixture) {
+  if (fixture.payload) return formatProductSummary(fixture.payload);
+  const products = fixture.inference.products.map(formatFieldValue);
+  return products.length ? products.join("; ") : "Product route needs review";
+}
+
+function fixtureFilesSummary(fixture: LensFixture) {
+  if (fixture.payload) return formatFilesSummary(fixture.payload);
+  return fixture.documents.length
+    ? fixture.documents.map((document) => document.canonicalName).join(", ")
+    : "No files attached yet";
+}
+
+function fixtureParticipantSummary(fixture: LensFixture) {
+  if (fixture.payload) return formatParticipantsSummary(fixture.payload);
+  const participants = fixture.inference.people
+    .filter((field) => field.key === "participantEmail" || field.key === "participant")
+    .map((field) => String(field.value));
+  return participants.length ? participants.join(", ") : "No participants detected";
+}
+
+function fixtureBillingSummary(fixture: LensFixture) {
+  if (fixture.payload) return formatAddress(fixture.payload.billingDetails);
+  return fixture.inference.billingAddress
+    ? String(fixture.inference.billingAddress.value)
+    : "Not extracted";
+}
+
+function fixtureHasHardCopy(fixture: LensFixture) {
+  return fixture.payload
+    ? fixture.payload.hardCopy.hardCopy
+    : fixture.inference.hardCopy?.value === true;
+}
+
+function fixtureShippingSummary(fixture: LensFixture) {
+  if (fixture.payload) return formatShippingSummary(fixture.payload);
+  if (!fixtureHasHardCopy(fixture)) return "No hard copy shipment";
+  return fixture.inference.shippingAddress
+    ? String(fixture.inference.shippingAddress.value)
+    : "Shipping details needed";
 }
 
 function SampleRequestGrid({
@@ -312,7 +367,7 @@ function DemoError() {
 function RequireFixture({
   children,
 }: {
-  children: (fixture: PersonaFixture, price: PriceResponse | null) => ReactNode;
+  children: (fixture: LensFixture, price: PriceResponse | null) => ReactNode;
 }) {
   const { fixture, loadJoshuaDemo, loading } = useEnsureFixture();
   const loadPersona = useLensStore((state) => state.loadPersona);
@@ -804,6 +859,13 @@ export function AppointmentScreen() {
       {(fixture) => (
         <ScreenFrame>
           {(() => {
+            const payload = fixture.payload;
+            const participantEmails = payload
+              ? payload.participants.map((participant) => participant.email)
+              : fixture.inference.people
+                  .filter((field) => field.key === "participantEmail")
+                  .map((field) => String(field.value));
+            const participantCount = participantEmails.length;
             const participantUnresolved = unresolvedConfirmationFields(
               fixture.inference,
             ).filter((field) =>
@@ -818,8 +880,8 @@ export function AppointmentScreen() {
             <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
               <h1 className="text-3xl font-semibold text-foreground">Add participants and pick a time</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                The sample request is pre-filled for {fixture.name}. The appointment slot
-                uses the safe fallback fixture from the Notarity docs.
+                The draft is pre-filled for {fixture.name}. The appointment slot
+                remains explicit before final review.
               </p>
 
               <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -835,13 +897,13 @@ export function AppointmentScreen() {
                     <div className="mt-4 rounded-md border border-border bg-card px-3 py-3">
                       <p className="text-xs font-medium uppercase text-muted-foreground">Participant emails</p>
                       <div className="mt-2 grid gap-2">
-                        {fixture.payload.participants.length ? (
-                          fixture.payload.participants.map((participant) => (
+                        {participantEmails.length ? (
+                          participantEmails.map((email) => (
                             <p
-                              key={participant.email}
+                              key={email}
                               className="break-all text-sm font-semibold text-foreground"
                             >
-                              {participant.email}
+                              {email}
                             </p>
                           ))
                         ) : (
@@ -883,8 +945,8 @@ export function AppointmentScreen() {
                           <p>
                             Every signer must be listed as a participant and verify
                             identity during the appointment. This payload currently lists
-                            {` ${fixture.payload.participants.length}`} participant
-                            {fixture.payload.participants.length === 1 ? "" : "s"}.
+                            {` ${participantCount}`} participant
+                            {participantCount === 1 ? "" : "s"}.
                           </p>
                         </div>
                       </div>
@@ -900,13 +962,13 @@ export function AppointmentScreen() {
                       <div className="rounded-md border border-border bg-card p-3">
                         <p className="text-xs font-medium uppercase text-muted-foreground">Timeslot ID</p>
                         <p className="mt-1 break-all text-sm font-semibold text-foreground">
-                          {fixture.payload.timeslots[0]}
+                          {payload?.timeslots[0] ?? "Pending draft payload"}
                         </p>
                       </div>
                       <div className="rounded-md border border-border bg-card p-3">
                         <p className="text-xs font-medium uppercase text-muted-foreground">Timezone</p>
                         <p className="mt-1 text-sm font-semibold text-foreground">
-                          {String(fixture.payload.timezone ?? "Europe/Vienna")}
+                          {String(payload?.timezone ?? "Europe/Vienna")}
                         </p>
                       </div>
                     </div>
@@ -924,7 +986,7 @@ export function AppointmentScreen() {
                   <div className="rounded-lg border border-border bg-lens-surface-muted p-4">
                     <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
                     <p className="mt-3">
-                      {formatShippingSummary(fixture.payload)} remains separate
+                      {fixtureShippingSummary(fixture)} remains separate
                       from {fixture.name}'s billing context.
                     </p>
                   </div>
@@ -957,6 +1019,7 @@ export function ReviewScreen() {
         <ScreenFrame>
           <DemoError />
           {(() => {
+            const payload = fixture.payload;
             const unresolvedFields = unresolvedConfirmationFields(fixture.inference);
             const peopleStatus = unresolvedFields.some((field) =>
               fixture.inference.people.some((personField) => personField.key === field.key),
@@ -966,22 +1029,25 @@ export function ReviewScreen() {
             const statuses = reviewStatuses(
               fixture.inference,
               {
-                hasHardCopy: fixture.payload.hardCopy.hardCopy,
-                hasShippingDetails: Boolean(fixture.payload.shippingDetails),
+                hasHardCopy: fixtureHasHardCopy(fixture),
+                hasShippingDetails: Boolean(payload?.shippingDetails || fixture.inference.shippingAddress),
+                hasPayloadProducts: Boolean(payload?.products.length),
               },
             );
-            const readyToSubmit = readyForSubmit(fixture.inference, Boolean(price));
+            const readyToSubmit = Boolean(payload) && readyForSubmit(fixture.inference, Boolean(price));
             const submitLabel =
-              price?.source === "mock"
+              !payload
+                ? "Payload not ready"
+                : price?.source === "mock"
                 ? "Create mock booking request"
                 : "Create booking request";
             const summary = [
               {
                 icon: Globe2,
                 label: "Country of use",
-                value: formatCountry(fixture.payload.destinationCountry),
+                value: fixtureCountrySummary(fixture),
               },
-              { icon: PackageCheck, label: "Booking", value: formatProductSummary(fixture.payload) },
+              { icon: PackageCheck, label: "Booking", value: fixtureProductSummary(fixture) },
               { icon: UserRound, label: "Client", value: fixture.name },
               { icon: ReceiptIcon, label: "Total", value: price ? formatEuro(price.confirmedPrice) : "Pending" },
             ];
@@ -1077,25 +1143,25 @@ export function ReviewScreen() {
                   rows={[
                     {
                       label: "Country of use",
-                      value: formatCountry(fixture.payload.destinationCountry),
+                      value: fixtureCountrySummary(fixture),
                       status: fixture.inference.countryOfUse.status,
                       onChange: () => navigate("/lens/country"),
                     },
                     {
                       label: "Products",
-                      value: formatProductSummary(fixture.payload),
+                      value: fixtureProductSummary(fixture),
                       status: statuses.products,
                       onChange: () => navigate("/lens/plan"),
                     },
                     {
                       label: "Documents",
-                      value: formatFilesSummary(fixture.payload),
+                      value: fixtureFilesSummary(fixture),
                       status: "confirmed",
                       onChange: () => navigate("/lens/evidence"),
                     },
                     {
                       label: "Hard copy",
-                      value: formatShippingSummary(fixture.payload),
+                      value: fixtureShippingSummary(fixture),
                       status: statuses.hardCopy,
                       onChange: () => navigate("/lens/plan"),
                     },
@@ -1113,25 +1179,38 @@ export function ReviewScreen() {
                   rows={[
                     {
                       label: "Participant",
-                      value: formatParticipantsSummary(fixture.payload),
+                      value: fixtureParticipantSummary(fixture),
                       status: peopleStatus,
                       onChange: () => navigate("/lens/appointment"),
                     },
                     {
                       label: "Billing",
-                      value: formatAddress(fixture.payload.billingDetails),
+                      value: fixtureBillingSummary(fixture),
                       status: statuses.billing,
                       onChange: () => navigate("/lens/evidence"),
                     },
                     {
                       label: "Shipping",
-                      value: formatShippingSummary(fixture.payload),
+                      value: fixtureShippingSummary(fixture),
                       status: statuses.shipping,
                       onChange: () => navigate("/lens/country"),
                     },
                   ]}
                 />
-                <PayloadPreview payload={fixture.payload} />
+                {payload ? (
+                  <PayloadPreview payload={payload} />
+                ) : (
+                  <section className="rounded-xl border border-status-needs-review bg-card p-5 shadow-[var(--shadow-card)]">
+                    <h2 className="text-base font-semibold text-foreground">
+                      Payload preview pending
+                    </h2>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      The uploaded PDF evidence is ready for review. Product IDs,
+                      appointment details, price, and submit payload still need to
+                      be generated before booking.
+                    </p>
+                  </section>
+                )}
                 <div className="flex flex-wrap justify-end gap-2">
                   <Button
                     variant="outline"
@@ -1174,7 +1253,7 @@ export function SuccessScreen() {
       {(fixture, price) => (
         <ScreenFrame sidebar={false}>
           <div className="mx-auto max-w-3xl">
-            {submitResult ? (
+            {submitResult && fixture.payload ? (
               <section className="rounded-xl border border-status-confirmed bg-card p-8 text-center shadow-[var(--shadow-card)]">
                 <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-status-confirmed text-status-confirmed-foreground">
                   <CheckCircle2 className="h-7 w-7" aria-hidden="true" />
@@ -1243,7 +1322,7 @@ export function SuccessScreen() {
                 </div>
               </section>
             )}
-            {submitResult ? (
+            {submitResult && fixture.payload ? (
               <div className="mt-5">
                 <PayloadPreview payload={fixture.payload} />
               </div>

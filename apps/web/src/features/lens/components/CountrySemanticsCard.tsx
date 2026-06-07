@@ -13,7 +13,7 @@ export function CountrySemanticsCard({
   onShowEvidence,
 }: {
   inference: DocumentFactExtraction;
-  payload: AppointmentPayload;
+  payload?: AppointmentPayload;
   onConfirm: () => void;
   onShowEvidence?: () => void;
 }) {
@@ -21,16 +21,26 @@ export function CountrySemanticsCard({
   const countryMissing = inference.countryOfUse.status === "missing";
   const [helpOpen, setHelpOpen] = useState(false);
   const countryOfUse = formatCountry(inference.countryOfUse.value);
-  const billingCountry = formatCountry(payload.billingDetails.countryCode);
-  const hasHardCopy = payload.hardCopy?.hardCopy === true;
+  const billingCountry = payload
+    ? formatCountry(payload.billingDetails.countryCode)
+    : inference.billingAddress
+      ? String(inference.billingAddress.value)
+      : "Not extracted";
+  const hasHardCopy = payload
+    ? payload.hardCopy?.hardCopy === true
+    : inference.hardCopy?.value === true;
   const shippingCountry = hasHardCopy
-    ? payload.shippingDetails
+    ? payload?.shippingDetails
       ? formatCountry(payload.shippingDetails.countryCode)
+      : inference.shippingAddress
+        ? String(inference.shippingAddress.value)
       : "Shipping details needed"
     : "No hard copy shipment";
-  const semanticSummary = hasHardCopy
-    ? `This can be valid: the document is for ${countryOfUse}, billing is in ${billingCountry}, and shipping is to ${shippingCountry}.`
-    : `This can be valid: the document is for ${countryOfUse}, billing is in ${billingCountry}, and no hard copy shipment is requested.`;
+  const semanticSummary = payload
+    ? hasHardCopy
+      ? `This can be valid: the document is for ${countryOfUse}, billing is in ${billingCountry}, and shipping is to ${shippingCountry}.`
+      : `This can be valid: the document is for ${countryOfUse}, billing is in ${billingCountry}, and no hard copy shipment is requested.`
+    : `Lens found ${countryOfUse} as the country of use. Billing, shipping, and payload details still need draft preparation.`;
 
   return (
     <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">

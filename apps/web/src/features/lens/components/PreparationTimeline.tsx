@@ -1,15 +1,31 @@
 import { CheckCircle2 } from "lucide-react";
-import { formatCountry, formatFilesSummary } from "../display";
-import type { PersonaFixture } from "../types";
+import { formatBooleanChoice, formatCountry, formatFilesSummary } from "../display";
+import type { LensFixture } from "../types";
 
-export function PreparationTimeline({ fixture }: { fixture: PersonaFixture }) {
-  const country = formatCountry(fixture.payload.destinationCountry);
+export function PreparationTimeline({ fixture }: { fixture: LensFixture }) {
+  const payload = fixture.payload;
+  const country = payload
+    ? formatCountry(payload.destinationCountry)
+    : formatCountry(fixture.inference.countryOfUse.value);
+  const filesSummary = payload
+    ? formatFilesSummary(payload)
+    : fixture.documents.map((document) => document.canonicalName).join(", ");
+  const apostilleSummary = payload
+    ? payload.products.some((product) => product.apostille)
+      ? "Apostille is prepared"
+      : "No apostille selected"
+    : `Apostille: ${formatBooleanChoice(fixture.inference.apostille?.value)}`;
+  const hardCopySummary = payload
+    ? payload.hardCopy.hardCopy
+      ? "Hard copy is prepared for shipment"
+      : "No hard copy shipment selected"
+    : `Hard copy: ${formatBooleanChoice(fixture.inference.hardCopy?.value)}`;
   const timeline = [
     {
       title: "Before appointment",
       items: [
         `Confirm ${country} as country of use`,
-        `Attach ${formatFilesSummary(fixture.payload)}`,
+        `Attach ${filesSummary}`,
         "Confirm apostille and hard copy",
       ],
     },
@@ -21,12 +37,8 @@ export function PreparationTimeline({ fixture }: { fixture: PersonaFixture }) {
       title: "After appointment",
       items: [
         "Receive digital original",
-        fixture.payload.products.some((product) => product.apostille)
-          ? "Apostille is prepared"
-          : "No apostille selected",
-        fixture.payload.hardCopy.hardCopy
-          ? "Hard copy is prepared for shipment"
-          : "No hard copy shipment selected",
+        apostilleSummary,
+        hardCopySummary,
       ],
     },
   ];
