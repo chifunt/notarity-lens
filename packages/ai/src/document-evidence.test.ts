@@ -29,13 +29,16 @@ describe("document evidence", () => {
 
     expect(findings.map((finding) => [finding.kind, finding.value])).toEqual(
       expect.arrayContaining([
+        ["country_of_use", "DE"],
         ["country", "DE"],
         ["product_route", "signature_notarisation"],
         ["participant", "Amara Okafor"],
         ["email", "amara.okafor@notarity.com"],
       ]),
     );
-    expect(evidenceForKind(findings, "country")[0]?.quote).toContain("Germany");
+    expect(evidenceForKind(findings, "country_of_use")[0]?.quote).toContain(
+      "Germany",
+    );
   });
 
   it("marks missing country and possible co-signer evidence", () => {

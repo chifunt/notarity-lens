@@ -1224,3 +1224,20 @@
   - `pnpm --filter @notarity-lens/ai typecheck` succeeds.
   - `pnpm --filter @notarity-lens/ai test` succeeds.
 - Next: infer uploaded-document facts from extracted evidence without relying on sample personas.
+
+## Sprint 72: Uploaded-document deterministic inference
+
+- Status: complete
+- Scope: make uploaded PDF text produce first-class fact extraction instead of sample-persona fallback.
+- Changes:
+  - Added explicit `country_of_use` evidence detection so destination-country phrases win over billing, residence, or shipping mentions.
+  - Added an uploaded-document inference mapper that derives country-of-use status, product route, companion NIE document, participant names/emails, apostille, hard-copy, and uncertainty messages from extracted evidence.
+  - Updated `/api/infer` to accept uploaded `ExtractedDocument[]` JSON and return `source: "rule"` for deterministic uploaded-document inference.
+  - Preserved existing fixture inference behavior and unknown-persona validation for sample routes.
+  - Added AI and API regression coverage that uploads an unseen-style generated PDF and verifies the inferred facts are not Joshua fixture fallback.
+- Verification:
+  - `pnpm --filter @notarity-lens/ai typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/ai test` succeeds.
+  - `pnpm --filter @notarity-lens/api typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/api test` succeeds.
+- Next: route uploaded PDFs through the Evidence, Country, Route, and Review screens using the uploaded inference.

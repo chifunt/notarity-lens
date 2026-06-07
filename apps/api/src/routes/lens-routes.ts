@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import {
   AppointmentPayloadSchema,
+  ExtractedDocumentSchema,
   PersonaFixtureSchema,
   personaFixtures,
 } from "@notarity-lens/shared";
@@ -28,6 +29,11 @@ const PersonaParamSchema = z.object({
 
 const PersonaBodySchema = z.object({
   persona: PersonaSchema.default("joshua"),
+});
+
+const InferBodySchema = z.object({
+  persona: PersonaSchema.optional(),
+  documents: z.array(ExtractedDocumentSchema).optional(),
 });
 
 function jsonError(message: string, status = 400) {
@@ -97,7 +103,7 @@ export function createLensRoutes() {
 
   app.post("/infer", async (c) => {
     const config = getApiConfig();
-    const body = PersonaBodySchema.safeParse(await c.req.json().catch(() => ({})));
+    const body = InferBodySchema.safeParse(await c.req.json().catch(() => ({})));
     if (!body.success) return c.json(jsonError("Unknown fixture persona"), 400);
 
     const response = await inferDocuments(body.data, config);

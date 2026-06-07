@@ -3,6 +3,7 @@ import type { EvidenceRef, ExtractedDocument } from "@notarity-lens/shared";
 export type EvidenceKind =
   | "apostille"
   | "country"
+  | "country_of_use"
   | "email"
   | "hard_copy"
   | "missing_country"
@@ -23,18 +24,84 @@ type PatternDefinition = {
   confidence?: number;
 };
 
-const COUNTRY_PATTERNS: PatternDefinition[] = [
-  { kind: "country", value: "AT", pattern: /\b(Austria|Austrian|Vienna)\b/i },
-  { kind: "country", value: "CA", pattern: /\b(Canada|Toronto)\b/i },
-  { kind: "country", value: "DE", pattern: /\b(Germany|German)\b/i },
-  { kind: "country", value: "ES", pattern: /\b(Spain|Spanish|NIE|Madrid|Valencia|Barcelona)\b/i },
-  { kind: "country", value: "GB", pattern: /\b(United Kingdom|London|UK)\b/i },
-  { kind: "country", value: "IT", pattern: /\b(Italy|Italian|Milan)\b/i },
-  { kind: "country", value: "JP", pattern: /\b(Japan|Tokyo)\b/i },
-  { kind: "country", value: "LT", pattern: /\b(Lithuania|Lithuanian)\b/i },
-  { kind: "country", value: "NL", pattern: /\b(Netherlands|Amsterdam)\b/i },
-  { kind: "country", value: "US", pattern: /\b(United States|New York|USA)\b/i },
+type CountryPatternDefinition = {
+  value: string;
+  genericPattern: RegExp;
+  destinationPattern: RegExp;
+};
+
+const countryUsePrefix =
+  String.raw`(?:country where this notarised document will be used|country of use|used or accepted in|will be used in|for use in)`;
+
+const COUNTRY_DEFINITIONS: CountryPatternDefinition[] = [
+  {
+    value: "AT",
+    genericPattern: /\b(Austria|Austrian|Vienna)\b/i,
+    destinationPattern: new RegExp(String.raw`\b${countryUsePrefix}\s*:?\s*(?:the\s+)?(Austria|Vienna)\b`, "i"),
+  },
+  {
+    value: "CA",
+    genericPattern: /\b(Canada|Toronto)\b/i,
+    destinationPattern: new RegExp(String.raw`\b${countryUsePrefix}\s*:?\s*(?:the\s+)?(Canada|Toronto)\b`, "i"),
+  },
+  {
+    value: "DE",
+    genericPattern: /\b(Germany|German)\b/i,
+    destinationPattern: new RegExp(String.raw`\b${countryUsePrefix}\s*:?\s*(?:the\s+)?(Germany|German)\b`, "i"),
+  },
+  {
+    value: "ES",
+    genericPattern: /\b(Spain|Spanish|NIE|Madrid|Valencia|Barcelona)\b/i,
+    destinationPattern: new RegExp(String.raw`\b${countryUsePrefix}\s*:?\s*(?:the\s+)?(Spain|Spanish|Madrid|Valencia|Barcelona)\b`, "i"),
+  },
+  {
+    value: "GB",
+    genericPattern: /\b(United Kingdom|London|UK)\b/i,
+    destinationPattern: new RegExp(String.raw`\b${countryUsePrefix}\s*:?\s*(?:the\s+)?(United Kingdom|London|UK)\b`, "i"),
+  },
+  {
+    value: "IT",
+    genericPattern: /\b(Italy|Italian|Milan)\b/i,
+    destinationPattern: new RegExp(String.raw`\b${countryUsePrefix}\s*:?\s*(?:the\s+)?(Italy|Italian|Milan)\b`, "i"),
+  },
+  {
+    value: "JP",
+    genericPattern: /\b(Japan|Tokyo)\b/i,
+    destinationPattern: new RegExp(String.raw`\b${countryUsePrefix}\s*:?\s*(?:the\s+)?(Japan|Tokyo)\b`, "i"),
+  },
+  {
+    value: "LT",
+    genericPattern: /\b(Lithuania|Lithuanian)\b/i,
+    destinationPattern: new RegExp(String.raw`\b${countryUsePrefix}\s*:?\s*(?:the\s+)?(Lithuania|Lithuanian)\b`, "i"),
+  },
+  {
+    value: "NL",
+    genericPattern: /\b(Netherlands|Amsterdam)\b/i,
+    destinationPattern: new RegExp(String.raw`\b${countryUsePrefix}\s*:?\s*(?:the\s+)?(Netherlands|Amsterdam)\b`, "i"),
+  },
+  {
+    value: "US",
+    genericPattern: /\b(United States|New York|USA)\b/i,
+    destinationPattern: new RegExp(String.raw`\b${countryUsePrefix}\s*:?\s*(?:the\s+)?(United States|New York|USA)\b`, "i"),
+  },
 ];
+
+const COUNTRY_PATTERNS: PatternDefinition[] = COUNTRY_DEFINITIONS.map(
+  (definition) => ({
+    kind: "country",
+    value: definition.value,
+    pattern: definition.genericPattern,
+  }),
+);
+
+const COUNTRY_OF_USE_PATTERNS: PatternDefinition[] = COUNTRY_DEFINITIONS.map(
+  (definition) => ({
+    kind: "country_of_use",
+    value: definition.value,
+    pattern: definition.destinationPattern,
+    confidence: 0.9,
+  }),
+);
 
 const ROUTE_PATTERNS: PatternDefinition[] = [
   {
@@ -149,6 +216,7 @@ export function collectEvidenceFindings(documents: ExtractedDocument[]) {
   const findings = documents.flatMap((document) =>
     document.textByPage.flatMap((page) => [
       ...collectPatternFindings(document, page, COUNTRY_PATTERNS),
+      ...collectPatternFindings(document, page, COUNTRY_OF_USE_PATTERNS),
       ...collectPatternFindings(document, page, ROUTE_PATTERNS),
       ...collectPatternFindings(document, page, SIGNAL_PATTERNS),
       ...collectPatternFindings(document, page, PARTICIPANT_PATTERNS),

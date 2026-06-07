@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import {
   DocumentFactExtractionSchema,
+  inferFactsFromUploadedDocuments,
   NOTARITY_LENS_EXTRACTION_PROMPT,
 } from "@notarity-lens/ai";
 import {
@@ -18,7 +19,7 @@ export type InferInput = {
 
 export type InferResponse = {
   inference: DocumentFactExtraction;
-  source: "mock" | "live" | "fallback";
+  source: "mock" | "live" | "fallback" | "rule";
   warning?: string;
 };
 
@@ -27,6 +28,14 @@ export async function inferDocuments(
   config: ApiConfig,
 ): Promise<InferResponse> {
   const persona = input.persona ?? "joshua";
+  const hasUploadedDocuments = Boolean(input.documents?.length);
+
+  if (hasUploadedDocuments && config.mockAi) {
+    return {
+      inference: inferFactsFromUploadedDocuments(input.documents ?? []),
+      source: "rule",
+    };
+  }
 
   if (config.mockAi) {
     return {
@@ -36,6 +45,15 @@ export async function inferDocuments(
   }
 
   if (!config.deepseekApiKey) {
+    if (hasUploadedDocuments) {
+      return {
+        inference: inferFactsFromUploadedDocuments(input.documents ?? []),
+        source: "rule",
+        warning:
+          "DEEPSEEK_API_KEY is not configured. Returning deterministic uploaded-document inference.",
+      };
+    }
+
     return {
       inference: personaFixtures[persona].inference,
       source: "fallback",
@@ -80,6 +98,15 @@ export async function inferDocuments(
       warning: undefined,
     };
   } catch {
+    if (hasUploadedDocuments) {
+      return {
+        inference: inferFactsFromUploadedDocuments(input.documents ?? []),
+        source: "rule",
+        warning:
+          "Live AI inference failed validation. Returning deterministic uploaded-document inference.",
+      };
+    }
+
     return {
       inference: personaFixtures[persona].inference,
       source: "fallback",

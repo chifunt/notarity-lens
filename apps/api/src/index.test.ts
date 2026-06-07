@@ -176,6 +176,46 @@ describe("api routes", () => {
     expect(body.documents[0].textByPage[0].text).toContain("Germany");
   });
 
+  it("infers facts from uploaded PDF text instead of fixture fallback", async () => {
+    const pdf = await readFile(
+      new URL(
+        "../../../docs/generated-personas/amara-okafor/Signature_Authorisation_Amara_Okafor.pdf",
+        import.meta.url,
+      ),
+    );
+    const formData = new FormData();
+    formData.append(
+      "files",
+      new File([pdf], "Signature_Authorisation_Amara_Okafor.pdf", {
+        type: "application/pdf",
+      }),
+    );
+
+    const uploadResponse = await app.request("/api/documents/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const uploadBody = await uploadResponse.json();
+    const inferResponse = await app.request("/api/infer", {
+      method: "POST",
+      body: JSON.stringify({ documents: uploadBody.documents }),
+      headers: { "content-type": "application/json" },
+    });
+    const inferBody = await inferResponse.json();
+
+    expect(inferResponse.status).toBe(200);
+    expect(inferBody.source).toBe("rule");
+    expect(inferBody.inference.persona).toBe("upload");
+    expect(inferBody.inference.countryOfUse.value).toBe("DE");
+    expect(inferBody.inference.countryOfUse.status).toBe("inferred");
+    expect(inferBody.inference.products[0].value).toBe("signature_notarisation");
+    expect(inferBody.inference.people).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ key: "participant", value: "Amara Okafor" }),
+      ]),
+    );
+  });
+
   it("returns normalized mock price", async () => {
     const response = await app.request("/api/price", {
       method: "POST",
