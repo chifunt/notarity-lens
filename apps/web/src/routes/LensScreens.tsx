@@ -1,8 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   ArrowRight,
-  CalendarDays,
   CheckCircle2,
   ChevronDown,
   Clock3,
@@ -11,15 +11,15 @@ import {
   FileText,
   FileUp,
   Globe2,
-  HelpCircle,
   Mail,
-  MapPin,
   PackageCheck,
   Receipt as ReceiptIcon,
   RotateCcw,
   Send,
   ShieldCheck,
+  UserPlus,
   UserRound,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppShell } from "@/features/lens/components/AppShell";
@@ -1200,25 +1200,24 @@ export function AppointmentScreen() {
   const navigate = useNavigate();
   const confirmPeople = useLensStore((state) => state.confirmPeople);
   const [participantHelpOpen, setParticipantHelpOpen] = useState(false);
+  const [selectedAppointmentDate, setSelectedAppointmentDate] = useState("2026-06-09");
+  const [selectedAppointmentTime, setSelectedAppointmentTime] = useState("09:00");
+  const appointmentDates = [
+    { label: "Tue, Jun 09", value: "2026-06-09" },
+    { label: "Wed, Jun 10", value: "2026-06-10" },
+    { label: "Thu, Jun 11", value: "2026-06-11" },
+  ];
+  const appointmentTimes = [
+    { label: "09:00", value: "09:00" },
+    { label: "10:30", value: "10:30" },
+    { label: "14:00", value: "14:00" },
+    { label: "16:30", value: "16:30" },
+  ];
 
   return (
     <RequireFixture>
       {(fixture) => (
-        <ScreenFrame
-          railAction={
-            <Button
-              type="button"
-              className="w-full"
-              onClick={() => {
-                confirmPeople();
-                navigate("/lens/review");
-              }}
-            >
-              Continue
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          }
-        >
+        <ScreenFrame sidebar={false}>
           {(() => {
             const payload = fixture.payload;
             const participantEmails = payload
@@ -1237,114 +1236,210 @@ export function AppointmentScreen() {
               : "confirmed";
 
             return (
-          <div className="mx-auto max-w-5xl">
-            <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
-              <h1 className="text-3xl font-semibold text-foreground">Add participants and pick a time</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                The draft is pre-filled for {fixture.name}. The appointment slot
-                remains explicit before final review.
-              </p>
+              <div className="mx-auto max-w-6xl">
+                <div>
+                  <h1 className="text-3xl font-semibold text-foreground">
+                    Add participants and pick a time
+                  </h1>
+                  <p className="mt-2 max-w-4xl text-sm leading-6 text-muted-foreground">
+                    Everyone who signs needs to verify their identity. Then pick
+                    a date that suits you. Our partner notaries confirm the final
+                    time by email.
+                  </p>
+                </div>
 
-              <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-                <div className="grid gap-4">
-                  <article className="rounded-lg border border-border bg-lens-surface-muted p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <UserRound className="h-5 w-5 text-primary" aria-hidden="true" />
-                        <h2 className="text-base font-semibold text-foreground">Participants</h2>
+                <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+                  <div className="grid min-w-0 gap-6">
+                    <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h2 className="text-xl font-semibold text-foreground">
+                            Participants
+                          </h2>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                            Please enter email addresses for you and all additional
+                            participants.
+                          </p>
+                        </div>
+                        <StatusBadge status={participantStatus} />
                       </div>
-                      <StatusBadge status={participantStatus} />
-                    </div>
-                    <div className="mt-4 rounded-md border border-border bg-card px-3 py-3">
-                      <p className="text-xs font-medium uppercase text-muted-foreground">Participant emails</p>
-                      <div className="mt-2 grid gap-2">
+
+                      <div className="mt-6 grid gap-3">
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Email address
+                        </p>
                         {participantEmails.length ? (
                           participantEmails.map((email) => (
-                            <p
+                            <div
                               key={email}
-                              className="break-all text-sm font-semibold text-foreground"
+                              className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3"
                             >
-                              {email}
-                            </p>
+                              <div className="min-w-0 rounded-md border border-input bg-card px-3 py-2 shadow-[var(--shadow-card)]">
+                                <p className="min-w-0 break-all text-sm leading-6 text-foreground">
+                                  {email}
+                                </p>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label={`Remove ${email}`}
+                                disabled
+                              >
+                                <X className="h-4 w-4" aria-hidden="true" />
+                              </Button>
+                            </div>
                           ))
                         ) : (
-                          <p className="text-sm text-muted-foreground">
-                            No participants added
-                          </p>
+                          <div className="rounded-md border border-input bg-card px-3 py-2 shadow-[var(--shadow-card)]">
+                            <p className="text-sm leading-6 text-muted-foreground">
+                              name@example.com
+                            </p>
+                          </div>
                         )}
                       </div>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="mt-4 text-primary"
+                        aria-controls="participant-help"
+                        aria-expanded={participantHelpOpen}
+                        onClick={() => setParticipantHelpOpen((open) => !open)}
+                      >
+                        <UserPlus className="h-4 w-4" aria-hidden="true" />
+                        Add another participant
+                      </Button>
+                      {participantHelpOpen ? (
+                        <div
+                          id="participant-help"
+                          className="mt-3 rounded-lg border border-border bg-lens-surface-muted p-3 text-sm leading-6 text-muted-foreground"
+                        >
+                          <div className="flex items-start gap-2">
+                            <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                            <p className="min-w-0">
+                              This draft currently lists {participantCount} participant
+                              {participantCount === 1 ? "" : "s"}. Every signer
+                              must be listed and verify identity during the appointment.
+                            </p>
+                          </div>
+                        </div>
+                      ) : null}
+                    </section>
+
+                    <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
+                      <h2 className="text-xl font-semibold text-foreground">
+                        Choose a date
+                      </h2>
+                      <div className="mt-6 grid gap-3">
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Time zone
+                        </p>
+                        <div className="flex min-w-0 items-center justify-between gap-3 rounded-md border border-input bg-card px-3 py-2 shadow-[var(--shadow-card)]">
+                          <p className="min-w-0 break-words text-sm font-medium text-foreground">
+                            {String(payload?.timezone ?? "Europe/Vienna")}
+                          </p>
+                          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                        </div>
+                      </div>
+
+                      <div className="mt-5 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          aria-label="Previous dates"
+                        >
+                          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                        <p className="min-w-0 text-center text-sm font-semibold text-foreground">
+                          Tue, Jun 09, 2026 - Thu, Jun 11, 2026
+                        </p>
+                        <Button type="button" size="icon" aria-label="Next dates">
+                          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                        </Button>
+                      </div>
+
+                      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                        {appointmentDates.map((date) => (
+                          <button
+                            key={date.value}
+                            type="button"
+                            aria-pressed={selectedAppointmentDate === date.value}
+                            onClick={() => setSelectedAppointmentDate(date.value)}
+                            className={`min-h-16 rounded-lg border p-4 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                              selectedAppointmentDate === date.value
+                                ? "border-primary bg-primary/10"
+                                : "border-border bg-lens-surface-muted hover:border-primary/35"
+                            }`}
+                          >
+                            <span className="block break-words text-sm font-semibold text-foreground">
+                              {date.label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="mt-6">
+                        <h3 className="text-base font-semibold text-foreground">
+                          Choose a time
+                        </h3>
+                        <div className="mt-3 grid gap-3 sm:grid-cols-4">
+                          {appointmentTimes.map((time) => (
+                            <button
+                              key={time.value}
+                              type="button"
+                              aria-pressed={selectedAppointmentTime === time.value}
+                              onClick={() => setSelectedAppointmentTime(time.value)}
+                              className={`min-h-12 rounded-lg border px-3 py-2 text-center text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                                selectedAppointmentTime === time.value
+                                  ? "border-primary bg-primary text-primary-foreground"
+                                  : "border-border bg-lens-surface-muted text-foreground hover:border-primary/35"
+                              }`}
+                            >
+                              {time.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <p className="mt-5 break-words text-sm leading-6 text-muted-foreground">
+                        Our partner notaries will confirm the final date and time
+                        of your appointment by email.
+                      </p>
+                    </section>
+                  </div>
+
+                  <aside className="grid content-start gap-4 text-sm leading-6 text-muted-foreground">
+                    <div className="rounded-xl border border-border bg-lens-surface-muted p-5">
+                      <p>
+                        Every person who signs on one or more documents has to
+                        verify their identity. Without verification, the signature
+                        cannot be notarised.
+                      </p>
+
+                    </div>
+                    <div className="rounded-xl border border-border bg-lens-surface-muted p-5">
+                      <p>
+                        Pick a date and time that suits you best. The selected
+                        option is held for review before the booking request is created.
+                      </p>
                     </div>
                     <Button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="mt-3 text-primary"
-                      aria-controls="participant-help"
-                      aria-expanded={participantHelpOpen}
-                      onClick={() => setParticipantHelpOpen((open) => !open)}
+                      className="w-full"
+                      onClick={() => {
+                        confirmPeople();
+                        navigate("/lens/review");
+                      }}
                     >
-                      <HelpCircle className="h-4 w-4" aria-hidden="true" />
-                      Who needs to join?
+                      Continue
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Button>
-                    {participantHelpOpen ? (
-                      <div
-                        id="participant-help"
-                        className="mt-3 rounded-lg border border-border bg-card p-3 text-sm leading-6 text-muted-foreground"
-                      >
-                        <div className="flex items-start gap-2">
-                          <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                          <p>
-                            Every signer must be listed as a participant and verify
-                            identity during the appointment. This payload currently lists
-                            {` ${participantCount}`} participant
-                            {participantCount === 1 ? "" : "s"}.
-                          </p>
-                        </div>
-                      </div>
-                    ) : null}
-                  </article>
-
-                  <article className="rounded-lg border border-border bg-lens-surface-muted p-4">
-                    <div className="flex items-center gap-2">
-                      <CalendarDays className="h-5 w-5 text-primary" aria-hidden="true" />
-                      <h2 className="text-base font-semibold text-foreground">Appointment slot</h2>
-                    </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-md border border-border bg-card p-3">
-                        <p className="text-xs font-medium uppercase text-muted-foreground">Timeslot ID</p>
-                        <p className="mt-1 break-all text-sm font-semibold text-foreground">
-                          {payload?.timeslots[0] ?? "Pending draft payload"}
-                        </p>
-                      </div>
-                      <div className="rounded-md border border-border bg-card p-3">
-                        <p className="text-xs font-medium uppercase text-muted-foreground">Timezone</p>
-                        <p className="mt-1 text-sm font-semibold text-foreground">
-                          {String(payload?.timezone ?? "Europe/Vienna")}
-                        </p>
-                      </div>
-                    </div>
-                  </article>
+                  </aside>
                 </div>
-
-                <aside className="grid content-start gap-3 text-sm text-muted-foreground">
-                  <div className="rounded-lg border border-border bg-lens-surface-muted p-4">
-                    <Clock3 className="h-5 w-5 text-primary" aria-hidden="true" />
-                    <p className="mt-3">
-                      Partner notaries confirm the final appointment time by email.
-                      This screen keeps the slot explicit before final review.
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-border bg-lens-surface-muted p-4">
-                    <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
-                    <p className="mt-3">
-                      {fixtureShippingSummary(fixture)} remains separate
-                      from {fixture.name}'s billing context.
-                    </p>
-                  </div>
-                </aside>
               </div>
-            </section>
-          </div>
             );
           })()}
         </ScreenFrame>
