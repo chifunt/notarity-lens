@@ -1,52 +1,92 @@
 # Notarity Lens
 
-Notarity Lens is a document-first guided booking prototype for the Notarity
-hackathon.
+START HACK Hackathon Vienna 2026 project for Notarity.
+
+Notarity Lens is a document-first booking assistant for remote notarisation. It
+reads uploaded documents, extracts the facts that matter, shows the exact
+evidence behind each inference, asks the user to confirm or edit the details, and
+turns the result into a Notarity-ready booking request.
 
 Core pitch:
 
 > Notarity already made notarisation remote. We made the confusing part before
 > the appointment understandable.
 
-The app reads or loads documents, shows evidence-backed inferred facts, asks the
-user to confirm high-impact fields, builds a deterministic Notarity payload, gets
-an itemized price, and submits a mock appointment request.
+## Tags
 
-## What Works
+`START HACK 2026` `Vienna` `Notarity` `AI` `DeepSeek` `PDF extraction`
+`document automation` `legaltech` `remote notarisation` `React` `Vite` `Hono`
+`TypeScript`
 
-- Joshua Timms demo flow from sample intake to mock success.
-- Sample request selector for Joshua, Robert, and Elizabeth fallback personas.
-- PDF selection posts to the backend upload endpoint and displays uploaded
-  document metadata separately from complete sample drafts.
-- Evidence review for Spain, NIE, Joshua, New York billing, Barcelona shipping,
-  apostille, and hard copy.
-- Country semantics screen that separates country of use, billing/home, and
-  shipping.
-- Product route with NIE number application and the required NIE Personal Data
-  companion document.
-- Canonical filename mapping:
-  `nie_personal_details-joshuatimms.pdf` maps to
-  `nie_personal_details.pdf`.
-- Mock price endpoint returns:
-  - NIE number application: EUR 550
-  - NIE Personal Data: EUR 0
-  - Hard Copy including shipping: EUR 30
-  - Total: EUR 580
-- Final review, payload preview, submit gating, and mock submit success.
-- Unit/API tests for payload generation, condition logic, pricing, inference
-  mapping, fixtures, and API smoke routes.
+## Demo Scope
 
-## What Is Mocked
+The primary demo path is the Joshua Timms NIE application sample. The app is
+currently tuned to make that live walkthrough feel complete and reliable:
 
-- Sample request extraction uses fixture text.
-- Arbitrary uploaded PDFs are metadata-only in the web flow until extraction can
-  produce a complete deterministic payload.
-- AI inference defaults to `MOCK_AI=true`.
-- Notarity API defaults to `MOCK_NOTARITY=true`.
-- Submit defaults to mock mode. Live submit is blocked unless explicitly enabled
-  and the current safe skeleton still refuses multipart live submission.
+- The upload screen is document-first, supports drag and drop, stages multiple
+  PDFs before continuing, and no longer offers a fileless path.
+- Demo sample requests are kept behind a collapsible demo section.
+- The Joshua demo uses the actual reference PDFs from
+  `_context/notarity-reference-materials/personas/joshua/documents`.
+- Uploaded and demo PDFs can be previewed in the app, with tab navigation when a
+  request has multiple documents.
+- The Analyze screen waits for the real backend document read before allowing
+  the user to continue.
+- The Evidence screen shows editable inferred details, evidence chips, and the
+  source PDF preview with document highlights.
+- Joshua's participant email is prefilled from the demo data so the appointment
+  step only needs confirmation.
+- Country, route, review, cost, appointment, and success screens are wired into
+  one guided booking flow.
+- The interface includes motion polish, staggered screen transitions, animated
+  cards, receipt updates, status badges, and reduced-motion support.
 
-## Setup
+Additional sample personas exist for testing inference boundaries, including
+cases where documents are complete and cases where the uploaded information is
+not enough. The project direction for the final hackathon demo is Joshua-first.
+
+## What Is Implemented
+
+- Text-layer PDF extraction in the API using `pdfjs-dist`.
+- Backend document upload endpoint with previewable uploaded files.
+- Fixture PDF serving for demo samples.
+- DeepSeek-backed inference when `MOCK_AI=false` and `DEEPSEEK_API_KEY` is set.
+- Deterministic fallback inference for safe local demos.
+- Editable evidence review for country of use, product, companion document,
+  client details, billing country, shipping destination, apostille, hard copy,
+  and participant email.
+- Country semantics screen that separates country of use, billing/home country,
+  and shipping destination.
+- Product route selection for the NIE number application and the required NIE
+  Personal Data companion document.
+- Live receipt/sidebar pattern for multi-column screens.
+- Mock-safe price, draft, and submit flow.
+- Unit and API tests for payload generation, condition logic, pricing,
+  inference mapping, fixtures, and smoke routes.
+
+## Architecture
+
+- `apps/web` - React, Vite, React Router, Tailwind CSS, Framer Motion, and
+  Zustand.
+- `apps/api` - Hono API server, PDF extraction, fixture serving, inference,
+  draft, price, and submit routes.
+- `packages/ai` - DeepSeek/OpenAI-compatible inference client and prompts.
+- `packages/notarity` - Notarity payload, pricing, and submission integration
+  boundary.
+- `packages/shared` - Shared schemas, fixtures, and flow types.
+
+Useful API routes:
+
+- `GET /health`
+- `GET /api/fixtures/:persona`
+- `GET /api/fixtures/:persona/documents/:documentId/pdf`
+- `POST /api/documents/upload`
+- `POST /api/infer`
+- `POST /api/draft`
+- `POST /api/price`
+- `POST /api/submit`
+
+## Run Locally
 
 ```bash
 pnpm install
@@ -54,16 +94,17 @@ cp .env.example .env
 pnpm dev
 ```
 
-Open:
+Open the web URL printed by Vite. The default is <http://localhost:5173>, but
+Vite may choose the next available port, such as <http://localhost:5174>, if the
+default port is already in use.
 
-- Web: <http://localhost:5173>
-- API health: <http://localhost:8787/health>
+API health runs at <http://localhost:8787/health>.
 
 ## Environment
 
 Use `.env.example` as the source for placeholders. Do not commit real secrets.
 
-Important flags:
+Recommended demo-safe defaults:
 
 ```env
 MOCK_NOTARITY=true
@@ -72,16 +113,33 @@ ALLOW_LIVE_SUBMIT=false
 VITE_API_BASE_URL=http://localhost:8787
 ```
 
-DeepSeek keys are backend-only:
+To use live DeepSeek inference locally:
 
 ```env
 DEEPSEEK_API_KEY=
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL_FAST=deepseek-v4-flash
 DEEPSEEK_MODEL_REVIEW=deepseek-v4-pro
+MOCK_AI=false
 ```
 
-Never prefix DeepSeek secrets with `VITE_`.
+DeepSeek keys are backend-only. Never prefix DeepSeek secrets with `VITE_`.
+
+Notarity integration flags:
+
+```env
+NOTARITY_API_BASE_URL=https://staging-api.notarity.com
+NOTARITY_BOOKING_FORM_SLUG=start-vienna-hackathon
+NOTARITY_ORIGIN=https://staging.notarity.com/#/my-companies/HpKfHmbViXxFEMzjtxln/appointment-requests
+NOTARITY_BOOKING_FORM_ID=kmVXjYM937qB8JTYG2yH
+NOTARITY_DRAFT_ID=vfniS9nfoq8nMpRqQj7Z
+NOTARITY_BASIC_AUTH_USERNAME=
+NOTARITY_BASIC_AUTH_PASSWORD=
+NOTARITY_BEARER_TOKEN=
+```
+
+Live submit remains blocked unless `ALLOW_LIVE_SUBMIT=true` is explicitly set.
+The hackathon demo should run in mock submit mode.
 
 ## Scripts
 
@@ -93,27 +151,43 @@ pnpm test
 pnpm build
 ```
 
-## Demo Path
+Focused web checks:
 
-1. Open the app.
-2. Click the `Joshua Timms` sample request card or `Use Joshua sample`.
-3. Review document analysis and filename mapping.
-4. Review evidence for NIE, Spanish tax authorities, Barcelona, Joshua Timms,
-   and New York.
-5. Confirm Spain as the country of use.
-6. Confirm the product route:
-   - NIE number application
-   - NIE Personal Data
-7. Review the EUR 580 receipt and preparation timeline.
-8. Review the final payload.
-9. Create the mock booking request.
+```bash
+pnpm --filter @notarity-lens/web lint
+pnpm --filter @notarity-lens/web test
+pnpm --filter @notarity-lens/web build
+```
+
+## Recommended Demo Path
+
+1. Start the app with `pnpm dev`.
+2. Open the web URL printed by Vite.
+3. Expand the demo sample requests section.
+4. Select the Joshua Timms demo sample.
+5. Wait on Analyze until the documents are fully read.
+6. Continue to Evidence and inspect the PDFs, highlights, evidence chips, and
+   editable extracted details.
+7. Confirm or edit the country of use, product route, companion document,
+   client, address, apostille, hard copy, and participant email details.
+8. Continue through Country, Route, Review, Cost, Appointment, and Success.
+9. Use the final payload preview to show what would be submitted to Notarity.
+
+## Demo Boundaries
+
+- The Joshua fixture is the polished happy path for the START HACK Vienna 2026
+  presentation.
+- Text-layer PDFs are extracted. Scanned-image OCR is not implemented.
+- DeepSeek inference is available when configured, but mock inference remains
+  the default so demos do not depend on API keys or network availability.
+- The LLM proposes extracted facts and evidence. Deterministic code still owns
+  product IDs, timeslot IDs, prices, and final payload construction.
+- Pricing and submission are mock-safe by default.
 
 ## Safety Notes
 
 - `_context/` is ignored and must stay out of public commits.
 - `.env`, `.env.*`, and `.env.local` are ignored; `.env.example` contains
   placeholders only.
-- No API keys, Notarity credentials, or authorization headers are logged.
-- The LLM never chooses product IDs, timeslot IDs, prices, or final payload
-  fields. Deterministic code does that mapping.
+- No API keys, Notarity credentials, or authorization headers should be logged.
 - Final submit is user-confirmed and mock by default.

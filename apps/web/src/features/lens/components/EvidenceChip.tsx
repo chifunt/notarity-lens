@@ -12,7 +12,7 @@ export function EvidenceChip({
   onSelect?: (evidence: EvidenceRef) => void;
 }) {
   const className = cn(
-    "inline-flex max-w-full items-center gap-1.5 rounded-full border border-border bg-card text-muted-foreground shadow-sm",
+    "lens-evidence-chip inline-flex max-w-full items-center gap-1.5 rounded-full border border-border bg-card text-muted-foreground shadow-sm",
     compact ? "px-2 py-1 text-xs" : "px-3 py-1.5 text-sm",
     onSelect && "transition-colors hover:border-primary/40 hover:bg-accent/20 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
   );

@@ -162,7 +162,7 @@ export function PdfPreviewPanel({
   };
 
   return (
-    <section className="flex h-full min-h-[460px] flex-col rounded-xl border border-border bg-card shadow-[var(--shadow-card)] lg:min-h-[680px]">
+    <section className="lens-card-motion flex h-full min-h-[460px] flex-col rounded-xl border border-border bg-card shadow-[var(--shadow-card)] lg:min-h-[680px]">
       <div className="flex flex-wrap items-center gap-1 border-b border-border bg-lens-surface-muted/60 px-2 py-2">
         {documents.map((document) => {
           const documentEvidence = evidenceForDocument(allEvidence, document);
@@ -173,10 +173,10 @@ export function PdfPreviewPanel({
               key={document.id}
               type="button"
               onClick={() => selectDocument(document.id)}
-              className={cn(
-                "flex min-w-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
-                active
-                  ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                className={cn(
+                  "flex min-w-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0",
+                  active
+                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
                   : "text-muted-foreground hover:bg-card/60 hover:text-foreground",
               )}
             >
@@ -222,7 +222,7 @@ export function PdfPreviewPanel({
             </div>
 
             {selectedPdfUrl ? (
-              <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+              <section className="lens-screen-enter overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                 <iframe
                   key={selectedDocument.id}
                   title={`${selectedDocument.filename} PDF preview`}
@@ -231,14 +231,14 @@ export function PdfPreviewPanel({
                 />
               </section>
             ) : (
-              <section className="rounded-lg border border-border bg-card p-4 text-sm leading-6 text-muted-foreground shadow-sm">
+              <section className="lens-screen-enter rounded-lg border border-border bg-card p-4 text-sm leading-6 text-muted-foreground shadow-sm">
                 The original PDF binary is not available in this browser session,
                 so Lens is showing extracted text with AI highlights.
               </section>
             )}
 
             <div className="grid gap-3">
-              {selectedDocument.textByPage.map((page) => {
+              {selectedDocument.textByPage.map((page, index) => {
                 const pageEvidence = evidenceForPage(selectedEvidence, page.page);
 
                 return (
@@ -247,7 +247,8 @@ export function PdfPreviewPanel({
                     ref={(element) => {
                       pageRefs.current[page.page] = element;
                     }}
-                    className="rounded-lg border border-border bg-card p-4 text-sm leading-7 text-foreground shadow-sm"
+                    style={{ animationDelay: `${index * 55}ms` }}
+                    className="lens-card-motion lens-receipt-line rounded-lg border border-border bg-card p-4 text-sm leading-7 text-foreground shadow-sm"
                   >
                     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs font-medium uppercase text-muted-foreground">
@@ -276,7 +277,7 @@ export function PdfPreviewPanel({
               })}
             </div>
 
-            <section className="rounded-lg border border-border bg-card p-3">
+            <section className="lens-card-motion rounded-lg border border-border bg-card p-3">
               <p className="text-sm font-medium text-foreground">All cited evidence in this document</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {selectedEvidence.map((evidence) => (

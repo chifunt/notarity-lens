@@ -66,7 +66,7 @@ export function StartScreen() {
       <DemoError />
       <section className="mx-auto flex min-h-[calc(100vh-15rem)] w-full max-w-3xl flex-col justify-center py-8">
         <div className="text-center">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-sm text-muted-foreground shadow-[var(--shadow-card)]">
+          <div className="lens-status-badge mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-sm text-muted-foreground shadow-[var(--shadow-card)]">
             <ShieldCheck className="h-4 w-4 text-status-confirmed-foreground" aria-hidden="true" />
             AI prepares a draft. Nothing is submitted until you confirm.
           </div>
@@ -80,9 +80,9 @@ export function StartScreen() {
         </div>
 
         <div
-          className={`mt-8 rounded-2xl border border-dashed p-5 text-center shadow-[var(--shadow-card)] transition-colors sm:p-8 ${
+          className={`lens-drop-zone lens-card-motion mt-8 rounded-2xl border border-dashed p-5 text-center shadow-[var(--shadow-card)] transition-colors sm:p-8 ${
             dragActive
-              ? "border-primary bg-primary/5"
+              ? "lens-drop-zone-active border-primary bg-primary/5"
               : "border-primary/35 bg-card"
           }`}
           onDragEnter={(event) => {
@@ -121,9 +121,9 @@ export function StartScreen() {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={loading}
-            className="group flex min-h-64 w-full flex-col items-center justify-center rounded-xl border border-border bg-secondary/60 px-6 py-10 transition-colors hover:border-primary/45 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
+            className="group flex min-h-64 w-full flex-col items-center justify-center rounded-xl border border-border bg-secondary/60 px-6 py-10 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/45 hover:bg-accent/20 active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-60"
           >
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+            <span className="lens-step-dot-active flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
               <FileUp className="h-6 w-6" aria-hidden="true" />
             </span>
             <span className="mt-5 text-lg font-semibold text-foreground">
@@ -141,7 +141,7 @@ export function StartScreen() {
           </button>
 
           {stagedFiles.length ? (
-            <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card text-left">
+            <div className="lens-screen-enter mt-4 overflow-hidden rounded-xl border border-border bg-card text-left">
               <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
                 <h2 className="text-sm font-semibold text-foreground">
                   Staged documents
@@ -151,10 +151,11 @@ export function StartScreen() {
                 </span>
               </div>
               <div className="divide-y divide-border">
-                {stagedFiles.map((file) => (
+                {stagedFiles.map((file, index) => (
                   <div
                     key={`${file.name}:${file.size}:${file.lastModified}`}
-                    className="flex items-center gap-3 px-4 py-3"
+                    style={{ animationDelay: `${index * 55}ms` }}
+                    className="lens-receipt-line flex items-center gap-3 px-4 py-3"
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
                       <FileText className="h-4 w-4" aria-hidden="true" />

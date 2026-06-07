@@ -3,11 +3,12 @@ import type { ExtractedDocument } from "../types";
 
 export function DocumentFileList({ documents }: { documents: ExtractedDocument[] }) {
   return (
-    <div className="grid gap-3">
-      {documents.map((document) => (
+    <div className="lens-stagger grid gap-3">
+      {documents.map((document, index) => (
         <div
           key={document.id}
-          className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3 shadow-[var(--shadow-card)]"
+          style={{ animationDelay: `${index * 60}ms` }}
+          className="lens-card-motion flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3 shadow-[var(--shadow-card)]"
         >
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">

@@ -40,7 +40,7 @@ export function CountrySemanticsCard({
     : `Lens found ${countryOfUse} as the country of use. Billing, shipping, and payload details still need draft preparation.`;
 
   return (
-    <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
+    <section className="lens-card-motion rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-2xl font-semibold text-foreground">
@@ -55,17 +55,17 @@ export function CountrySemanticsCard({
       </div>
 
       <div className="mt-5 grid gap-3 lg:grid-cols-3">
-        <div className="rounded-lg border border-primary/25 bg-primary/5 p-4">
+        <div className="lens-card-motion rounded-lg border border-primary/25 bg-primary/5 p-4">
           <MapPinned className="h-5 w-5 text-primary" aria-hidden="true" />
           <p className="mt-3 text-sm font-medium text-primary">Country of use</p>
           <p className="mt-1 text-xl font-semibold text-foreground">{countryOfUse}</p>
         </div>
-        <div className="rounded-lg border border-border bg-lens-surface-muted p-4">
+        <div className="lens-card-motion rounded-lg border border-border bg-lens-surface-muted p-4">
           <Home className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
           <p className="mt-3 text-sm font-medium text-muted-foreground">Billing/home</p>
           <p className="mt-1 text-xl font-semibold text-foreground">{billingCountry}</p>
         </div>
-        <div className="rounded-lg border border-border bg-lens-surface-muted p-4">
+        <div className="lens-card-motion rounded-lg border border-border bg-lens-surface-muted p-4">
           <Truck className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
           <p className="mt-3 text-sm font-medium text-muted-foreground">Shipping</p>
           <p className="mt-1 text-xl font-semibold text-foreground">{shippingCountry}</p>
@@ -95,7 +95,7 @@ export function CountrySemanticsCard({
       {helpOpen ? (
         <div
           id="country-unsure-help"
-          className="mt-5 rounded-xl border border-border bg-lens-surface-muted p-4"
+          className="lens-screen-enter mt-5 rounded-xl border border-border bg-lens-surface-muted p-4"
         >
           <div className="flex items-start gap-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">

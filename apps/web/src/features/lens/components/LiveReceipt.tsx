@@ -14,7 +14,7 @@ export function LiveReceipt({
   const [helpOpen, setHelpOpen] = useState(false);
 
   return (
-    <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
+    <section className="lens-card-motion rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-2xl font-semibold text-foreground">Price from Notarity pricing</h2>
@@ -23,20 +23,24 @@ export function LiveReceipt({
             itemized shape as the pricing endpoint.
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-status-inferred px-2.5 py-1 text-xs font-medium text-status-inferred-foreground">
+        <span className="lens-status-badge inline-flex items-center gap-1 rounded-full bg-status-inferred px-2.5 py-1 text-xs font-medium text-status-inferred-foreground">
           <RefreshCcw className="h-3.5 w-3.5" aria-hidden="true" />
           {price.source === "mock" ? "Fixture price" : "Live price"}
         </span>
       </div>
 
       <div className="mt-5 divide-y divide-border rounded-lg border border-border">
-        {price.lines.map((line) => (
-          <div key={`${line.name}-${line.identifier ?? line.net}`} className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+        {price.lines.map((line, index) => (
+          <div
+            key={`${line.name}-${line.identifier ?? line.net}`}
+            style={{ animationDelay: `${index * 55}ms` }}
+            className="lens-receipt-line flex items-center justify-between gap-4 px-4 py-3 text-sm"
+          >
             <span className="text-muted-foreground">{line.name}</span>
             <span className="font-semibold text-foreground">{formatEuroFromCents(line.net)}</span>
           </div>
         ))}
-        <div className="flex items-center justify-between gap-4 bg-lens-surface-muted px-4 py-4 text-base">
+        <div className="lens-receipt-total flex items-center justify-between gap-4 bg-lens-surface-muted px-4 py-4 text-base">
           <span className="font-semibold text-foreground">Total</span>
           <span className="text-2xl font-semibold text-foreground">
             {formatEuro(price.confirmedPrice)}
@@ -60,7 +64,7 @@ export function LiveReceipt({
       {action ? <div className="mt-4 border-t border-border pt-4">{action}</div> : null}
 
       {helpOpen ? (
-        <div id="price-help" className="mt-4 rounded-lg border border-border bg-lens-surface-muted p-4">
+        <div id="price-help" className="lens-screen-enter mt-4 rounded-lg border border-border bg-lens-surface-muted p-4">
           <div className="flex items-start gap-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <ShieldCheck className="h-4 w-4" aria-hidden="true" />

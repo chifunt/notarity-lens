@@ -51,7 +51,7 @@ export function EditableInferenceFieldCard({
   };
 
   return (
-    <article className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+    <article className="lens-card-motion rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-medium uppercase text-muted-foreground">

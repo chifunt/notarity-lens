@@ -29,7 +29,8 @@ export function StatusBadge({ status, className }: { status: FieldStatus; classN
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium",
+        "lens-status-badge inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium",
+        status === "confirmed" && "lens-status-badge-confirmed",
         statusStyles[status],
         className,
       )}

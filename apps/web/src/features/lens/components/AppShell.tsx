@@ -20,7 +20,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="border-b border-border bg-card">
+      <header className="lens-shell-chrome border-b border-border bg-card">
         <div className="mx-auto flex w-full max-w-[1480px] items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <img
@@ -42,11 +42,13 @@ export function AppShell({
       <main className="mx-auto w-full max-w-[1480px] flex-1 px-4 py-6 sm:px-6 sm:py-8">
         {rightRail ? (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8">
-            <div className="min-w-0">{children}</div>
-            <aside className="lg:sticky lg:top-6 lg:self-start">{rightRail}</aside>
+            <div className="lens-screen-enter min-w-0">{children}</div>
+            <aside className="lens-right-rail lg:sticky lg:top-6 lg:self-start">
+              {rightRail}
+            </aside>
           </div>
         ) : (
-          children
+          <div className="lens-screen-enter">{children}</div>
         )}
       </main>
       <footer className="border-t border-border bg-primary text-primary-foreground/80">

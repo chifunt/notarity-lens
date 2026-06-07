@@ -33,8 +33,9 @@ export function TopStepper() {
             const segment = (
               <div
                 className={cn(
-                  "h-1.5 w-full rounded-full transition-colors",
+                  "lens-step-segment h-1.5 w-full rounded-full",
                   (done || active) && "bg-primary",
+                  active && "lens-step-segment-active",
                   !done && !active && "bg-muted",
                 )}
               />
@@ -68,16 +69,16 @@ export function TopStepper() {
             const inner = (
               <div
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors",
-                  active && "bg-accent/50",
+                  "lens-step-pill flex items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors",
+                  active && "lens-step-pill-active bg-accent/50",
                   !active && reachable && "hover:bg-accent/30",
                 )}
               >
                 <span
                   className={cn(
                     "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold",
-                    active && "bg-primary text-primary-foreground",
-                    done && "bg-primary/15 text-primary",
+                    active && "lens-step-dot-active bg-primary text-primary-foreground",
+                    done && "lens-step-dot-done bg-primary/15 text-primary",
                     !active && !done && "bg-muted text-muted-foreground",
                   )}
                   aria-hidden="true"

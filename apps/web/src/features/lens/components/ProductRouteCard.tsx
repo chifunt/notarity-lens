@@ -30,7 +30,7 @@ export function ProductRouteCard({
     productFields.some((field) => field.key === "requiredCompanionDocument");
 
   return (
-    <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
+    <section className="lens-card-motion rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-2xl font-semibold text-foreground">Your booking route</h2>
@@ -45,7 +45,11 @@ export function ProductRouteCard({
       <div className="mt-5 grid gap-4">
         {payloadProducts.length ? (
           payloadProducts.map((product, index) => (
-            <article key={product.id} className="rounded-lg border border-border bg-lens-surface-muted p-4">
+            <article
+              key={product.id}
+              style={{ animationDelay: `${index * 60}ms` }}
+              className="lens-card-motion lens-receipt-line rounded-lg border border-border bg-lens-surface-muted p-4"
+            >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
@@ -78,7 +82,11 @@ export function ProductRouteCard({
           ))
         ) : productFields.length ? (
           productFields.map((field, index) => (
-            <article key={`${field.key}-${String(field.value)}`} className="rounded-lg border border-border bg-lens-surface-muted p-4">
+            <article
+              key={`${field.key}-${String(field.value)}`}
+              style={{ animationDelay: `${index * 60}ms` }}
+              className="lens-card-motion lens-receipt-line rounded-lg border border-border bg-lens-surface-muted p-4"
+            >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
@@ -98,7 +106,7 @@ export function ProductRouteCard({
             </article>
           ))
         ) : (
-          <article className="rounded-lg border border-border bg-lens-surface-muted p-4">
+          <article className="lens-card-motion rounded-lg border border-border bg-lens-surface-muted p-4">
             <p className="text-base font-semibold text-foreground">
               Product route needs review
             </p>

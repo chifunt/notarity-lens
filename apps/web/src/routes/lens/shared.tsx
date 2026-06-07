@@ -415,11 +415,12 @@ function SampleRequestGrid({
   previewingPersona?: PersonaFixture["id"];
 }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-      {sampleRequests.map((sample) => (
+    <div className="lens-stagger grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      {sampleRequests.map((sample, index) => (
         <article
           key={sample.id}
-          className="flex h-full flex-col rounded-lg border border-border bg-card p-4 shadow-[var(--shadow-card)]"
+          style={{ animationDelay: `${index * 45}ms` }}
+          className="lens-card-motion flex h-full flex-col rounded-lg border border-border bg-card p-4 shadow-[var(--shadow-card)]"
         >
           <span className="flex items-start justify-between gap-3">
             <span className="min-w-0">
@@ -518,7 +519,7 @@ export function DemoSampleRequests({
   };
 
   return (
-    <section className="rounded-xl border border-border bg-card shadow-[var(--shadow-card)]">
+    <section className="lens-card-motion rounded-xl border border-border bg-card shadow-[var(--shadow-card)]">
       <button
         type="button"
         className="flex w-full items-start justify-between gap-4 px-4 py-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -544,11 +545,11 @@ export function DemoSampleRequests({
         />
       </button>
       {open ? (
-        <div id={panelId} className="grid gap-4 border-t border-border p-4">
+        <div id={panelId} className="lens-screen-enter grid gap-4 border-t border-border p-4">
           {previewingPersona ? (
             <section
               ref={previewPanelRef}
-              className="rounded-xl border border-border bg-lens-surface-muted p-4"
+              className="lens-card-motion rounded-xl border border-border bg-lens-surface-muted p-4"
             >
               <p className="text-xs font-medium uppercase text-muted-foreground">
                 Loading demo PDF preview
@@ -564,7 +565,7 @@ export function DemoSampleRequests({
           {previewError ? (
             <section
               ref={previewPanelRef}
-              className="rounded-md border border-status-conflict bg-status-conflict px-4 py-3 text-sm text-status-conflict-foreground"
+              className="lens-screen-enter rounded-md border border-status-conflict bg-status-conflict px-4 py-3 text-sm text-status-conflict-foreground"
             >
               {previewError}
             </section>
@@ -572,7 +573,7 @@ export function DemoSampleRequests({
           {previewFixture ? (
             <section
               ref={previewPanelRef}
-              className="grid gap-4 rounded-xl border border-border bg-lens-surface-muted p-4"
+              className="lens-card-motion grid gap-4 rounded-xl border border-border bg-lens-surface-muted p-4"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>

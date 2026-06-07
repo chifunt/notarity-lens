@@ -44,15 +44,16 @@ export function PreparationTimeline({ fixture }: { fixture: LensFixture }) {
   ];
 
   return (
-    <section className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
+    <section className="lens-card-motion min-w-0 rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
       <h2 className="min-w-0 break-words text-2xl font-semibold text-foreground [overflow-wrap:anywhere]">
         Preparation timeline
       </h2>
       <div className="mt-5 grid min-w-0 gap-4 lg:grid-cols-3">
-        {timeline.map((section) => (
+        {timeline.map((section, index) => (
           <article
             key={section.title}
-            className="min-w-0 rounded-lg border border-border bg-lens-surface-muted p-4"
+            style={{ animationDelay: `${index * 70}ms` }}
+            className="lens-card-motion lens-receipt-line min-w-0 rounded-lg border border-border bg-lens-surface-muted p-4"
           >
             <h3 className="min-w-0 break-words text-base font-semibold text-foreground [overflow-wrap:anywhere]">
               {section.title}

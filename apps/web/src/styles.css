@@ -114,3 +114,261 @@ h3 {
 ::selection {
   background: rgba(80, 29, 255, 0.16);
 }
+
+@keyframes lens-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes lens-slide-rail {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes lens-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes lens-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(80, 29, 255, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(80, 29, 255, 0.1);
+  }
+}
+
+@keyframes lens-shimmer {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes lens-check-pop {
+  0% {
+    transform: scale(0.6) rotate(-16deg);
+  }
+  65% {
+    transform: scale(1.15) rotate(4deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.lens-screen-enter {
+  animation: lens-fade-up 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.lens-right-rail {
+  animation: lens-slide-rail 460ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
+}
+
+.lens-shell-chrome {
+  animation: lens-fade-up 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.lens-card-motion {
+  position: relative;
+  isolation: isolate;
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.lens-card-motion::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgba(80, 29, 255, 0.12),
+    rgba(174, 177, 255, 0.08),
+    rgba(80, 29, 255, 0)
+  );
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.lens-card-motion:hover {
+  transform: translateY(-2px);
+  border-color: rgba(80, 29, 255, 0.26);
+  box-shadow:
+    0 3px 8px rgba(19, 4, 79, 0.06),
+    0 18px 36px -20px rgba(80, 29, 255, 0.24);
+}
+
+.lens-card-motion:hover::after {
+  opacity: 1;
+}
+
+.lens-card-motion > * {
+  position: relative;
+  z-index: 1;
+}
+
+.lens-stagger > * {
+  animation: lens-fade-up 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--lens-delay, 0ms);
+}
+
+.lens-drop-zone {
+  animation: lens-fade-up 480ms cubic-bezier(0.2, 0.8, 0.2, 1) 80ms both;
+}
+
+.lens-drop-zone-active {
+  animation: lens-glow-pulse 1100ms ease-in-out infinite;
+}
+
+.lens-status-badge {
+  animation: lens-pop 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.lens-status-badge svg {
+  transform-origin: center;
+}
+
+.lens-status-badge-confirmed svg {
+  animation: lens-check-pop 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.lens-step-segment {
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color 220ms ease,
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lens-step-segment-active {
+  animation: lens-glow-pulse 1400ms ease-in-out infinite;
+}
+
+.lens-step-segment-active::after,
+.lens-progress-item-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.48),
+    transparent
+  );
+  animation: lens-shimmer 1600ms ease-in-out infinite;
+}
+
+.lens-step-pill {
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 180ms ease;
+}
+
+.lens-step-pill:hover {
+  transform: translateY(-1px);
+}
+
+.lens-step-pill-active {
+  animation: lens-pop 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.lens-step-dot-active {
+  animation: lens-glow-pulse 1300ms ease-in-out infinite;
+}
+
+.lens-step-dot-done svg {
+  animation: lens-check-pop 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.lens-progress-item {
+  position: relative;
+  overflow: hidden;
+  animation: lens-fade-up 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.lens-progress-item-active {
+  animation:
+    lens-fade-up 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+    lens-glow-pulse 1400ms ease-in-out infinite;
+}
+
+.lens-receipt-line {
+  animation: lens-fade-up 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--lens-delay, 0ms);
+}
+
+.lens-receipt-total {
+  animation: lens-pop 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.lens-evidence-chip {
+  transition:
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.lens-evidence-chip:hover {
+  transform: translateY(-1px) scale(1.01);
+}
+
+.lens-evidence-chip svg {
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lens-evidence-chip:hover svg {
+  transform: rotate(-8deg) scale(1.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .lens-card-motion:hover,
+  .lens-evidence-chip:hover,
+  .lens-step-pill:hover {
+    transform: none;
+  }
+}

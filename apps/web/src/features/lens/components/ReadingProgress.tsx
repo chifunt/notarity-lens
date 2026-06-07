@@ -37,16 +37,17 @@ const defaultItems: ProgressItem[] = [
 
 export function ReadingProgress({ items = defaultItems }: { items?: ProgressItem[] }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
+    <div className="lens-card-motion rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
       <h2 className="text-base font-semibold text-foreground">Reading documents</h2>
       <div className="mt-4 grid gap-3">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <div
             key={item.label}
+            style={{ animationDelay: `${index * 70}ms` }}
             className={cn(
-              "flex items-start gap-3 rounded-lg border px-3 py-3 text-sm transition-colors",
+              "lens-progress-item flex items-start gap-3 rounded-lg border px-3 py-3 text-sm transition-colors",
               item.status === "done" && "border-status-confirmed/60 bg-status-confirmed/50",
-              item.status === "active" && "border-primary/35 bg-status-inferred",
+              item.status === "active" && "lens-progress-item-active border-primary/35 bg-status-inferred",
               item.status === "failed" && "border-status-conflict bg-status-conflict",
               item.status === "pending" && "border-border bg-muted/50 text-muted-foreground",
             )}
