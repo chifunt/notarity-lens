@@ -1191,3 +1191,22 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: none for this 10-sprint run.
+
+## Sprint 70: Real uploaded PDF text extraction
+
+- Status: complete
+- Scope: replace upload-only metadata with actual text-layer PDF extraction for uploaded PDFs.
+- Changes:
+  - Added `pdfjs-dist` to the API workspace.
+  - Updated `/api/documents/upload` so real PDF uploads are parsed server-side and return `textByPage` with `extractionStatus: "extracted"` when text is found.
+  - Kept fixture uploads unchanged for the sample persona path.
+  - Added graceful `failed` extraction status for invalid or non-text PDFs that pass MIME/extension checks but cannot be parsed.
+  - Added API coverage that uploads a generated PDF and verifies extracted text includes the expected person and country.
+- Verification:
+  - `pnpm --filter @notarity-lens/api typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/api test` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: generate evidence refs from extracted uploaded PDF text.

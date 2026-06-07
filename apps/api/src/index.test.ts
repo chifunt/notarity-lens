@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { buildJoshuaPayload } from "@notarity-lens/notarity";
 import {
@@ -145,6 +146,34 @@ describe("api routes", () => {
 
     expect(response.status).toBe(400);
     expect(body.error).toBe("Only PDF documents are supported");
+  });
+
+  it("extracts text from uploaded text-layer PDFs", async () => {
+    const pdf = await readFile(
+      new URL(
+        "../../../docs/generated-personas/amara-okafor/Signature_Authorisation_Amara_Okafor.pdf",
+        import.meta.url,
+      ),
+    );
+    const formData = new FormData();
+    formData.append(
+      "files",
+      new File([pdf], "Signature_Authorisation_Amara_Okafor.pdf", {
+        type: "application/pdf",
+      }),
+    );
+
+    const response = await app.request("/api/documents/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.source).toBe("upload");
+    expect(body.documents[0].extractionStatus).toBe("extracted");
+    expect(body.documents[0].textByPage[0].text).toContain("Amara Okafor");
+    expect(body.documents[0].textByPage[0].text).toContain("Germany");
   });
 
   it("returns normalized mock price", async () => {

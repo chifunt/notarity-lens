@@ -17,6 +17,7 @@
     "@notarity-lens/shared": "workspace:*",
     "hono": "^4.10.6",
     "openai": "^6.10.0",
+    "pdfjs-dist": "^6.0.227",
     "zod": "^4.2.1"
   },
   "devDependencies": {

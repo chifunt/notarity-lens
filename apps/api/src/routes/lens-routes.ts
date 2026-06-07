@@ -80,7 +80,7 @@ export function createLensRoutes() {
 
     return c.json({
       sessionId: `session_${Date.now()}`,
-      documents: uploadedDocuments(files),
+      documents: await uploadedDocuments(files),
       source: "upload",
     });
   });
