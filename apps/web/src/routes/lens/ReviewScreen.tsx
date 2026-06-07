@@ -21,7 +21,6 @@ import {
   SubmissionDocumentPreview,
   fixtureBillingSummary,
   fixtureCountrySummary,
-  fixtureFilesSummary,
   fixtureHasHardCopy,
   fixtureParticipantSummary,
   fixtureProductSummary,
@@ -215,12 +214,6 @@ export function ReviewScreen() {
                     value: fixtureProductSummary(fixture),
                     status: statuses.products,
                     onChange: () => navigate("/lens/plan"),
-                  },
-                  {
-                    label: "Documents",
-                    value: fixtureFilesSummary(fixture),
-                    status: "confirmed",
-                    onChange: () => navigate("/lens/evidence"),
                   },
                   {
                     label: "Hard copy",
