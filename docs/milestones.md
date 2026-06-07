@@ -514,3 +514,21 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue deep-link and edge-state audits across the guarded flow.
+
+## Sprint 33: Store stale-state hardening
+
+- Status: complete
+- Scope: prevent stale drafts, prices, upload metadata, or loading state from surviving sample-load failures and resets.
+- Changes:
+  - `loadPersona` now clears the active fixture, upload metadata, price, and submit result before fetching a new sample.
+  - Failed sample loads now leave an explicit empty/error state instead of showing the previous draft behind the error.
+  - `reset` now clears `loading` in addition to draft data and errors.
+  - Added web store regression coverage for failed sample loading and reset cleanup.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: switching from Joshua to Robert shows Robert evidence and no stale Joshua text.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue store and UI state audits, especially race-prone navigation and failure states.

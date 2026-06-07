@@ -58,11 +58,18 @@ export const useLensStore = create<LensStore>((set, get) => ({
   error: null,
 
   loadPersona: async (persona = "joshua") => {
-    set({ loading: true, error: null, submitResult: null });
+    set({
+      fixture: null,
+      uploadedDocuments: [],
+      price: null,
+      submitResult: null,
+      loading: true,
+      error: null,
+    });
     try {
       const fixture = await getPersonaFixture(persona);
       const price = await pricePayload(fixture.payload);
-      set({ fixture, uploadedDocuments: [], price, loading: false });
+      set({ fixture, price, loading: false });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load sample request";
       set({ error: message, loading: false });
@@ -134,6 +141,7 @@ export const useLensStore = create<LensStore>((set, get) => ({
       uploadedDocuments: [],
       price: null,
       submitResult: null,
+      loading: false,
       error: null,
     }),
 }));

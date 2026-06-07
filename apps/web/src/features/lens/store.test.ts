@@ -1,6 +1,10 @@
 import { joshuaFixture, robertFixture } from "@notarity-lens/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useLensStore } from "./store";
+import type { PersonaFixture } from "./types";
+
+const webJoshuaFixture = joshuaFixture as unknown as PersonaFixture;
+const webRobertFixture = robertFixture as unknown as PersonaFixture;
 
 function jsonResponse(data: unknown) {
   return Promise.resolve({
@@ -147,5 +151,62 @@ describe("Lens store sample flow", () => {
       expect.stringContaining("/api/documents/upload"),
       expect.objectContaining({ method: "POST", body: expect.any(FormData) }),
     );
+  });
+
+  it("clears stale draft state before loading a new persona", async () => {
+    useLensStore.setState({
+      fixture: webJoshuaFixture,
+      uploadedDocuments: webRobertFixture.documents,
+      price: {
+        confirmedPrice: 580,
+        lines: joshuaFixture.priceLines,
+        source: "mock",
+      },
+      submitResult: {
+        id: "mock_appt_previous",
+        mode: "mock",
+        ok: true,
+        payload: joshuaFixture.payload,
+      },
+    });
+    vi.mocked(fetch).mockRejectedValueOnce(new Error("Network unavailable"));
+
+    await useLensStore.getState().loadPersona("robert");
+
+    expect(useLensStore.getState().fixture).toBeNull();
+    expect(useLensStore.getState().uploadedDocuments).toEqual([]);
+    expect(useLensStore.getState().price).toBeNull();
+    expect(useLensStore.getState().submitResult).toBeNull();
+    expect(useLensStore.getState().loading).toBe(false);
+    expect(useLensStore.getState().error).toBe("Network unavailable");
+  });
+
+  it("reset clears loading as well as draft data", () => {
+    useLensStore.setState({
+      fixture: webJoshuaFixture,
+      uploadedDocuments: webRobertFixture.documents,
+      price: {
+        confirmedPrice: 580,
+        lines: joshuaFixture.priceLines,
+        source: "mock",
+      },
+      submitResult: {
+        id: "mock_appt_previous",
+        mode: "mock",
+        ok: true,
+        payload: joshuaFixture.payload,
+      },
+      loading: true,
+      error: "Previous error",
+    });
+
+    useLensStore.getState().reset();
+
+    expect(useLensStore.getState().fixture).toBeNull();
+    expect(useLensStore.getState().uploadedDocuments).toEqual([]);
+    expect(useLensStore.getState().price).toBeNull();
+    expect(useLensStore.getState().submitResult).toBeNull();
+    expect(useLensStore.getState().loading).toBe(false);
+    expect(useLensStore.getState().error).toBeNull();
   });
 });
