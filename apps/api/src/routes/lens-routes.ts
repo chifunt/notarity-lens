@@ -18,6 +18,7 @@ const PersonaSchema = z.enum([
   "amara",
   "noah",
   "sofia",
+  "kenji",
 ]);
 
 const PersonaParamSchema = z.object({

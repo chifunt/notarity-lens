@@ -37,3 +37,4 @@ The recurring requirements are:
 | 62 | Complete | Browser-tested Amara end to end. Evidence, country, route, cost, review, and mock submit are coherent; fixed the no-hard-copy country card so it no longer displays billing country as a shipment. |
 | 63 | Complete | Added Noah Chen with generated PDF where the country of use is explicitly `not stated`. Browser confirms the evidence and country help show a review-needed state; tests confirm review blocks until country and route are confirmed. |
 | 64 | Complete | Added Sofia Rossi with generated PDF containing Spain as country of use and Italy as billing/home. Browser confirms conflict status, separated country semantics, EUR 120 pricing, and a clean review after confirmation. |
+| 65 | Complete | Added Kenji Tanaka with two generated NIE PDFs, Japan billing/home, Spain country of use, Valencia hard-copy shipping, apostille, companion product, and EUR 580. Browser confirms the full hard-copy route. |

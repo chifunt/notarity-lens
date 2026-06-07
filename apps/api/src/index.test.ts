@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { buildJoshuaPayload } from "@notarity-lens/notarity";
-import { amaraPayload, noahPayload, sofiaPayload } from "@notarity-lens/shared";
+import {
+  amaraPayload,
+  kenjiPayload,
+  noahPayload,
+  sofiaPayload,
+} from "@notarity-lens/shared";
 import { createApiApp } from "./index.js";
 
 describe("api routes", () => {
@@ -50,6 +55,19 @@ describe("api routes", () => {
     expect(body.inference.countryOfUse.status).toBe("conflict");
     expect(body.payload.destinationCountry).toBe("ES");
     expect(body.payload.billingDetails.countryCode).toBe("IT");
+  });
+
+  it("returns Kenji fixture data with hard copy and apostille", async () => {
+    const response = await app.request("/api/fixtures/kenji");
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.id).toBe("kenji");
+    expect(body.documents).toHaveLength(2);
+    expect(body.payload.destinationCountry).toBe("ES");
+    expect(body.payload.billingDetails.countryCode).toBe("JP");
+    expect(body.payload.hardCopy.hardCopy).toBe(true);
+    expect(body.payload.products[0].apostille).toBe(true);
   });
 
   it("rejects unknown fixture personas", async () => {
@@ -166,6 +184,24 @@ describe("api routes", () => {
     expect(body.confirmedPrice).toBe(120);
     expect(body.lines).toHaveLength(1);
     expect(body.lines[0].name).toBe("Signature notarisation");
+  });
+
+  it("returns normalized mock price for Kenji by exact fixture payload", async () => {
+    const response = await app.request("/api/price", {
+      method: "POST",
+      body: JSON.stringify(kenjiPayload),
+      headers: { "content-type": "application/json" },
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.confirmedPrice).toBe(580);
+    expect(body.lines).toHaveLength(3);
+    expect(body.lines.map((line: { name: string }) => line.name)).toEqual([
+      "NIE number application",
+      "NIE Personal Data",
+      "Hard Copy including shipping",
+    ]);
   });
 
   it("rejects invalid price payloads", async () => {

@@ -12,6 +12,7 @@ const countryNames: Record<string, string> = {
   ES: "Spain",
   GB: "United Kingdom",
   IT: "Italy",
+  JP: "Japan",
   LT: "Lithuania",
   NL: "Netherlands",
   US: "United States",

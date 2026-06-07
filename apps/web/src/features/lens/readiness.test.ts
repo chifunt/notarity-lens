@@ -2,6 +2,7 @@ import {
   amaraFixture,
   elizabethFixture,
   joshuaFixture,
+  kenjiFixture,
   noahFixture,
   robertFixture,
   sofiaFixture,
@@ -21,6 +22,7 @@ const robertInference = robertFixture.inference as unknown as DocumentFactExtrac
 const amaraInference = amaraFixture.inference as unknown as DocumentFactExtraction;
 const noahInference = noahFixture.inference as unknown as DocumentFactExtraction;
 const sofiaInference = sofiaFixture.inference as unknown as DocumentFactExtraction;
+const kenjiInference = kenjiFixture.inference as unknown as DocumentFactExtraction;
 
 describe("review readiness", () => {
   it("finds Joshua fields that must be confirmed before submit", () => {
@@ -128,5 +130,18 @@ describe("review readiness", () => {
 
     expect(unresolvedConfirmationFields(confirmed)).toEqual([]);
     expect(readyForSubmit(confirmed, true)).toBe(true);
+  });
+
+  it("finds Kenji NIE hard-copy fields that need confirmation", () => {
+    expect(
+      unresolvedConfirmationFields(kenjiInference).map((field) => field.label),
+    ).toEqual([
+      "Country of use",
+      "Recommended product",
+      "Required companion document",
+      "Shipping address",
+      "Apostille",
+      "Hard copy",
+    ]);
   });
 });

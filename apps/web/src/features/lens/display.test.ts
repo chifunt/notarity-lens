@@ -31,6 +31,7 @@ describe("Lens display helpers", () => {
     expect(formatCountry("CA")).toBe("Canada");
     expect(formatCountry("DE")).toBe("Germany");
     expect(formatCountry("IT")).toBe("Italy");
+    expect(formatCountry("JP")).toBe("Japan");
     expect(formatCountry("NL")).toBe("Netherlands");
     expect(
       formatFieldValue({

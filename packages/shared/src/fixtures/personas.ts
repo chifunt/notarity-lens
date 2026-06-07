@@ -1220,6 +1220,344 @@ export const sofiaFixture: PersonaFixture = {
   payload: sofiaPayload,
 };
 
+const KENJI_FILE_A = "NIE_Application_Kenji_Tanaka.pdf";
+const KENJI_FILE_B = "NIE_Personal_Details_Kenji_Tanaka.pdf";
+
+export const kenjiDocuments: ExtractedDocument[] = [
+  {
+    id: "doc-kenji-nie-application",
+    filename: KENJI_FILE_A,
+    canonicalName: KENJI_FILE_A,
+    mimeType: "application/pdf",
+    size: 1038,
+    extractionStatus: "fixture",
+    textByPage: [
+      {
+        page: 1,
+        text: [
+          "Power of Attorney for obtaining a Spanish Foreign Identity Number (NIE).",
+          "Applicant: Kenji Tanaka.",
+          "Residence: 2-1 Marunouchi, Chiyoda-ku, Tokyo 100-0005, Japan.",
+          "Purpose: property purchase and tax registration in Spain.",
+          "Representative: Lucia Navarro.",
+          "Address for hard copy: Calle Colon 10, 46004 Valencia, Spain.",
+          "Original signed and apostilled hard copy required for Spanish authorities.",
+        ].join(" "),
+      },
+    ],
+  },
+  {
+    id: "doc-kenji-personal-details",
+    filename: KENJI_FILE_B,
+    canonicalName: KENJI_FILE_B,
+    mimeType: "application/pdf",
+    size: 768,
+    extractionStatus: "fixture",
+    textByPage: [
+      {
+        page: 1,
+        text: [
+          "NIE personal details form.",
+          "Name: Kenji Tanaka.",
+          "Nationality: Japan.",
+          "Email: kenji.tanaka@notarity.com.",
+          "Motivation: purchase of Spanish property.",
+        ].join(" "),
+      },
+    ],
+  },
+];
+
+export const kenjiInference: DocumentFactExtraction = {
+  persona: "kenji",
+  documents: kenjiDocuments,
+  countryOfUse: {
+    key: "countryOfUse",
+    label: "Country of use",
+    value: "ES",
+    status: "needs_review",
+    confidence: 0.93,
+    evidence: [
+      evidence(
+        "ev-kenji-nie",
+        "doc-kenji-nie-application",
+        KENJI_FILE_A,
+        1,
+        "Spanish Foreign Identity Number (NIE)",
+      ),
+      evidence(
+        "ev-kenji-tax",
+        "doc-kenji-nie-application",
+        KENJI_FILE_A,
+        1,
+        "tax registration in Spain",
+      ),
+      evidence(
+        "ev-kenji-valencia",
+        "doc-kenji-nie-application",
+        KENJI_FILE_A,
+        1,
+        "Valencia, Spain",
+      ),
+    ],
+    explanation:
+      "The document mentions NIE, Spanish tax registration, and Valencia. Please confirm Spain as country of use.",
+    requiresConfirmation: true,
+  },
+  products: [
+    {
+      key: "recommendedProduct",
+      label: "Recommended product",
+      value: "nie_number_application",
+      status: "inferred",
+      confidence: 0.91,
+      evidence: [
+        evidence(
+          "ev-kenji-product",
+          "doc-kenji-nie-application",
+          KENJI_FILE_A,
+          1,
+          "obtaining a Spanish Foreign Identity Number (NIE)",
+        ),
+      ],
+      explanation: "This maps deterministically to the NIE number application product.",
+      requiresConfirmation: false,
+    },
+    {
+      key: "requiredCompanionDocument",
+      label: "Required companion document",
+      value: "nie_personal_data",
+      status: "inferred",
+      confidence: 0.88,
+      evidence: [
+        evidence(
+          "ev-kenji-companion",
+          "doc-kenji-personal-details",
+          KENJI_FILE_B,
+          1,
+          "NIE personal details form",
+        ),
+      ],
+      explanation:
+        "Because NIE number application was selected, Notarity also needs the NIE Personal Data form.",
+      requiresConfirmation: false,
+    },
+  ],
+  people: [
+    {
+      key: "participant",
+      label: "Participant",
+      value: "Kenji Tanaka",
+      status: "inferred",
+      confidence: 0.95,
+      evidence: [
+        evidence(
+          "ev-kenji-name",
+          "doc-kenji-nie-application",
+          KENJI_FILE_A,
+          1,
+          "Applicant: Kenji Tanaka",
+        ),
+      ],
+      explanation: "Kenji Tanaka appears as the applicant.",
+      requiresConfirmation: false,
+    },
+  ],
+  billingAddress: {
+    key: "billingAddress",
+    label: "Billing/home address",
+    value: "2-1 Marunouchi, Chiyoda-ku, Tokyo 100-0005, Japan",
+    status: "inferred",
+    confidence: 0.88,
+    evidence: [
+      evidence(
+        "ev-kenji-tokyo",
+        "doc-kenji-nie-application",
+        KENJI_FILE_A,
+        1,
+        "2-1 Marunouchi, Chiyoda-ku, Tokyo 100-0005, Japan",
+      ),
+    ],
+    explanation: "Japan is residence and billing context, not country of use.",
+    requiresConfirmation: false,
+  },
+  shippingAddress: {
+    key: "shippingAddress",
+    label: "Shipping address",
+    value: "Calle Colon 10, 46004 Valencia, Spain",
+    status: "needs_review",
+    confidence: 0.86,
+    evidence: [
+      evidence(
+        "ev-kenji-shipping",
+        "doc-kenji-nie-application",
+        KENJI_FILE_A,
+        1,
+        "Calle Colon 10, 46004 Valencia, Spain",
+      ),
+    ],
+    explanation: "The hard copy should ship to Valencia.",
+    requiresConfirmation: true,
+  },
+  apostille: {
+    key: "apostille",
+    label: "Apostille",
+    value: true,
+    status: "needs_review",
+    confidence: 0.88,
+    evidence: [
+      evidence(
+        "ev-kenji-apostille",
+        "doc-kenji-nie-application",
+        KENJI_FILE_A,
+        1,
+        "Original signed and apostilled hard copy required",
+      ),
+    ],
+    explanation: "Apostille is required for the NIE application route.",
+    requiresConfirmation: true,
+  },
+  hardCopy: {
+    key: "hardCopy",
+    label: "Hard copy",
+    value: true,
+    status: "needs_review",
+    confidence: 0.89,
+    evidence: [
+      evidence(
+        "ev-kenji-hard-copy",
+        "doc-kenji-nie-application",
+        KENJI_FILE_A,
+        1,
+        "Original signed and apostilled hard copy required",
+      ),
+    ],
+    explanation: "A physical original is needed and should be shipped to Valencia.",
+    requiresConfirmation: true,
+  },
+  uncertainties: [
+    "Spain appears as country of use and shipping country, while billing is in Japan. This is valid but should be confirmed.",
+  ],
+};
+
+export const kenjiPriceLines: PriceLine[] = [
+  {
+    name: "NIE number application",
+    _product: JOSHUA_NIE_APPLICATION_PRODUCT_ID,
+    amount: 1,
+    pricePerUnit: 55000,
+    net: 55000,
+    identifier: 1,
+    pricingEnabled: true,
+  },
+  {
+    name: "NIE Personal Data",
+    _product: JOSHUA_NIE_PERSONAL_DATA_PRODUCT_ID,
+    amount: 1,
+    pricePerUnit: 0,
+    net: 0,
+    identifier: 2,
+    pricingEnabled: true,
+  },
+  {
+    name: "Hard Copy including shipping",
+    amount: 1,
+    pricePerUnit: 3000,
+    net: 3000,
+    identifier: 3,
+    pricingEnabled: true,
+  },
+];
+
+export const kenjiPayload: AppointmentPayload = {
+  _bookingForm: NOTARITY_BOOKING_FORM_ID,
+  language: "en",
+  origin: NOTARITY_ORIGIN,
+  confirmedPrice: 580,
+  hardCopy: { expressShipping: false, hardCopy: true },
+  newsletter: false,
+  mode: "debug",
+  _appointmentRequestDraft: NOTARITY_DRAFT_ID,
+  destinationCountry: "ES",
+  products: [
+    {
+      id: JOSHUA_NIE_APPLICATION_PRODUCT_ID,
+      apostille: true,
+      userInput: "",
+      documentsNotReadyYet: false,
+      needHelpDrafting: false,
+      proofOfRepresentation: null,
+      files: [KENJI_FILE_A],
+    },
+    {
+      id: JOSHUA_NIE_PERSONAL_DATA_PRODUCT_ID,
+      apostille: null,
+      userInput: "",
+      documentsNotReadyYet: false,
+      needHelpDrafting: false,
+      proofOfRepresentation: null,
+      files: [KENJI_FILE_B],
+    },
+  ],
+  participants: [
+    { email: "kenji.tanaka@notarity.com", client: true, supervisor: false },
+  ],
+  timeslots: [JOSHUA_TIMESLOT_ID],
+  instantNotarisationSupported: false,
+  instant: false,
+  timezone: "Europe/Vienna",
+  billingDetails: {
+    firstName: "Kenji",
+    lastName: "Tanaka",
+    business: false,
+    email: "kenji.tanaka@notarity.com",
+    phoneNumber: "+81355550199",
+    address: "2-1 Marunouchi",
+    zipCode: "100-0005",
+    city: "Tokyo",
+    stateProvince: "Tokyo",
+    countryCode: "JP",
+  },
+  contactDetails: {
+    contactDetailsSameAsBillingDetails: true,
+    firstName: "Kenji",
+    lastName: "Tanaka",
+    business: false,
+    email: "kenji.tanaka@notarity.com",
+    phoneNumber: "+81355550199",
+  },
+  shippingDetails: {
+    shippingDetailsSameAsBillingDetails: false,
+    firstName: "Kenji",
+    lastName: "Tanaka",
+    business: false,
+    email: "kenji.tanaka@notarity.com",
+    phoneNumber: "+81355550199",
+    address: "Calle Colon 10",
+    zipCode: "46004",
+    city: "Valencia",
+    stateProvince: "VC",
+    countryCode: "ES",
+  },
+  preferredNotary: "",
+};
+
+export const kenjiFixture: PersonaFixture = {
+  id: "kenji",
+  name: "Kenji Tanaka",
+  scenario:
+    "Japanese buyer in Tokyo applies for a Spanish NIE for a property purchase, with apostille and hard-copy shipping to Valencia.",
+  documents: kenjiDocuments,
+  inference: kenjiInference,
+  products: productFixtures.filter((product) =>
+    [JOSHUA_NIE_APPLICATION_PRODUCT_ID, JOSHUA_NIE_PERSONAL_DATA_PRODUCT_ID].includes(
+      product.id,
+    ),
+  ),
+  priceLines: kenjiPriceLines,
+  payload: kenjiPayload,
+};
+
 export const elizabethFixture: PersonaFixture = {
   id: "elizabeth",
   name: "Elizabeth Midgley",
@@ -1345,6 +1683,7 @@ export const personaFixtures: Record<PersonaFixture["id"], PersonaFixture> = {
   amara: amaraFixture,
   noah: noahFixture,
   sofia: sofiaFixture,
+  kenji: kenjiFixture,
 };
 
 export const mockBookingForm = {

@@ -1,6 +1,7 @@
 import {
   amaraFixture,
   joshuaFixture,
+  kenjiFixture,
   noahFixture,
   robertFixture,
   sofiaFixture,
@@ -67,6 +68,10 @@ describe("Lens store sample flow", () => {
           return jsonResponse(sofiaFixture);
         }
 
+        if (href.endsWith("/api/fixtures/kenji")) {
+          return jsonResponse(kenjiFixture);
+        }
+
         if (href.endsWith("/api/price")) {
           const body = init?.body ? JSON.parse(String(init.body)) : {};
           const fixture =
@@ -76,6 +81,7 @@ describe("Lens store sample flow", () => {
               amaraFixture,
               noahFixture,
               sofiaFixture,
+              kenjiFixture,
             ].find(
               (candidate) =>
                 candidate.payload.destinationCountry === body.destinationCountry &&
@@ -203,6 +209,18 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/fixtures/sofia"),
+      expect.anything(),
+    );
+  });
+
+  it("loads Kenji with the NIE hard-copy price through the generic persona loader", async () => {
+    await expect(useLensStore.getState().loadPersona("kenji")).resolves.toBe(true);
+
+    expect(useLensStore.getState().fixture?.id).toBe("kenji");
+    expect(useLensStore.getState().fixture?.documents).toHaveLength(2);
+    expect(useLensStore.getState().price?.confirmedPrice).toBe(580);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/fixtures/kenji"),
       expect.anything(),
     );
   });

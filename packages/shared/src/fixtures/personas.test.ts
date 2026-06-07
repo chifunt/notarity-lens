@@ -3,6 +3,8 @@ import { AppointmentPayloadSchema, PersonaFixtureSchema } from "../schemas.js";
 import {
   amaraPayload,
   joshuaPayload,
+  kenjiFixture,
+  kenjiPayload,
   noahFixture,
   noahPayload,
   personaFixtures,
@@ -66,5 +68,25 @@ describe("persona fixtures", () => {
     expect(payload.destinationCountry).toBe("ES");
     expect(payload.billingDetails.countryCode).toBe("IT");
     expect(payload.confirmedPrice).toBe(120);
+  });
+
+  it("keeps Kenji on the complete NIE hard-copy route", () => {
+    const payload = AppointmentPayloadSchema.parse(kenjiPayload);
+
+    expect(kenjiFixture.documents).toHaveLength(2);
+    expect(payload.destinationCountry).toBe("ES");
+    expect(payload.billingDetails.countryCode).toBe("JP");
+    expect(payload.shippingDetails?.countryCode).toBe("ES");
+    expect(payload.confirmedPrice).toBe(580);
+    expect(payload.hardCopy).toEqual({ expressShipping: false, hardCopy: true });
+    expect(payload.products.map((product) => product.id)).toEqual([
+      "UpEJ7raQEKQKFhWn12r2",
+      "xK5IkgPX1LTYdWLFzW8X",
+    ]);
+    expect(payload.products[0]?.apostille).toBe(true);
+    expect(payload.products.flatMap((product) => product.files)).toEqual([
+      "NIE_Application_Kenji_Tanaka.pdf",
+      "NIE_Personal_Details_Kenji_Tanaka.pdf",
+    ]);
   });
 });

@@ -131,6 +131,17 @@ const sampleRequests: Array<{
       "Signature notarisation product",
     ],
   },
+  {
+    id: "kenji",
+    name: "Kenji Tanaka",
+    summary: "Spanish NIE route with apostille and hard copy",
+    bullets: [
+      "Country of use: Spain",
+      "Billing/home: Japan",
+      "Shipping: Valencia, Spain",
+      "NIE application plus companion PDF",
+    ],
+  },
 ];
 
 function reviewStatusForFields(

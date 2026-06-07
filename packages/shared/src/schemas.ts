@@ -206,7 +206,7 @@ export const LensDraftSchema = z.object({
   sessionId: z.string(),
   mode: z.enum(["mock", "live"]),
   persona: z
-    .enum(["joshua", "robert", "elizabeth", "amara", "noah", "sofia"])
+    .enum(["joshua", "robert", "elizabeth", "amara", "noah", "sofia", "kenji"])
     .optional(),
   files: z.array(ExtractedDocumentSchema),
   inference: DocumentFactExtractionSchema.optional(),
@@ -235,7 +235,7 @@ export const LensDraftSchema = z.object({
 export type LensDraft = z.infer<typeof LensDraftSchema>;
 
 export const PersonaFixtureSchema = z.object({
-  id: z.enum(["joshua", "robert", "elizabeth", "amara", "noah", "sofia"]),
+  id: z.enum(["joshua", "robert", "elizabeth", "amara", "noah", "sofia", "kenji"]),
   name: z.string(),
   scenario: z.string(),
   documents: z.array(ExtractedDocumentSchema),

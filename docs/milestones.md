@@ -1085,3 +1085,26 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add a complete hard-copy/apostille persona that differs from Joshua while still exercising the Spain/NIE route.
+
+## Sprint 65: Kenji complete hard-copy/apostille persona
+
+- Status: complete
+- Scope: add a complete Spain/NIE case that differs from Joshua while still exercising companion documents, apostille, hard copy, and shipping.
+- Changes:
+  - Generated `docs/generated-personas/kenji-tanaka/NIE_Application_Kenji_Tanaka.pdf` and `docs/generated-personas/kenji-tanaka/NIE_Personal_Details_Kenji_Tanaka.pdf` from committed JSON source files.
+  - Added Kenji Tanaka as a Spain/NIE fixture with Japan billing/home context and hard-copy shipping to Valencia, Spain.
+  - Reused the deterministic NIE application and NIE Personal Data product IDs, hard-copy price line, apostille flag, and EUR 580 confirmed price.
+  - Added Japan display support, schema/API/web persona coverage, exact mock price coverage, store coverage, and readiness coverage for the hard-copy route.
+- Browser findings:
+  - Evidence shows both Kenji PDFs.
+  - Country screen separates Spain as country of use from Japan billing/home and Valencia shipping.
+  - Route screen shows the required companion document and apostille requirement.
+  - Cost shows EUR 580.
+  - Final review shows hard-copy shipping and no blockers after confirmation.
+- Verification:
+  - Generated PDFs validate as PDF 1.4 documents.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add a participant-ambiguity persona where the PDF names more than one possible signer.
