@@ -1,10 +1,10 @@
-import { CheckCircle2, Clock3, Loader2 } from "lucide-react";
+import { CircleAlert, CheckCircle2, Clock3, Loader2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 export type ProgressItem = {
   label: string;
   detail: string;
-  status: "pending" | "active" | "done";
+  status: "pending" | "active" | "done" | "failed";
 };
 
 const defaultItems: ProgressItem[] = [
@@ -47,6 +47,7 @@ export function ReadingProgress({ items = defaultItems }: { items?: ProgressItem
               "flex items-start gap-3 rounded-lg border px-3 py-3 text-sm transition-colors",
               item.status === "done" && "border-status-confirmed/60 bg-status-confirmed/50",
               item.status === "active" && "border-primary/35 bg-status-inferred",
+              item.status === "failed" && "border-status-conflict bg-status-conflict",
               item.status === "pending" && "border-border bg-muted/50 text-muted-foreground",
             )}
           >
@@ -55,6 +56,7 @@ export function ReadingProgress({ items = defaultItems }: { items?: ProgressItem
                 "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
                 item.status === "done" && "text-status-confirmed-foreground",
                 item.status === "active" && "text-primary",
+                item.status === "failed" && "text-status-conflict-foreground",
                 item.status === "pending" && "text-muted-foreground",
               )}
             >
@@ -62,6 +64,8 @@ export function ReadingProgress({ items = defaultItems }: { items?: ProgressItem
                 <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
               ) : item.status === "active" ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : item.status === "failed" ? (
+                <CircleAlert className="h-4 w-4" aria-hidden="true" />
               ) : (
                 <Clock3 className="h-4 w-4" aria-hidden="true" />
               )}

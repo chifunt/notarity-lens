@@ -30,12 +30,41 @@ function jsonErrorResponse(status: number, error: string) {
   } as Response);
 }
 
+function deferredJsonResponse(data: unknown) {
+  let resolve: (response: Response) => void = () => undefined;
+  const promise = new Promise<Response>((resolver) => {
+    resolve = resolver;
+  });
+
+  return {
+    promise,
+    resolve: () => {
+      resolve({
+        ok: true,
+        json: async () => data,
+      } as Response);
+    },
+  };
+}
+
+async function waitForStore(predicate: () => boolean) {
+  const startedAt = Date.now();
+
+  while (!predicate()) {
+    if (Date.now() - startedAt > 500) {
+      throw new Error("Timed out waiting for store state");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+}
+
 function resetStore() {
   useLensStore.setState({
     fixture: null,
     uploadedDocuments: [],
     price: null,
     submitResult: null,
+    analysisStage: "idle",
     loading: false,
     error: null,
   });
@@ -311,6 +340,7 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().fixture?.payload?.destinationCountry).toBe("DE");
     expect(useLensStore.getState().fixture?.payload?.confirmedPrice).toBe(120);
     expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
+    expect(useLensStore.getState().analysisStage).toBe("ready");
     expect(useLensStore.getState().uploadedDocuments).toHaveLength(1);
     expect(useLensStore.getState().uploadedDocuments[0]?.filename).toBe(
       "Uploaded_Power_of_Attorney.pdf",
@@ -333,6 +363,76 @@ describe("Lens store sample flow", () => {
         body: expect.stringContaining("\"persona\":\"upload\""),
       }),
     );
+  });
+
+  it("tracks real upload pipeline stages instead of elapsed time", async () => {
+    const file = new File(["sample"], "Uploaded_Power_of_Attorney.pdf", {
+      type: "application/pdf",
+    });
+    const extractedDocuments = [
+      {
+        id: "upload-test-0",
+        filename: "Uploaded_Power_of_Attorney.pdf",
+        canonicalName: "Uploaded_Power_of_Attorney.pdf",
+        mimeType: "application/pdf",
+        size: 12,
+        extractionStatus: "extracted" as const,
+        textByPage: [{ page: 1, text: "Applicant: Amara Okafor." }],
+      },
+    ];
+    const upload = deferredJsonResponse({
+      sessionId: "session_test",
+      documents: extractedDocuments,
+      source: "upload",
+    });
+    const infer = deferredJsonResponse({
+      inference: {
+        ...amaraFixture.inference,
+        persona: "upload",
+        documents: extractedDocuments,
+      },
+      source: "live",
+    });
+    const draft = deferredJsonResponse({
+      payload: amaraFixture.payload,
+      blockers: [],
+      warnings: [],
+    });
+    const price = deferredJsonResponse({
+      confirmedPrice: 120,
+      lines: amaraFixture.priceLines,
+      source: "mock",
+    });
+
+    vi.mocked(fetch)
+      .mockImplementationOnce(() => upload.promise)
+      .mockImplementationOnce(() => infer.promise)
+      .mockImplementationOnce(() => draft.promise)
+      .mockImplementationOnce(() => price.promise);
+
+    const result = useLensStore.getState().uploadDocuments([file]);
+
+    expect(useLensStore.getState().analysisStage).toBe("uploading");
+    expect(useLensStore.getState().uploadedDocuments[0]).toMatchObject({
+      filename: "Uploaded_Power_of_Attorney.pdf",
+      extractionStatus: "pending",
+    });
+
+    upload.resolve();
+    await waitForStore(() => useLensStore.getState().analysisStage === "inferring");
+    expect(useLensStore.getState().analysisStage).toBe("inferring");
+
+    infer.resolve();
+    await waitForStore(() => useLensStore.getState().analysisStage === "drafting");
+    expect(useLensStore.getState().analysisStage).toBe("drafting");
+
+    draft.resolve();
+    await waitForStore(() => useLensStore.getState().analysisStage === "pricing");
+    expect(useLensStore.getState().analysisStage).toBe("pricing");
+
+    price.resolve();
+    await expect(result).resolves.toBe(true);
+    expect(useLensStore.getState().analysisStage).toBe("ready");
   });
 
   it("reports upload failure without navigating stale draft state", async () => {
@@ -364,6 +464,7 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().uploadedDocuments).toEqual([]);
     expect(useLensStore.getState().price).toBeNull();
     expect(useLensStore.getState().submitResult).toBeNull();
+    expect(useLensStore.getState().analysisStage).toBe("idle");
     expect(useLensStore.getState().loading).toBe(false);
     expect(useLensStore.getState().error).toBe("Only PDF documents are supported (400)");
   });
@@ -469,6 +570,7 @@ describe("Lens store sample flow", () => {
         ok: true,
         payload: joshuaFixture.payload,
       },
+      analysisStage: "ready",
       loading: true,
       error: "Previous error",
     });
@@ -479,6 +581,7 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().uploadedDocuments).toEqual([]);
     expect(useLensStore.getState().price).toBeNull();
     expect(useLensStore.getState().submitResult).toBeNull();
+    expect(useLensStore.getState().analysisStage).toBe("idle");
     expect(useLensStore.getState().loading).toBe(false);
     expect(useLensStore.getState().error).toBeNull();
   });

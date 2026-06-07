@@ -54,7 +54,7 @@ import {
   readyForSubmit,
   unresolvedConfirmationFields,
 } from "@/features/lens/readiness";
-import { useLensStore } from "@/features/lens/store";
+import { useLensStore, type AnalysisStage } from "@/features/lens/store";
 import type {
   DocumentFactExtraction,
   ExtractedDocument,
@@ -744,8 +744,8 @@ export function StartScreen() {
     );
     if (!selectedFiles.length) return;
 
-    const uploaded = await uploadDocuments(selectedFiles);
-    if (uploaded) navigate("/lens/analyze");
+    void uploadDocuments(selectedFiles);
+    navigate("/lens/analyze");
   };
 
   const handleDragEvent = (event: DragEvent<HTMLElement>) => {
@@ -857,33 +857,64 @@ export function StartScreen() {
   );
 }
 
-const analyzeSteps: ProgressItem[] = [
+type AnalyzeProgressStep = Omit<ProgressItem, "status"> & {
+  stage: Extract<AnalysisStage, "uploading" | "inferring" | "drafting" | "pricing">;
+};
+
+const analyzeSteps: AnalyzeProgressStep[] = [
   {
-    label: "Receive uploaded documents",
-    detail: "Store original filenames and create canonical payload names.",
-    status: "pending",
+    stage: "uploading",
+    label: "Upload and extract text",
+    detail: "Receive PDFs, normalize filenames, and read page-level text.",
   },
   {
-    label: "Extract document text",
-    detail: "Read each page so cited evidence can be shown beside inferences.",
-    status: "pending",
+    stage: "inferring",
+    label: "Run AI inference",
+    detail: "Send extracted text to DeepSeek and validate the returned evidence.",
   },
   {
-    label: "Infer country of use",
-    detail: "Look for jurisdiction evidence without mixing it up with residence or shipping.",
-    status: "pending",
+    stage: "drafting",
+    label: "Prepare route draft",
+    detail: "Map inferred fields to Notarity product and payload rules.",
   },
   {
-    label: "Map route to Notarity products",
-    detail: "Use deterministic product IDs and companion-document rules.",
-    status: "pending",
-  },
-  {
-    label: "Prepare review draft",
-    detail: "Assemble field states, evidence, price request, and payload preview.",
-    status: "pending",
+    stage: "pricing",
+    label: "Request price estimate",
+    detail: "Ask the pricing endpoint for the draft route total.",
   },
 ];
+
+function progressItemsForStage({
+  stage,
+  loading,
+  error,
+}: {
+  stage: AnalysisStage;
+  loading: boolean;
+  error: string | null;
+}): ProgressItem[] {
+  const currentIndex = analyzeSteps.findIndex((item) => item.stage === stage);
+
+  return analyzeSteps.map((item, index) => {
+    let status: ProgressItem["status"] = "pending";
+
+    if (stage === "ready") {
+      status = "done";
+    } else if (currentIndex >= 0) {
+      if (index < currentIndex) {
+        status = "done";
+      } else if (index === currentIndex) {
+        status = !loading && error ? "failed" : "active";
+      }
+    }
+
+    return {
+      label: item.label,
+      detail: item.detail,
+      status,
+    };
+  });
+}
 
 function formatDocumentSize(size: number) {
   if (size >= 1_000_000) return `${(size / 1_000_000).toFixed(1)} MB`;
@@ -966,49 +997,26 @@ export function AnalyzeScreen() {
   const { fixture, loadJoshuaDemo, loading } = useEnsureFixture();
   const loadPersona = useLensStore((state) => state.loadPersona);
   const uploadedDocuments = useLensStore((state) => state.uploadedDocuments);
-  const [activeStep, setActiveStep] = useState(0);
-  const [complete, setComplete] = useState(false);
+  const analysisStage = useLensStore((state) => state.analysisStage);
+  const error = useLensStore((state) => state.error);
 
   const loadSampleInPlace = async (persona: PersonaFixture["id"]) => {
     await loadPersona(persona);
   };
 
-  useEffect(() => {
-    if (!fixture) return;
-
-    setActiveStep(0);
-    setComplete(false);
-    const timer = window.setInterval(() => {
-      setActiveStep((current) => {
-        if (current >= analyzeSteps.length - 1) {
-          window.clearInterval(timer);
-          setComplete(true);
-          return current;
-        }
-        return current + 1;
-      });
-    }, 650);
-
-    return () => {
-      window.clearInterval(timer);
-    };
-  }, [fixture]);
-
   const progressItems = useMemo(
-    () =>
-      analyzeSteps.map((item, index) => ({
-        ...item,
-        status:
-          complete || index < activeStep
-            ? "done"
-            : index === activeStep
-              ? "active"
-              : "pending",
-      })) satisfies ProgressItem[],
-    [activeStep, complete],
+    () => progressItemsForStage({ stage: analysisStage, loading, error }),
+    [analysisStage, error, loading],
   );
   const analyzeDocuments = fixture?.documents ?? uploadedDocuments;
-  const canContinue = Boolean(fixture) && complete;
+  const hasAnalysisRun =
+    analyzeDocuments.length > 0 ||
+    analysisStage === "uploading" ||
+    analysisStage === "inferring" ||
+    analysisStage === "drafting" ||
+    analysisStage === "pricing" ||
+    analysisStage === "ready";
+  const canContinue = Boolean(fixture) && analysisStage === "ready";
 
   return (
     <ScreenFrame
@@ -1029,25 +1037,8 @@ export function AnalyzeScreen() {
             product rules, and the Notarity pricing contract.
           </p>
         </div>
-        {fixture ? null : uploadedDocuments.length ? (
-          <div className="grid gap-4">
-            <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
-              <h2 className="text-xl font-semibold text-foreground">
-                Uploaded documents received
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                These files are stored as upload metadata. Choose a sample
-                request when you need a complete route, price, and payload draft.
-              </p>
-            </div>
-            <DemoSampleRequests
-              loading={loading}
-              title="Demo fallback samples"
-              onSelect={(persona) => {
-                void loadSampleInPlace(persona);
-              }}
-            />
-          </div>
+        {hasAnalysisRun ? (
+          <ReadingProgress items={progressItems} />
         ) : (
           <div className="grid gap-4">
             <EmptyState onLoad={loadJoshuaDemo} loading={loading} />
@@ -1059,7 +1050,6 @@ export function AnalyzeScreen() {
             />
           </div>
         )}
-        {fixture ? <ReadingProgress items={progressItems} /> : null}
       </div>
     </ScreenFrame>
   );

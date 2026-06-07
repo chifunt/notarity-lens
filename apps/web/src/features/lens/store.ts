@@ -18,11 +18,21 @@ import type {
   SubmitResponse,
 } from "./types";
 
+export type AnalysisStage =
+  | "idle"
+  | "loading_sample"
+  | "uploading"
+  | "inferring"
+  | "drafting"
+  | "pricing"
+  | "ready";
+
 type LensStore = {
   fixture: LensFixture | null;
   uploadedDocuments: ExtractedDocument[];
   price: PriceResponse | null;
   submitResult: SubmitResponse | null;
+  analysisStage: AnalysisStage;
   loading: boolean;
   error: string | null;
   loadPersona: (persona?: PersonaFixture["id"]) => Promise<boolean>;
@@ -58,31 +68,48 @@ function withInference(
   };
 }
 
+let activeUploadRunId = 0;
+
+function pendingUploadDocuments(files: File[]): ExtractedDocument[] {
+  return files.map((file, index) => ({
+    id: `pending-upload-${index}`,
+    filename: file.name,
+    canonicalName: file.name,
+    mimeType: file.type || "application/pdf",
+    size: file.size,
+    textByPage: [],
+    extractionStatus: "pending",
+  }));
+}
+
 export const useLensStore = create<LensStore>((set, get) => ({
   fixture: null,
   uploadedDocuments: [],
   price: null,
   submitResult: null,
+  analysisStage: "idle",
   loading: false,
   error: null,
 
   loadPersona: async (persona = "joshua") => {
+    activeUploadRunId += 1;
     set({
       fixture: null,
       uploadedDocuments: [],
       price: null,
       submitResult: null,
+      analysisStage: "loading_sample",
       loading: true,
       error: null,
     });
     try {
       const fixture = await getPersonaFixture(persona);
       const price = await pricePayload(fixture.payload);
-      set({ fixture, price, loading: false });
+      set({ fixture, price, analysisStage: "ready", loading: false });
       return true;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load sample request";
-      set({ error: message, loading: false });
+      set({ error: message, analysisStage: "idle", loading: false });
       return false;
     }
   },
@@ -91,20 +118,34 @@ export const useLensStore = create<LensStore>((set, get) => ({
 
   uploadDocuments: async (files) => {
     if (!files.length) return false;
+    const runId = (activeUploadRunId += 1);
+    const isCurrentRun = () => activeUploadRunId === runId;
 
     set({
       fixture: null,
-      uploadedDocuments: [],
+      uploadedDocuments: pendingUploadDocuments(files),
       price: null,
       submitResult: null,
+      analysisStage: "uploading",
       loading: true,
       error: null,
     });
     try {
       const upload = await uploadDocumentFiles(files);
+      if (!isCurrentRun()) return false;
+      set({ uploadedDocuments: upload.documents, analysisStage: "inferring" });
+
       const infer = await inferDocuments(upload.documents);
+      if (!isCurrentRun()) return false;
+      set({ analysisStage: "drafting" });
+
       const draft = await draftPayload(infer.inference);
+      if (!isCurrentRun()) return false;
+      set({ analysisStage: "pricing" });
+
       const price = draft.payload ? await pricePayload(draft.payload) : null;
+      if (!isCurrentRun()) return false;
+
       const payload = draft.payload
         ? { ...draft.payload, confirmedPrice: price?.confirmedPrice }
         : undefined;
@@ -119,6 +160,7 @@ export const useLensStore = create<LensStore>((set, get) => ({
         },
         uploadedDocuments: upload.documents,
         price,
+        analysisStage: "ready",
         error: draft.blockers.length ? draft.blockers.join(" ") : null,
         loading: false,
       });
@@ -126,7 +168,17 @@ export const useLensStore = create<LensStore>((set, get) => ({
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unable to upload documents";
-      set({ error: message, loading: false });
+      if (isCurrentRun()) {
+        set({
+          fixture: null,
+          uploadedDocuments: [],
+          price: null,
+          submitResult: null,
+          analysisStage: "idle",
+          error: message,
+          loading: false,
+        });
+      }
       return false;
     }
   },
@@ -185,12 +237,16 @@ export const useLensStore = create<LensStore>((set, get) => ({
   },
 
   reset: () =>
-    set({
-      fixture: null,
-      uploadedDocuments: [],
-      price: null,
-      submitResult: null,
-      loading: false,
-      error: null,
+    set(() => {
+      activeUploadRunId += 1;
+      return {
+        fixture: null,
+        uploadedDocuments: [],
+        price: null,
+        submitResult: null,
+        analysisStage: "idle",
+        loading: false,
+        error: null,
+      };
     }),
 }));
