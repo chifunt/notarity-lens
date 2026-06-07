@@ -952,3 +952,19 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking async-action locking across country, route, and appointment screens.
+
+## Sprint 58: Hard-copy review status derivation
+
+- Status: complete
+- Scope: derive final-review hard-copy status from the payload flag instead of the inference value alone.
+- Changes:
+  - Review status aggregation now receives explicit payload flags for shipping and hard copy.
+  - If a payload requires hard copy but the inference field is missing, the row falls back to `needs_review` instead of `not_applicable`.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking review status derivation against payload facts.

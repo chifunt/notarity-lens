@@ -137,14 +137,20 @@ function reviewActionForField(field: InferredField) {
   }
 }
 
-function reviewStatuses(inference: DocumentFactExtraction, hasShippingDetails: boolean) {
+function reviewStatuses(
+  inference: DocumentFactExtraction,
+  {
+    hasHardCopy,
+    hasShippingDetails,
+  }: { hasHardCopy: boolean; hasShippingDetails: boolean },
+) {
   return {
     products: reviewStatusForFields(inference.products),
     billing: reviewStatusForFields([inference.billingAddress]),
     shipping: hasShippingDetails
       ? reviewStatusForFields([inference.shippingAddress], "needs_review")
       : "not_applicable",
-    hardCopy: inference.hardCopy?.value
+    hardCopy: hasHardCopy
       ? reviewStatusForFields([inference.hardCopy], "needs_review")
       : "not_applicable",
   } satisfies Record<string, FieldStatus>;
@@ -872,7 +878,10 @@ export function ReviewScreen() {
               : reviewStatusForFields(fixture.inference.people);
             const statuses = reviewStatuses(
               fixture.inference,
-              Boolean(fixture.payload.shippingDetails),
+              {
+                hasHardCopy: fixture.payload.hardCopy.hardCopy,
+                hasShippingDetails: Boolean(fixture.payload.shippingDetails),
+              },
             );
             const readyToSubmit = readyForSubmit(fixture.inference, Boolean(price));
             const submitLabel =
