@@ -792,3 +792,19 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking failure paths for load, upload, price, and submit actions.
+
+## Sprint 48: Stale submit result cleanup
+
+- Status: complete
+- Scope: prevent old submit results from surviving a later failed submit attempt.
+- Changes:
+  - `submitBooking` clears `submitResult` before each submit request starts.
+  - Strengthened submit-failure coverage to start with a previous result and assert it is cleared on failure.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking stale state around upload and sample-load failures.

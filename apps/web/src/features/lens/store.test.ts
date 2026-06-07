@@ -136,6 +136,14 @@ describe("Lens store sample flow", () => {
 
   it("reports submit failure without creating a stale submit result", async () => {
     await useLensStore.getState().loadJoshuaDemo();
+    useLensStore.setState({
+      submitResult: {
+        id: "mock_appt_previous",
+        mode: "mock",
+        ok: true,
+        payload: joshuaFixture.payload,
+      },
+    });
     vi.mocked(fetch).mockRejectedValueOnce(new Error("Submit unavailable"));
 
     await expect(useLensStore.getState().submitBooking()).resolves.toBe(false);

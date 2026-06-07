@@ -134,7 +134,7 @@ export const useLensStore = create<LensStore>((set, get) => ({
     const fixture = get().fixture;
     if (!fixture) return false;
 
-    set({ loading: true, error: null });
+    set({ submitResult: null, loading: true, error: null });
     try {
       const submitResult = await submitPayload(fixture.payload);
       set({ submitResult, loading: false });
