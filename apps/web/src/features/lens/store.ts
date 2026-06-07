@@ -19,7 +19,7 @@ type LensStore = {
   error: string | null;
   loadPersona: (persona?: PersonaFixture["id"]) => Promise<void>;
   loadJoshuaDemo: () => Promise<void>;
-  uploadDocuments: (files: File[]) => Promise<void>;
+  uploadDocuments: (files: File[]) => Promise<boolean>;
   confirmEvidence: () => void;
   confirmCountry: () => void;
   confirmRoute: () => void;
@@ -80,7 +80,7 @@ export const useLensStore = create<LensStore>((set, get) => ({
   loadJoshuaDemo: async () => get().loadPersona("joshua"),
 
   uploadDocuments: async (files) => {
-    if (!files.length) return;
+    if (!files.length) return false;
 
     set({
       fixture: null,
@@ -93,10 +93,12 @@ export const useLensStore = create<LensStore>((set, get) => ({
     try {
       const upload = await uploadDocumentFiles(files);
       set({ uploadedDocuments: upload.documents, loading: false });
+      return true;
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unable to upload documents";
       set({ error: message, loading: false });
+      return false;
     }
   },
 

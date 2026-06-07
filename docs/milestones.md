@@ -841,3 +841,20 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue hardening upload edge cases around multiple files and mixed-validity batches.
+
+## Sprint 51: Upload failure navigation guard
+
+- Status: complete
+- Scope: keep users on Start when upload fails instead of moving to Analyze with no uploaded metadata.
+- Changes:
+  - `uploadDocuments` now returns a boolean success value.
+  - Start only navigates to Analyze after a successful upload.
+  - Added upload-failure coverage that starts with stale draft data, clears it, and surfaces the server error message.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking load and price failure navigation behavior.

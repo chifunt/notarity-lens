@@ -272,8 +272,8 @@ export function StartScreen() {
     const selectedFiles = Array.from(files ?? []);
     if (!selectedFiles.length) return;
 
-    await uploadDocuments(selectedFiles);
-    navigate("/lens/analyze");
+    const uploaded = await uploadDocuments(selectedFiles);
+    if (uploaded) navigate("/lens/analyze");
   };
 
   return (

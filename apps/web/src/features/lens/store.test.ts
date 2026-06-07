@@ -168,7 +168,7 @@ describe("Lens store sample flow", () => {
       type: "application/pdf",
     });
 
-    await useLensStore.getState().uploadDocuments([file]);
+    await expect(useLensStore.getState().uploadDocuments([file])).resolves.toBe(true);
 
     expect(useLensStore.getState().fixture).toBeNull();
     expect(useLensStore.getState().price).toBeNull();
@@ -179,6 +179,41 @@ describe("Lens store sample flow", () => {
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/documents/upload"),
       expect.objectContaining({ method: "POST", body: expect.any(FormData) }),
+    );
+  });
+
+  it("reports upload failure without navigating stale draft state", async () => {
+    useLensStore.setState({
+      fixture: webJoshuaFixture,
+      uploadedDocuments: webRobertFixture.documents,
+      price: {
+        confirmedPrice: 580,
+        lines: joshuaFixture.priceLines,
+        source: "mock",
+      },
+      submitResult: {
+        id: "mock_appt_previous",
+        mode: "mock",
+        ok: true,
+        payload: joshuaFixture.payload,
+      },
+    });
+    const file = new File(["sample"], "Uploaded_Power_of_Attorney.pdf", {
+      type: "application/pdf",
+    });
+    vi.mocked(fetch).mockImplementationOnce(() =>
+      jsonErrorResponse(400, "Only PDF documents are supported"),
+    );
+
+    await expect(useLensStore.getState().uploadDocuments([file])).resolves.toBe(false);
+
+    expect(useLensStore.getState().fixture).toBeNull();
+    expect(useLensStore.getState().uploadedDocuments).toEqual([]);
+    expect(useLensStore.getState().price).toBeNull();
+    expect(useLensStore.getState().submitResult).toBeNull();
+    expect(useLensStore.getState().loading).toBe(false);
+    expect(useLensStore.getState().error).toBe(
+      "Only PDF documents are supported (400)",
     );
   });
 
