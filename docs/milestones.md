@@ -921,3 +921,18 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking loading-state consistency across route actions.
+
+## Sprint 56: Review submit loading guard
+
+- Status: complete
+- Scope: prevent route changes from Final review while submit is in flight.
+- Changes:
+  - The Final review `Back` action now disables during submit loading, matching the disabled submit CTA.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking loading-state consistency for review row change actions.

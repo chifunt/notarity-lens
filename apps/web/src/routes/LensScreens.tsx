@@ -1035,7 +1035,11 @@ export function ReviewScreen() {
                 />
                 <PayloadPreview payload={fixture.payload} />
                 <div className="flex flex-wrap justify-end gap-2">
-                  <Button variant="outline" onClick={() => navigate("/lens/appointment")}>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/lens/appointment")}
+                    disabled={loading}
+                  >
                     Back
                   </Button>
                   <Button
