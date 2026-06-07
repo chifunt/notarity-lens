@@ -53,6 +53,14 @@ describe("persona fixtures", () => {
       "xK5IkgPX1LTYdWLFzW8X",
     ]);
     expect(payload.products[1]?.files).toEqual(["nie_personal_details.pdf"]);
+    expect(
+      personaFixtures.joshua.inference.people.find(
+        (field) => field.key === "participantEmail",
+      ),
+    ).toMatchObject({
+      value: "joshua.timms@notarity.com",
+      status: "inferred",
+    });
   });
 
   it("keeps Robert named in evidence-backed participant output", () => {

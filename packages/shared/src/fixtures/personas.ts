@@ -191,6 +191,24 @@ export const joshuaInference: DocumentFactExtraction = {
       explanation: "Joshua Timms appears as the applicant.",
       requiresConfirmation: false,
     },
+    {
+      key: "participantEmail",
+      label: "Participant email",
+      value: "joshua.timms@notarity.com",
+      status: "inferred",
+      confidence: 0.93,
+      evidence: [
+        evidence(
+          "ev-joshua-email",
+          "doc-joshua-personal-details",
+          JOSHUA_FILE_B_CANONICAL,
+          1,
+          "Email: joshua.timms@notarity.com",
+        ),
+      ],
+      explanation: "Joshua Timms' email appears on the NIE personal details form.",
+      requiresConfirmation: false,
+    },
   ],
   billingAddress: {
     key: "billingAddress",
