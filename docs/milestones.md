@@ -1041,3 +1041,26 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add the first insufficient-data PDF persona so missing evidence becomes a documented review state.
+
+## Sprint 63: Noah insufficient-data persona
+
+- Status: complete
+- Scope: add a generated-PDF persona where the PDF is not enough to prove country of use.
+- Changes:
+  - Generated `docs/generated-personas/noah-chen/Affidavit_Noah_Chen.pdf` from a committed JSON source file.
+  - Added Noah Chen as a generic signature-notarisation fixture with Canada as billing/home context and Germany as the selected draft country that must be confirmed outside the PDF.
+  - Set `countryOfUse.status = "missing"` with evidence pointing to `Country where this notarised document will be used: not stated`.
+  - Added Canada display support, schema/API/web persona coverage, API price coverage, store coverage, and readiness tests for the missing-country gate.
+  - Updated country help copy for missing-evidence cases so it says the field needs review instead of claiming Lens inferred the country from document evidence.
+  - Gave the country help confirmation button a distinct accessible label to avoid duplicate exact button names when the help panel is open.
+- Browser findings:
+  - Evidence shows Noah Chen and the `not stated` country line.
+  - Country help says `Why this needs review` and explains confirmation must come from outside the PDF.
+  - After user confirmation, Noah can proceed to final review with no blockers, Canada shown as billing/home, and EUR 120 shown as the price.
+- Verification:
+  - Generated PDF validates as a PDF 1.4 document.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add a conflicting country-semantics persona where the PDF contains competing country signals.

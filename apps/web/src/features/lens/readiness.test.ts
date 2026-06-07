@@ -2,6 +2,7 @@ import {
   amaraFixture,
   elizabethFixture,
   joshuaFixture,
+  noahFixture,
   robertFixture,
 } from "@notarity-lens/shared";
 import { describe, expect, it } from "vitest";
@@ -17,6 +18,7 @@ const elizabethInference =
   elizabethFixture.inference as unknown as DocumentFactExtraction;
 const robertInference = robertFixture.inference as unknown as DocumentFactExtraction;
 const amaraInference = amaraFixture.inference as unknown as DocumentFactExtraction;
+const noahInference = noahFixture.inference as unknown as DocumentFactExtraction;
 
 describe("review readiness", () => {
   it("finds Joshua fields that must be confirmed before submit", () => {
@@ -84,6 +86,25 @@ describe("review readiness", () => {
     expect(
       unresolvedConfirmationFields(amaraInference).map((field) => field.label),
     ).toEqual(["Country of use", "Recommended product"]);
+    expect(unresolvedConfirmationFields(confirmed)).toEqual([]);
+    expect(readyForSubmit(confirmed, true)).toBe(true);
+  });
+
+  it("keeps Noah blocked while missing country evidence is unresolved", () => {
+    expect(noahInference.countryOfUse.status).toBe("missing");
+    expect(
+      unresolvedConfirmationFields(noahInference).map((field) => field.label),
+    ).toEqual(["Country of use", "Recommended product"]);
+
+    const confirmed: DocumentFactExtraction = {
+      ...noahInference,
+      countryOfUse: { ...noahInference.countryOfUse, status: "confirmed" },
+      products: noahInference.products.map((field) => ({
+        ...field,
+        status: "confirmed",
+      })),
+    };
+
     expect(unresolvedConfirmationFields(confirmed)).toEqual([]);
     expect(readyForSubmit(confirmed, true)).toBe(true);
   });

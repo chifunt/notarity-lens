@@ -18,6 +18,7 @@ export function CountrySemanticsCard({
   onShowEvidence?: () => void;
 }) {
   const confirmed = inference.countryOfUse.status === "confirmed";
+  const countryMissing = inference.countryOfUse.status === "missing";
   const [helpOpen, setHelpOpen] = useState(false);
   const countryOfUse = formatCountry(inference.countryOfUse.value);
   const billingCountry = formatCountry(payload.billingDetails.countryCode);
@@ -98,24 +99,34 @@ export function CountrySemanticsCard({
             </span>
             <div className="min-w-0">
               <h3 className="text-base font-semibold text-foreground">
-                Why Lens suggests {countryOfUse}
+                {countryMissing ? "Why this needs review" : `Why Lens suggests ${countryOfUse}`}
               </h3>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Country of use means where the notarised document will be used or
-                accepted. Lens suggests {countryOfUse} from the cited document
-                evidence while keeping billing/home and shipping separate.
+                {countryMissing
+                  ? `The document does not state where the notarised document will be used or accepted. Confirm ${countryOfUse} only if that is the country provided outside the PDF.`
+                  : `Country of use means where the notarised document will be used or accepted. Lens suggests ${countryOfUse} from the cited document evidence while keeping billing/home and shipping separate.`}
               </p>
             </div>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            {inference.countryOfUse.evidence.map((evidence) => (
-              <EvidenceChip key={evidence.id} evidence={evidence} compact />
-            ))}
+            {inference.countryOfUse.evidence.length ? (
+              inference.countryOfUse.evidence.map((evidence) => (
+                <EvidenceChip key={evidence.id} evidence={evidence} compact />
+              ))
+            ) : (
+              <p className="text-sm leading-6 text-muted-foreground">
+                No country-of-use citation was extracted from the document.
+              </p>
+            )}
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button size="sm" onClick={onConfirm}>
+            <Button
+              size="sm"
+              onClick={onConfirm}
+              aria-label={`Confirm ${countryOfUse} from country help`}
+            >
               Confirm {countryOfUse}
             </Button>
             {onShowEvidence ? (

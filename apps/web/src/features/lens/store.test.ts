@@ -1,4 +1,9 @@
-import { amaraFixture, joshuaFixture, robertFixture } from "@notarity-lens/shared";
+import {
+  amaraFixture,
+  joshuaFixture,
+  noahFixture,
+  robertFixture,
+} from "@notarity-lens/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useLensStore } from "./store";
 import type { PersonaFixture } from "./types";
@@ -53,10 +58,14 @@ describe("Lens store sample flow", () => {
           return jsonResponse(amaraFixture);
         }
 
+        if (href.endsWith("/api/fixtures/noah")) {
+          return jsonResponse(noahFixture);
+        }
+
         if (href.endsWith("/api/price")) {
           const body = init?.body ? JSON.parse(String(init.body)) : {};
           const fixture =
-            [joshuaFixture, robertFixture, amaraFixture].find(
+            [joshuaFixture, robertFixture, amaraFixture, noahFixture].find(
               (candidate) =>
                 candidate.payload.destinationCountry === body.destinationCountry &&
                 candidate.payload.participants[0]?.email ===
@@ -155,6 +164,20 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/fixtures/amara"),
+      expect.anything(),
+    );
+  });
+
+  it("loads Noah with missing country evidence through the generic persona loader", async () => {
+    await expect(useLensStore.getState().loadPersona("noah")).resolves.toBe(true);
+
+    expect(useLensStore.getState().fixture?.id).toBe("noah");
+    expect(useLensStore.getState().fixture?.inference.countryOfUse.status).toBe(
+      "missing",
+    );
+    expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/fixtures/noah"),
       expect.anything(),
     );
   });

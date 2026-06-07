@@ -109,6 +109,17 @@ const sampleRequests: Array<{
       "Complete PDF evidence",
     ],
   },
+  {
+    id: "noah",
+    name: "Noah Chen",
+    summary: "Affidavit with missing country-of-use evidence",
+    bullets: [
+      "Country of use: needs confirmation",
+      "Billing/home: Canada",
+      "Signature notarisation product",
+      "PDF says country not stated",
+    ],
+  },
 ];
 
 function reviewStatusForFields(

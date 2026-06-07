@@ -7,6 +7,7 @@ const ELIZABETH_FLEXCO_PRODUCT_ID = "S3N2zyJENFE0vTjrKTZn";
 
 const countryNames: Record<string, string> = {
   AT: "Austria",
+  CA: "Canada",
   DE: "Germany",
   ES: "Spain",
   GB: "United Kingdom",

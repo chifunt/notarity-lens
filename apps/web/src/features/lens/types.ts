@@ -78,7 +78,7 @@ export type AppointmentPayload = {
 };
 
 export type PersonaFixture = {
-  id: "joshua" | "robert" | "elizabeth" | "amara";
+  id: "joshua" | "robert" | "elizabeth" | "amara" | "noah";
   name: string;
   scenario: string;
   documents: ExtractedDocument[];

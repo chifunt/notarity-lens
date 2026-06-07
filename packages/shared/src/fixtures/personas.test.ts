@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { AppointmentPayloadSchema, PersonaFixtureSchema } from "../schemas.js";
-import { amaraPayload, joshuaPayload, personaFixtures } from "./personas.js";
+import {
+  amaraPayload,
+  joshuaPayload,
+  noahFixture,
+  noahPayload,
+  personaFixtures,
+} from "./personas.js";
 
 describe("persona fixtures", () => {
   it("validates every persona fixture against the shared schema", () => {
@@ -31,5 +37,17 @@ describe("persona fixtures", () => {
     expect(payload.products.map((product) => product.id)).toEqual([
       "ujwBkZleJLPEzByCnPCS",
     ]);
+  });
+
+  it("keeps Noah as an insufficient country-evidence case", () => {
+    const payload = AppointmentPayloadSchema.parse(noahPayload);
+
+    expect(noahFixture.inference.countryOfUse.status).toBe("missing");
+    expect(noahFixture.inference.countryOfUse.evidence[0]?.quote).toContain(
+      "not stated",
+    );
+    expect(payload.destinationCountry).toBe("DE");
+    expect(payload.billingDetails.countryCode).toBe("CA");
+    expect(payload.confirmedPrice).toBe(120);
   });
 });
