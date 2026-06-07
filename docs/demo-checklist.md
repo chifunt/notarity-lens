@@ -15,7 +15,7 @@
 
 ## 3-Minute Joshua Path
 
-1. Click the `Joshua Blake` sample request card or `Use Joshua sample`.
+1. Click the `Joshua Timms` sample request card or `Use Joshua sample`.
 2. Show both uploaded documents and canonical filename mapping.
 3. Show evidence:
    - Foreign Identity Number (NIE)

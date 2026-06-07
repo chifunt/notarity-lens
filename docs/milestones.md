@@ -682,3 +682,20 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking review `Change` destinations against where each field can actually be resolved.
+
+## Sprint 42: Joshua sample name consistency
+
+- Status: complete
+- Scope: remove the mismatch between the sample selector name and the Joshua fixture/payload name.
+- Changes:
+  - Renamed the Joshua sample card from `Joshua Blake` to `Joshua Timms`.
+  - Updated README and demo checklist instructions to match the fixture and visible flow.
+- Verification:
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `rg "Joshua Blake" README.md docs apps packages` returns no matches.
+  - Browser check: exact `Use Joshua Timms sample request` appears once, the old Joshua Blake accessible name is absent, and selecting the card reaches Evidence with Joshua Timms text.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking visible sample names against fixture identities and documentation.

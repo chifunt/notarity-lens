@@ -96,7 +96,7 @@ pnpm build
 ## Demo Path
 
 1. Open the app.
-2. Click the `Joshua Blake` sample request card or `Use Joshua sample`.
+2. Click the `Joshua Timms` sample request card or `Use Joshua sample`.
 3. Review document analysis and filename mapping.
 4. Review evidence for NIE, Spanish tax authorities, Barcelona, Joshua Timms,
    and New York.
