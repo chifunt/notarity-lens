@@ -439,12 +439,22 @@ function DemoSampleRequests({
   const [previewingPersona, setPreviewingPersona] = useState<PersonaFixture["id"]>();
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [activePreviewDocumentId, setActivePreviewDocumentId] = useState<string | undefined>();
+  const previewPanelRef = useRef<HTMLElement | null>(null);
   const panelId = useId();
+  const previewingSample = sampleRequests.find(
+    (sample) => sample.id === previewingPersona,
+  );
+
+  useEffect(() => {
+    if (!previewFixture && !previewingPersona && !previewError) return;
+    previewPanelRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, [previewError, previewFixture, previewingPersona]);
 
   const previewPersona = async (persona: PersonaFixture["id"]) => {
     setOpen(true);
     setPreviewingPersona(persona);
     setPreviewError(null);
+    setPreviewFixture(null);
     setActivePreviewDocumentId(undefined);
     try {
       const fixture = await getPersonaFixture(persona);
@@ -487,21 +497,35 @@ function DemoSampleRequests({
       </button>
       {open ? (
         <div id={panelId} className="grid gap-4 border-t border-border p-4">
-          <SampleRequestGrid
-            loading={loading}
-            onSelect={onSelect}
-            onPreview={(persona) => {
-              void previewPersona(persona);
-            }}
-            previewingPersona={previewingPersona}
-          />
+          {previewingPersona ? (
+            <section
+              ref={previewPanelRef}
+              className="rounded-xl border border-border bg-lens-surface-muted p-4"
+            >
+              <p className="text-xs font-medium uppercase text-muted-foreground">
+                Loading demo PDF preview
+              </p>
+              <p className="mt-1 text-lg font-semibold text-foreground">
+                {previewingSample?.name ?? "Demo sample"}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                Fetching the fixture documents and extracted PDF text.
+              </p>
+            </section>
+          ) : null}
           {previewError ? (
-            <div className="rounded-md border border-status-conflict bg-status-conflict px-4 py-3 text-sm text-status-conflict-foreground">
+            <section
+              ref={previewPanelRef}
+              className="rounded-md border border-status-conflict bg-status-conflict px-4 py-3 text-sm text-status-conflict-foreground"
+            >
               {previewError}
-            </div>
+            </section>
           ) : null}
           {previewFixture ? (
-            <section className="grid gap-4 rounded-xl border border-border bg-lens-surface-muted p-4">
+            <section
+              ref={previewPanelRef}
+              className="grid gap-4 rounded-xl border border-border bg-lens-surface-muted p-4"
+            >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-medium uppercase text-muted-foreground">
@@ -532,6 +556,14 @@ function DemoSampleRequests({
               />
             </section>
           ) : null}
+          <SampleRequestGrid
+            loading={loading}
+            onSelect={onSelect}
+            onPreview={(persona) => {
+              void previewPersona(persona);
+            }}
+            previewingPersona={previewingPersona}
+          />
         </div>
       ) : null}
     </section>
