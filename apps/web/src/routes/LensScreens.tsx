@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type DragEvent, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -18,7 +18,6 @@ import {
   RotateCcw,
   Send,
   ShieldCheck,
-  Smartphone,
   UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -49,6 +48,7 @@ import {
   formatShippingSummary,
 } from "@/features/lens/display";
 import { formatEuro } from "@/features/lens/format";
+import { getPersonaFixture } from "@/features/lens/api";
 import {
   readyForSubmit,
   unresolvedConfirmationFields,
@@ -358,20 +358,20 @@ function SubmissionDocumentPreview({ fixture }: { fixture: LensFixture }) {
 function SampleRequestGrid({
   loading,
   onSelect,
+  onPreview,
+  previewingPersona,
 }: {
   loading: boolean;
   onSelect: (persona: PersonaFixture["id"]) => void;
+  onPreview: (persona: PersonaFixture["id"]) => void;
+  previewingPersona?: PersonaFixture["id"];
 }) {
   return (
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       {sampleRequests.map((sample) => (
-        <button
+        <article
           key={sample.id}
-          type="button"
-          onClick={() => onSelect(sample.id)}
-          disabled={loading}
-          aria-label={`Use ${sample.name} sample request`}
-          className="flex h-full flex-col rounded-lg border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
+          className="flex h-full flex-col rounded-lg border border-border bg-card p-4 shadow-[var(--shadow-card)]"
         >
           <span className="flex items-start justify-between gap-3">
             <span className="min-w-0">
@@ -395,7 +395,29 @@ function SampleRequestGrid({
               </span>
             ))}
           </span>
-        </button>
+          <span className="mt-4 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => onSelect(sample.id)}
+              disabled={loading}
+              aria-label={`Use ${sample.name} demo sample`}
+            >
+              Use demo
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => onPreview(sample.id)}
+              disabled={loading || previewingPersona === sample.id}
+              aria-label={`Preview PDFs for ${sample.name}`}
+            >
+              <FileSearch className="h-4 w-4" aria-hidden="true" />
+              {previewingPersona === sample.id ? "Loading..." : "Preview PDFs"}
+            </Button>
+          </span>
+        </article>
       ))}
     </div>
   );
@@ -413,6 +435,29 @@ function DemoSampleRequests({
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const [previewFixture, setPreviewFixture] = useState<PersonaFixture | null>(null);
+  const [previewingPersona, setPreviewingPersona] = useState<PersonaFixture["id"]>();
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [activePreviewDocumentId, setActivePreviewDocumentId] = useState<string | undefined>();
+  const panelId = useId();
+
+  const previewPersona = async (persona: PersonaFixture["id"]) => {
+    setOpen(true);
+    setPreviewingPersona(persona);
+    setPreviewError(null);
+    setActivePreviewDocumentId(undefined);
+    try {
+      const fixture = await getPersonaFixture(persona);
+      setPreviewFixture(fixture);
+    } catch (error) {
+      setPreviewFixture(null);
+      setPreviewError(
+        error instanceof Error ? error.message : "Unable to load demo documents",
+      );
+    } finally {
+      setPreviewingPersona(undefined);
+    }
+  };
 
   return (
     <section className="rounded-xl border border-border bg-card shadow-[var(--shadow-card)]">
@@ -420,7 +465,7 @@ function DemoSampleRequests({
         type="button"
         className="flex w-full items-start justify-between gap-4 px-4 py-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         aria-expanded={open}
-        aria-controls="demo-sample-requests"
+        aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
       >
         <span className="min-w-0">
@@ -444,8 +489,52 @@ function DemoSampleRequests({
         />
       </button>
       {open ? (
-        <div id="demo-sample-requests" className="border-t border-border p-4">
-          <SampleRequestGrid loading={loading} onSelect={onSelect} />
+        <div id={panelId} className="grid gap-4 border-t border-border p-4">
+          <SampleRequestGrid
+            loading={loading}
+            onSelect={onSelect}
+            onPreview={(persona) => {
+              void previewPersona(persona);
+            }}
+            previewingPersona={previewingPersona}
+          />
+          {previewError ? (
+            <div className="rounded-md border border-status-conflict bg-status-conflict px-4 py-3 text-sm text-status-conflict-foreground">
+              {previewError}
+            </div>
+          ) : null}
+          {previewFixture ? (
+            <section className="grid gap-4 rounded-xl border border-border bg-lens-surface-muted p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium uppercase text-muted-foreground">
+                    Demo PDF preview
+                  </p>
+                  <h3 className="mt-1 text-lg font-semibold text-foreground">
+                    {previewFixture.name}
+                  </h3>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    {previewFixture.scenario}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => onSelect(previewFixture.id)}
+                  disabled={loading}
+                >
+                  Use this demo
+                </Button>
+              </div>
+              <DocumentFileList documents={previewFixture.documents} />
+              <PdfPreviewPanel
+                inference={previewFixture.inference}
+                documents={previewFixture.documents}
+                activeDocumentId={activePreviewDocumentId}
+                onActiveDocumentChange={setActivePreviewDocumentId}
+              />
+            </section>
+          ) : null}
         </div>
       ) : null}
     </section>
@@ -520,19 +609,27 @@ export function StartScreen() {
   const loadPersona = useLensStore((state) => state.loadPersona);
   const uploadDocuments = useLensStore((state) => state.uploadDocuments);
   const loading = useLensStore((state) => state.loading);
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const loadAndContinue = async (persona: PersonaFixture["id"] = "joshua") => {
+  const loadAndContinue = async (persona: PersonaFixture["id"]) => {
     const loaded = await loadPersona(persona);
     if (loaded) navigate("/lens/analyze");
   };
 
-  const uploadAndContinue = async (files: FileList | null) => {
-    const selectedFiles = Array.from(files ?? []);
+  const uploadAndContinue = async (files: FileList | File[] | null) => {
+    const selectedFiles = Array.from(files ?? []).filter(
+      (file) => file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"),
+    );
     if (!selectedFiles.length) return;
 
     const uploaded = await uploadDocuments(selectedFiles);
     if (uploaded) navigate("/lens/analyze");
+  };
+
+  const handleDragEvent = (event: DragEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
   };
 
   return (
@@ -553,7 +650,30 @@ export function StartScreen() {
           </p>
         </div>
 
-        <div className="mt-8 rounded-2xl border border-dashed border-primary/35 bg-card p-5 text-center shadow-[var(--shadow-card)] sm:p-8">
+        <div
+          className={`mt-8 rounded-2xl border border-dashed p-5 text-center shadow-[var(--shadow-card)] transition-colors sm:p-8 ${
+            dragActive
+              ? "border-primary bg-primary/5"
+              : "border-primary/35 bg-card"
+          }`}
+          onDragEnter={(event) => {
+            handleDragEvent(event);
+            setDragActive(true);
+          }}
+          onDragOver={(event) => {
+            handleDragEvent(event);
+            setDragActive(true);
+          }}
+          onDragLeave={(event) => {
+            handleDragEvent(event);
+            if (event.currentTarget === event.target) setDragActive(false);
+          }}
+          onDrop={(event) => {
+            handleDragEvent(event);
+            setDragActive(false);
+            void uploadAndContinue(Array.from(event.dataTransfer.files));
+          }}
+        >
           <input
             ref={fileInputRef}
             type="file"
@@ -579,7 +699,11 @@ export function StartScreen() {
               <FileUp className="h-6 w-6" aria-hidden="true" />
             </span>
             <span className="mt-5 text-lg font-semibold text-foreground">
-              {loading ? "Reading documents..." : "Choose PDF documents"}
+              {loading
+                ? "Reading documents..."
+                : dragActive
+                  ? "Drop PDF documents"
+                  : "Drop PDFs here or choose documents"}
             </span>
             <span className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
               Upload the notarisation documents you already have. We keep the
@@ -594,43 +718,9 @@ export function StartScreen() {
               disabled={loading}
             >
               <FileText className="h-4 w-4" aria-hidden="true" />
-              I will upload it later
-            </Button>
-            <Button variant="ghost" onClick={() => void loadAndContinue()} disabled={loading}>
-              Use Joshua demo sample
+              Continue without files
             </Button>
           </div>
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={loading}
-            className="rounded-xl border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
-          >
-            <Smartphone className="h-5 w-5 text-primary" aria-hidden="true" />
-            <span className="mt-3 block text-sm font-semibold text-foreground">
-              Choose from this device
-            </span>
-            <span className="mt-1 block text-sm leading-6 text-muted-foreground">
-              Use the same PDF intake when the files are already available here.
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/lens/analyze")}
-            disabled={loading}
-            className="rounded-xl border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
-          >
-            <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
-            <span className="mt-3 block text-sm font-semibold text-foreground">
-              Continue without files
-            </span>
-            <span className="mt-1 block text-sm leading-6 text-muted-foreground">
-              Start with a guided draft and attach documents before submission.
-            </span>
-          </button>
         </div>
 
         <div className="mt-6">
