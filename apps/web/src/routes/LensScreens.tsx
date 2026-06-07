@@ -477,9 +477,6 @@ function DemoSampleRequests({
             These are demo-only fixtures for testing known scenarios. Real bookings
             should start with uploaded PDFs.
           </span>
-          <span className="mt-2 inline-flex rounded-full bg-lens-surface-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-            {sampleRequests.length} demo cases hidden by default
-          </span>
         </span>
         <ChevronDown
           className={`mt-1 h-5 w-5 shrink-0 text-muted-foreground transition-transform ${
