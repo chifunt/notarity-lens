@@ -55,6 +55,13 @@ describe("persona fixtures", () => {
     expect(payload.products[1]?.files).toEqual(["nie_personal_details.pdf"]);
   });
 
+  it("keeps Robert named in evidence-backed participant output", () => {
+    expect(personaFixtures.robert.inference.people[0]?.value).toBe("Robert Stevens");
+    expect(personaFixtures.robert.documents[0]?.textByPage[0]?.text).toContain(
+      "Applicant: Robert Stevens",
+    );
+  });
+
   it("keeps Amara on the complete generic signature route", () => {
     const payload = AppointmentPayloadSchema.parse(amaraPayload);
 

@@ -1165,3 +1165,29 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: run a full final regression/browser sweep and record the final 10-sprint result.
+
+## Sprint 69: Final all-persona regression sweep
+
+- Status: complete
+- Scope: run the final automated and browser regression sweep for the requested 10-sprint persona run.
+- Changes:
+  - Added participant evidence to the legacy Robert fixture so the evidence screen shows Robert Stevens by name instead of relying only on the filename.
+  - Updated shared fixture coverage for Robert's evidenced participant output.
+  - Updated aggregate result docs with the final all-persona browser sweep result.
+- Browser findings:
+  - All eight sample personas reach `/lens/evidence`.
+  - Each evidence screen contains the expected case signals:
+    - Joshua: Joshua Timms, Spain, NIE.
+    - Robert: Robert Stevens, Lithuania.
+    - Elizabeth: Elizabeth Midgley, Austria, co-founder ambiguity.
+    - Amara: Amara Okafor, Germany, Netherlands.
+    - Noah: Noah Chen, `not stated`.
+    - Sofia: Sofia Rossi, Spain, Italy.
+    - Kenji: Kenji Tanaka, Japan, Valencia.
+    - Priya: Priya Nair, possible co-signer.
+- Verification:
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: none for this 10-sprint run.

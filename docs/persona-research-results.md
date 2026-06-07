@@ -41,3 +41,4 @@ The recurring requirements are:
 | 66 | Complete | Added Priya Nair with generated PDF naming a possible co-signer. Browser confirms review blocks on participant ambiguity and clears after confirming listed participants. |
 | 67 | Complete | Polished the eight-persona sample picker with responsive 1/2/4-column layout, case labels, and status badges. Browser confirms all personas/labels render on desktop and mobile without horizontal overflow. |
 | 68 | Complete | Added `docs/persona-case-results.md` and a shared regression test that locks the eight-persona scenario mix: complete generic, missing evidence, conflict, hard-copy/apostille, and participant ambiguity. |
+| 69 | Complete | Ran full automated verification and an all-persona Browser evidence sweep. Fixed Robert's legacy fixture so his name appears as evidence-backed participant output. |

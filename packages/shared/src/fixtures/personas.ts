@@ -450,7 +450,11 @@ export const robertFixture: PersonaFixture = {
       textByPage: [
         {
           page: 1,
-          text: "Power of Attorney for shareholder agreement representation in Lithuania.",
+          text: [
+            "Power of Attorney for shareholder agreement representation in Lithuania.",
+            "Applicant: Robert Stevens.",
+            "Email: mp+robertstevens@notarity.com.",
+          ].join(" "),
         },
       ],
     },
@@ -477,7 +481,26 @@ export const robertFixture: PersonaFixture = {
       requiresConfirmation: false,
     },
     products: [],
-    people: [],
+    people: [
+      {
+        key: "participant",
+        label: "Participant",
+        value: "Robert Stevens",
+        status: "inferred",
+        confidence: 0.9,
+        evidence: [
+          evidence(
+            "ev-robert-name",
+            "doc-robert-poa",
+            "Robert_Stevens_sample_case.pdf",
+            1,
+            "Applicant: Robert Stevens",
+          ),
+        ],
+        explanation: "Robert Stevens appears as the applicant.",
+        requiresConfirmation: false,
+      },
+    ],
     uncertainties: [],
   },
   products: productFixtures.filter(

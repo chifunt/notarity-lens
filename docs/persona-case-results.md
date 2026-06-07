@@ -29,6 +29,7 @@ The app now covers the original three personas plus five generated-PDF personas.
 
 | Persona | Browser Result |
 |---|---|
+| All eight personas | Final sweep reaches `/lens/evidence` for every sample and finds each persona's expected evidence signals. |
 | Amara Okafor | Start to Success succeeds; no hard-copy state displays correctly. |
 | Noah Chen | Evidence and country help show missing country data; review gate is covered by tests and recovery succeeds after confirmation. |
 | Sofia Rossi | Country conflict is visible; review clears after confirming Spain. |
