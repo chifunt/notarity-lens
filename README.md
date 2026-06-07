@@ -12,6 +12,45 @@ Core pitch:
 > Notarity already made notarisation remote. We made the confusing part before
 > the appointment understandable.
 
+## Research Story
+
+The project started from a simple observation in the START HACK Notarity brief:
+the appointment itself is already remote, but the preparation work before the
+appointment still asks users to understand legal, geographic, and product
+details they often cannot confidently interpret.
+
+Our research focused on the gap between "I have this document" and "I know which
+Notarity booking to create." The risky part is not only reading a PDF. It is
+understanding what the document is for, where it will be used, which country
+controls the booking route, which supporting documents are required, whether a
+hard copy or apostille is needed, who must sign, and what the user should expect
+to pay.
+
+The clearest research finding was that country semantics must be kept separate.
+A document can mention a person's nationality, home address, billing country,
+shipping destination, and country of use in the same page. For Notarity, those
+are not interchangeable. The most important example in the demo is Joshua Timms:
+he lives and pays from the United States, but the notarised NIE application is
+for Spain and the hard copy ships to Barcelona.
+
+That shaped the product principle:
+
+> The AI can read and explain evidence, but the user and deterministic booking
+> logic must stay in control.
+
+We tested that principle with the original sample personas and then added a
+persona research matrix with generated PDFs. The matrix covered complete
+documents, insufficient evidence, conflicting country signals, hard-copy and
+apostille routing, and participant ambiguity. Those cases are documented in
+`docs/persona-research-results.md` and `docs/persona-case-results.md`.
+
+The conclusion was pragmatic: for the hackathon presentation, the best story is
+not "we support every legal document." The strongest story is "we can turn a
+real document set into a trustworthy Notarity booking path, show why each choice
+was made, and ask for confirmation exactly where uncertainty matters." That is
+why the final demo is Joshua-first while the broader persona set remains as a
+regression and research harness.
+
 ## Tags
 
 `START HACK 2026` `Vienna` `Notarity` `AI` `DeepSeek` `PDF extraction`
