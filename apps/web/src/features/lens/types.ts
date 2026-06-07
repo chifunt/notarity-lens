@@ -36,6 +36,7 @@ export type ExtractedDocument = {
   size: number;
   textByPage: Array<{ page: number; text: string }>;
   extractionStatus: string;
+  previewUrl?: string;
 };
 
 export type DocumentFactExtraction = {
@@ -77,16 +78,15 @@ export type AppointmentPayload = {
   [key: string]: unknown;
 };
 
+export type AppointmentSelection = {
+  date: string;
+  dateLabel: string;
+  time: string;
+  timezone: string;
+};
+
 export type PersonaFixture = {
-  id:
-    | "joshua"
-    | "robert"
-    | "elizabeth"
-    | "amara"
-    | "noah"
-    | "sofia"
-    | "kenji"
-    | "priya";
+  id: "joshua" | "robert" | "elizabeth" | "amara" | "noah" | "sofia" | "kenji" | "priya";
   name: string;
   scenario: string;
   documents: ExtractedDocument[];

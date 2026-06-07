@@ -97,11 +97,13 @@ export function PdfPreviewPanel({
   documents: fallbackDocuments = [],
   activeDocumentId,
   onActiveDocumentChange,
+  pdfUrlForDocument,
 }: {
   inference: DocumentFactExtraction;
   documents?: ExtractedDocument[];
   activeDocumentId?: string;
   onActiveDocumentChange?: (documentId: string) => void;
+  pdfUrlForDocument?: (document: ExtractedDocument) => string | undefined;
 }) {
   const allEvidence = useMemo(() => collectEvidence(inference), [inference]);
   const documents = useMemo(
@@ -116,6 +118,9 @@ export function PdfPreviewPanel({
   const selectedEvidence = selectedDocument
     ? evidenceForDocument(allEvidence, selectedDocument)
     : [];
+  const selectedPdfUrl = selectedDocument
+    ? pdfUrlForDocument?.(selectedDocument) ?? selectedDocument.previewUrl
+    : undefined;
 
   const selectDocument = (documentId: string) => {
     setInternalDocumentId(documentId);
@@ -181,6 +186,22 @@ export function PdfPreviewPanel({
                 {selectedDocument.canonicalName}
               </p>
             </div>
+
+            {selectedPdfUrl ? (
+              <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                <iframe
+                  key={selectedDocument.id}
+                  title={`${selectedDocument.filename} PDF preview`}
+                  src={`${selectedPdfUrl}#toolbar=1&navpanes=0&view=FitH`}
+                  className="h-[62vh] min-h-[540px] w-full bg-white"
+                />
+              </section>
+            ) : (
+              <section className="rounded-lg border border-border bg-card p-4 text-sm leading-6 text-muted-foreground shadow-sm">
+                The original PDF binary is not available in this browser session,
+                so Lens is showing extracted text with AI highlights.
+              </section>
+            )}
 
             <div className="grid gap-3">
               {selectedDocument.textByPage.map((page) => {

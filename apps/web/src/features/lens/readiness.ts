@@ -1,6 +1,6 @@
 import type { DocumentFactExtraction, InferredField } from "./types";
 
-const resolvedStatuses = new Set(["confirmed", "not_applicable"]);
+const resolvedStatuses = new Set(["confirmed", "edited", "not_applicable"]);
 
 export function requiredConfirmationFields(inference: DocumentFactExtraction) {
   return [

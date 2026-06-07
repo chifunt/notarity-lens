@@ -62,6 +62,12 @@ function resetStore() {
   useLensStore.setState({
     fixture: null,
     uploadedDocuments: [],
+    appointmentSelection: {
+      date: "2026-06-09",
+      dateLabel: "Tue, Jun 09",
+      time: "09:00",
+      timezone: "Europe/Vienna",
+    },
     price: null,
     submitResult: null,
     analysisStage: "idle",
@@ -263,6 +269,28 @@ describe("Lens store sample flow", () => {
     );
   });
 
+  it("edits and adds individual inference fields", async () => {
+    await expect(useLensStore.getState().loadPersona("noah")).resolves.toBe(true);
+
+    useLensStore.getState().saveInferenceField({ key: "countryOfUse", value: "Spain" });
+    useLensStore
+      .getState()
+      .saveInferenceField({ key: "participantEmail", value: "noah@example.com" });
+
+    const fixture = useLensStore.getState().fixture;
+    expect(fixture?.inference.countryOfUse.value).toBe("ES");
+    expect(fixture?.inference.countryOfUse.status).toBe("edited");
+    expect(
+      fixture?.inference.people.find((field) => field.key === "participantEmail"),
+    ).toMatchObject({
+      value: "noah@example.com",
+      status: "edited",
+      requiresConfirmation: false,
+    });
+    expect(fixture?.payload?.destinationCountry).toBe("ES");
+    expect(fixture?.payload?.participants[0]?.email).toBe("noah@example.com");
+  });
+
   it("loads Sofia with country conflict evidence through the generic persona loader", async () => {
     await expect(useLensStore.getState().loadPersona("sofia")).resolves.toBe(true);
 
@@ -296,9 +324,7 @@ describe("Lens store sample flow", () => {
     expect(
       useLensStore
         .getState()
-        .fixture?.inference.people.some(
-          (field) => field.key === "participantAmbiguity",
-        ),
+        .fixture?.inference.people.some((field) => field.key === "participantAmbiguity"),
     ).toBe(true);
     expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
     expect(fetch).toHaveBeenCalledWith(
@@ -360,7 +386,7 @@ describe("Lens store sample flow", () => {
       expect.stringContaining("/api/draft"),
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining("\"persona\":\"upload\""),
+        body: expect.stringContaining('"persona":"upload"'),
       }),
     );
   });
@@ -497,10 +523,34 @@ describe("Lens store sample flow", () => {
     ).toBe(true);
   });
 
+  it("keeps the selected appointment slot in store state", async () => {
+    await expect(useLensStore.getState().loadPersona("joshua")).resolves.toBe(true);
+
+    useLensStore.getState().selectAppointmentSlot({
+      date: "2026-06-10",
+      dateLabel: "Wed, Jun 10",
+      time: "14:00",
+      timezone: "Europe/Vienna",
+    });
+
+    expect(useLensStore.getState().appointmentSelection).toEqual({
+      date: "2026-06-10",
+      dateLabel: "Wed, Jun 10",
+      time: "14:00",
+      timezone: "Europe/Vienna",
+    });
+  });
+
   it("clears stale draft state before loading a new persona", async () => {
     useLensStore.setState({
       fixture: webJoshuaFixture,
       uploadedDocuments: webRobertFixture.documents,
+      appointmentSelection: {
+        date: "2026-06-10",
+        dateLabel: "Wed, Jun 10",
+        time: "14:00",
+        timezone: "Europe/Vienna",
+      },
       price: {
         confirmedPrice: 580,
         lines: joshuaFixture.priceLines,
@@ -519,6 +569,12 @@ describe("Lens store sample flow", () => {
 
     expect(useLensStore.getState().fixture).toBeNull();
     expect(useLensStore.getState().uploadedDocuments).toEqual([]);
+    expect(useLensStore.getState().appointmentSelection).toEqual({
+      date: "2026-06-09",
+      dateLabel: "Tue, Jun 09",
+      time: "09:00",
+      timezone: "Europe/Vienna",
+    });
     expect(useLensStore.getState().price).toBeNull();
     expect(useLensStore.getState().submitResult).toBeNull();
     expect(useLensStore.getState().loading).toBe(false);
@@ -529,6 +585,12 @@ describe("Lens store sample flow", () => {
     useLensStore.setState({
       fixture: webJoshuaFixture,
       uploadedDocuments: webRobertFixture.documents,
+      appointmentSelection: {
+        date: "2026-06-10",
+        dateLabel: "Wed, Jun 10",
+        time: "14:00",
+        timezone: "Europe/Vienna",
+      },
       price: {
         confirmedPrice: 580,
         lines: joshuaFixture.priceLines,
@@ -549,6 +611,12 @@ describe("Lens store sample flow", () => {
 
     expect(useLensStore.getState().fixture).toBeNull();
     expect(useLensStore.getState().uploadedDocuments).toEqual([]);
+    expect(useLensStore.getState().appointmentSelection).toEqual({
+      date: "2026-06-09",
+      dateLabel: "Tue, Jun 09",
+      time: "09:00",
+      timezone: "Europe/Vienna",
+    });
     expect(useLensStore.getState().price).toBeNull();
     expect(useLensStore.getState().submitResult).toBeNull();
     expect(useLensStore.getState().loading).toBe(false);
@@ -559,6 +627,12 @@ describe("Lens store sample flow", () => {
     useLensStore.setState({
       fixture: webJoshuaFixture,
       uploadedDocuments: webRobertFixture.documents,
+      appointmentSelection: {
+        date: "2026-06-10",
+        dateLabel: "Wed, Jun 10",
+        time: "14:00",
+        timezone: "Europe/Vienna",
+      },
       price: {
         confirmedPrice: 580,
         lines: joshuaFixture.priceLines,
@@ -579,6 +653,12 @@ describe("Lens store sample flow", () => {
 
     expect(useLensStore.getState().fixture).toBeNull();
     expect(useLensStore.getState().uploadedDocuments).toEqual([]);
+    expect(useLensStore.getState().appointmentSelection).toEqual({
+      date: "2026-06-09",
+      dateLabel: "Tue, Jun 09",
+      time: "09:00",
+      timezone: "Europe/Vienna",
+    });
     expect(useLensStore.getState().price).toBeNull();
     expect(useLensStore.getState().submitResult).toBeNull();
     expect(useLensStore.getState().analysisStage).toBe("idle");

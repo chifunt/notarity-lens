@@ -8,6 +8,7 @@ import {
   uploadDocumentFiles,
 } from "./api";
 import type {
+  AppointmentSelection,
   DocumentFactExtraction,
   ExtractedDocument,
   FieldStatus,
@@ -17,6 +18,11 @@ import type {
   PriceResponse,
   SubmitResponse,
 } from "./types";
+
+type SaveInferenceFieldInput = {
+  key: string;
+  value: string | boolean;
+};
 
 export type AnalysisStage =
   | "idle"
@@ -30,6 +36,7 @@ export type AnalysisStage =
 type LensStore = {
   fixture: LensFixture | null;
   uploadedDocuments: ExtractedDocument[];
+  appointmentSelection: AppointmentSelection;
   price: PriceResponse | null;
   submitResult: SubmitResponse | null;
   analysisStage: AnalysisStage;
@@ -39,6 +46,10 @@ type LensStore = {
   loadJoshuaDemo: () => Promise<boolean>;
   uploadDocuments: (files: File[]) => Promise<boolean>;
   confirmEvidence: () => void;
+  confirmInferenceField: (key: string) => void;
+  markInferenceFieldUnsure: (key: string) => void;
+  saveInferenceField: (input: SaveInferenceFieldInput) => void;
+  selectAppointmentSlot: (selection: AppointmentSelection) => void;
   confirmCountry: () => void;
   confirmRoute: () => void;
   confirmPeople: () => void;
@@ -57,6 +68,225 @@ function updateOptionalField<T>(
   return field ? updateField(field, status) : undefined;
 }
 
+const countryCodes: Record<string, string> = {
+  austria: "AT",
+  at: "AT",
+  canada: "CA",
+  ca: "CA",
+  germany: "DE",
+  de: "DE",
+  italy: "IT",
+  it: "IT",
+  japan: "JP",
+  jp: "JP",
+  lithuania: "LT",
+  lt: "LT",
+  netherlands: "NL",
+  nl: "NL",
+  spain: "ES",
+  es: "ES",
+  "united kingdom": "GB",
+  gb: "GB",
+  uk: "GB",
+  "united states": "US",
+  us: "US",
+  usa: "US",
+};
+
+export const defaultAppointmentSelection: AppointmentSelection = {
+  date: "2026-06-09",
+  dateLabel: "Tue, Jun 09",
+  time: "09:00",
+  timezone: "Europe/Vienna",
+};
+
+const fieldLabels: Record<string, string> = {
+  apostille: "Apostille",
+  billingAddress: "Billing/home address",
+  countryOfUse: "Country of use",
+  hardCopy: "Hard copy",
+  participant: "Participant",
+  participantAmbiguity: "Participant ambiguity",
+  participantEmail: "Participant email",
+  recommendedProduct: "Recommended product",
+  requiredCompanionDocument: "Required companion document",
+  shippingAddress: "Shipping address",
+};
+
+function normalizeFieldValue(input: SaveInferenceFieldInput) {
+  if (typeof input.value === "boolean") return input.value;
+  const value = input.value.trim();
+  if (input.key === "countryOfUse") {
+    return countryCodes[value.toLowerCase()] ?? value.toUpperCase();
+  }
+  return value;
+}
+
+function manualField(
+  input: SaveInferenceFieldInput,
+  existing?: InferredField,
+): InferredField {
+  return {
+    key: input.key,
+    label: existing?.label ?? fieldLabels[input.key] ?? input.key,
+    value: normalizeFieldValue(input),
+    status: "edited",
+    confidence: existing?.confidence,
+    evidence: existing?.evidence ?? [],
+    explanation: existing
+      ? "Edited by user."
+      : "Added by user because it was not found in the document.",
+    requiresConfirmation: false,
+  };
+}
+
+function updateArrayField(fields: InferredField[], input: SaveInferenceFieldInput) {
+  const index = fields.findIndex((field) => field.key === input.key);
+  if (index === -1) return [...fields, manualField(input)];
+  return fields.map((field, fieldIndex) =>
+    fieldIndex === index ? manualField(input, field) : field,
+  );
+}
+
+function statusArrayField(fields: InferredField[], key: string, status: FieldStatus) {
+  return fields.map((field) => (field.key === key ? updateField(field, status) : field));
+}
+
+function saveInferenceFieldValue(
+  inference: DocumentFactExtraction,
+  input: SaveInferenceFieldInput,
+): DocumentFactExtraction {
+  if (input.key === "countryOfUse") {
+    return {
+      ...inference,
+      countryOfUse: manualField(input, inference.countryOfUse) as InferredField<string>,
+    };
+  }
+
+  if (input.key === "recommendedProduct" || input.key === "requiredCompanionDocument") {
+    return {
+      ...inference,
+      products: updateArrayField(inference.products, input),
+    };
+  }
+
+  if (
+    input.key === "participant" ||
+    input.key === "participantEmail" ||
+    input.key === "participantAmbiguity"
+  ) {
+    return {
+      ...inference,
+      people: updateArrayField(inference.people, input),
+    };
+  }
+
+  if (input.key === "billingAddress") {
+    return {
+      ...inference,
+      billingAddress: manualField(
+        input,
+        inference.billingAddress,
+      ) as InferredField<string>,
+    };
+  }
+
+  if (input.key === "shippingAddress") {
+    return {
+      ...inference,
+      shippingAddress: manualField(
+        input,
+        inference.shippingAddress,
+      ) as InferredField<string>,
+    };
+  }
+
+  if (input.key === "apostille") {
+    return {
+      ...inference,
+      apostille: manualField(input, inference.apostille) as InferredField<boolean>,
+    };
+  }
+
+  if (input.key === "hardCopy") {
+    return {
+      ...inference,
+      hardCopy: manualField(input, inference.hardCopy) as InferredField<boolean>,
+    };
+  }
+
+  return inference;
+}
+
+function updateInferenceFieldStatus(
+  inference: DocumentFactExtraction,
+  key: string,
+  status: FieldStatus,
+): DocumentFactExtraction {
+  return {
+    ...inference,
+    countryOfUse:
+      inference.countryOfUse.key === key
+        ? updateField(inference.countryOfUse, status)
+        : inference.countryOfUse,
+    products: statusArrayField(inference.products, key, status),
+    people: statusArrayField(inference.people, key, status),
+    billingAddress:
+      inference.billingAddress?.key === key
+        ? updateField(inference.billingAddress, status)
+        : inference.billingAddress,
+    shippingAddress:
+      inference.shippingAddress?.key === key
+        ? updateField(inference.shippingAddress, status)
+        : inference.shippingAddress,
+    apostille:
+      inference.apostille?.key === key
+        ? updateField(inference.apostille, status)
+        : inference.apostille,
+    hardCopy:
+      inference.hardCopy?.key === key
+        ? updateField(inference.hardCopy, status)
+        : inference.hardCopy,
+  };
+}
+
+function syncPayloadWithField(
+  payload: LensFixture["payload"],
+  input: SaveInferenceFieldInput,
+): LensFixture["payload"] {
+  if (!payload) return payload;
+  const value = normalizeFieldValue(input);
+
+  if (input.key === "countryOfUse" && typeof value === "string") {
+    return { ...payload, destinationCountry: value };
+  }
+
+  if (input.key === "hardCopy" && typeof value === "boolean") {
+    return {
+      ...payload,
+      hardCopy: { ...payload.hardCopy, hardCopy: value },
+      shippingDetails: value ? payload.shippingDetails : undefined,
+    };
+  }
+
+  if (input.key === "participantEmail" && typeof value === "string") {
+    return {
+      ...payload,
+      participants: payload.participants.length
+        ? payload.participants.map((participant, index) =>
+            index === 0 ? { ...participant, email: value } : participant,
+          )
+        : [{ email: value, client: true, supervisor: false }],
+      billingDetails: { ...payload.billingDetails, email: value },
+      shippingDetails: payload.shippingDetails
+        ? { ...payload.shippingDetails, email: value }
+        : undefined,
+    };
+  }
+
+  return payload;
+}
+
 function withInference(
   fixture: LensFixture | null,
   updater: (inference: DocumentFactExtraction) => DocumentFactExtraction,
@@ -68,9 +298,47 @@ function withInference(
   };
 }
 
-let activeUploadRunId = 0;
+function appointmentSelectionForFixture(fixture: LensFixture): AppointmentSelection {
+  return {
+    ...defaultAppointmentSelection,
+    timezone: String(fixture.payload?.timezone ?? defaultAppointmentSelection.timezone),
+  };
+}
 
-function pendingUploadDocuments(files: File[]): ExtractedDocument[] {
+let activeUploadRunId = 0;
+const activePreviewUrls = new Set<string>();
+
+function createPreviewUrl(file: File) {
+  if (typeof URL === "undefined" || typeof URL.createObjectURL !== "function") {
+    return undefined;
+  }
+  const url = URL.createObjectURL(file);
+  activePreviewUrls.add(url);
+  return url;
+}
+
+function clearPreviewUrls() {
+  if (typeof URL === "undefined" || typeof URL.revokeObjectURL !== "function") {
+    activePreviewUrls.clear();
+    return;
+  }
+
+  activePreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+  activePreviewUrls.clear();
+}
+
+function fileKey(file: File) {
+  return `${file.name}:${file.size}:${file.lastModified}`;
+}
+
+function previewUrlByFile(files: File[]) {
+  return new Map(files.map((file) => [fileKey(file), createPreviewUrl(file)]));
+}
+
+function pendingUploadDocuments(
+  files: File[],
+  previewUrls: Map<string, string | undefined>,
+): ExtractedDocument[] {
   return files.map((file, index) => ({
     id: `pending-upload-${index}`,
     filename: file.name,
@@ -79,12 +347,31 @@ function pendingUploadDocuments(files: File[]): ExtractedDocument[] {
     size: file.size,
     textByPage: [],
     extractionStatus: "pending",
+    previewUrl: previewUrls.get(fileKey(file)),
   }));
+}
+
+function attachPreviewUrls(
+  documents: ExtractedDocument[],
+  files: File[],
+  previewUrls: Map<string, string | undefined>,
+) {
+  return documents.map((document) => {
+    const file = files.find(
+      (candidate) =>
+        candidate.name === document.filename && candidate.size === document.size,
+    );
+    return {
+      ...document,
+      previewUrl: file ? previewUrls.get(fileKey(file)) : document.previewUrl,
+    };
+  });
 }
 
 export const useLensStore = create<LensStore>((set, get) => ({
   fixture: null,
   uploadedDocuments: [],
+  appointmentSelection: defaultAppointmentSelection,
   price: null,
   submitResult: null,
   analysisStage: "idle",
@@ -93,9 +380,11 @@ export const useLensStore = create<LensStore>((set, get) => ({
 
   loadPersona: async (persona = "joshua") => {
     activeUploadRunId += 1;
+    clearPreviewUrls();
     set({
       fixture: null,
       uploadedDocuments: [],
+      appointmentSelection: defaultAppointmentSelection,
       price: null,
       submitResult: null,
       analysisStage: "loading_sample",
@@ -105,11 +394,27 @@ export const useLensStore = create<LensStore>((set, get) => ({
     try {
       const fixture = await getPersonaFixture(persona);
       const price = await pricePayload(fixture.payload);
-      set({ fixture, price, analysisStage: "ready", loading: false });
+      set({
+        fixture,
+        appointmentSelection: appointmentSelectionForFixture(fixture),
+        price,
+        analysisStage: "ready",
+        loading: false,
+      });
       return true;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to load sample request";
-      set({ error: message, analysisStage: "idle", loading: false });
+      const message =
+        error instanceof Error ? error.message : "Unable to load sample request";
+      set({
+        fixture: null,
+        uploadedDocuments: [],
+        appointmentSelection: defaultAppointmentSelection,
+        price: null,
+        submitResult: null,
+        error: message,
+        analysisStage: "idle",
+        loading: false,
+      });
       return false;
     }
   },
@@ -120,10 +425,13 @@ export const useLensStore = create<LensStore>((set, get) => ({
     if (!files.length) return false;
     const runId = (activeUploadRunId += 1);
     const isCurrentRun = () => activeUploadRunId === runId;
+    clearPreviewUrls();
+    const previewUrls = previewUrlByFile(files);
 
     set({
       fixture: null,
-      uploadedDocuments: pendingUploadDocuments(files),
+      uploadedDocuments: pendingUploadDocuments(files, previewUrls),
+      appointmentSelection: defaultAppointmentSelection,
       price: null,
       submitResult: null,
       analysisStage: "uploading",
@@ -133,9 +441,10 @@ export const useLensStore = create<LensStore>((set, get) => ({
     try {
       const upload = await uploadDocumentFiles(files);
       if (!isCurrentRun()) return false;
-      set({ uploadedDocuments: upload.documents, analysisStage: "inferring" });
+      const documents = attachPreviewUrls(upload.documents, files, previewUrls);
+      set({ uploadedDocuments: documents, analysisStage: "inferring" });
 
-      const infer = await inferDocuments(upload.documents);
+      const infer = await inferDocuments(documents);
       if (!isCurrentRun()) return false;
       set({ analysisStage: "drafting" });
 
@@ -149,16 +458,20 @@ export const useLensStore = create<LensStore>((set, get) => ({
       const payload = draft.payload
         ? { ...draft.payload, confirmedPrice: price?.confirmedPrice }
         : undefined;
+      const fixture: LensFixture = {
+        id: "upload",
+        name: "Uploaded documents",
+        scenario: "Uploaded PDF draft",
+        documents,
+        inference: { ...infer.inference, documents },
+        payload,
+      };
       set({
-        fixture: {
-          id: "upload",
-          name: "Uploaded documents",
-          scenario: "Uploaded PDF draft",
-          documents: upload.documents,
-          inference: infer.inference,
-          payload,
-        },
-        uploadedDocuments: upload.documents,
+        fixture,
+        appointmentSelection: payload
+          ? appointmentSelectionForFixture(fixture)
+          : defaultAppointmentSelection,
+        uploadedDocuments: documents,
         price,
         analysisStage: "ready",
         error: draft.blockers.length ? draft.blockers.join(" ") : null,
@@ -172,6 +485,7 @@ export const useLensStore = create<LensStore>((set, get) => ({
         set({
           fixture: null,
           uploadedDocuments: [],
+          appointmentSelection: defaultAppointmentSelection,
           price: null,
           submitResult: null,
           analysisStage: "idle",
@@ -184,6 +498,36 @@ export const useLensStore = create<LensStore>((set, get) => ({
   },
 
   confirmEvidence: () => set((state) => ({ fixture: state.fixture })),
+
+  confirmInferenceField: (key) =>
+    set((state) => ({
+      fixture: withInference(state.fixture, (inference) =>
+        updateInferenceFieldStatus(inference, key, "confirmed"),
+      ),
+    })),
+
+  markInferenceFieldUnsure: (key) =>
+    set((state) => ({
+      fixture: withInference(state.fixture, (inference) =>
+        updateInferenceFieldStatus(inference, key, "needs_review"),
+      ),
+    })),
+
+  saveInferenceField: (input) =>
+    set((state) => ({
+      fixture: state.fixture
+        ? {
+            ...state.fixture,
+            inference: saveInferenceFieldValue(state.fixture.inference, input),
+            payload: syncPayloadWithField(state.fixture.payload, input),
+          }
+        : state.fixture,
+    })),
+
+  selectAppointmentSlot: (selection) =>
+    set(() => ({
+      appointmentSelection: selection,
+    })),
 
   confirmCountry: () =>
     set((state) => ({
@@ -239,9 +583,11 @@ export const useLensStore = create<LensStore>((set, get) => ({
   reset: () =>
     set(() => {
       activeUploadRunId += 1;
+      clearPreviewUrls();
       return {
         fixture: null,
         uploadedDocuments: [],
+        appointmentSelection: defaultAppointmentSelection,
         price: null,
         submitResult: null,
         analysisStage: "idle",

@@ -203,15 +203,15 @@ export function reviewStatuses(
 }
 
 export function fixtureCountrySummary(fixture: LensFixture) {
-  return fixture.payload
-    ? formatCountry(fixture.payload.destinationCountry)
-    : formatCountry(fixture.inference.countryOfUse.value);
+  return formatCountry(fixture.inference.countryOfUse.value);
 }
 
 export function fixtureProductSummary(fixture: LensFixture) {
-  if (fixture.payload) return formatProductSummary(fixture.payload);
   const products = fixture.inference.products.map(formatFieldValue);
-  return products.length ? products.join("; ") : "Product route needs review";
+  if (products.length) return products.join("; ");
+  return fixture.payload
+    ? formatProductSummary(fixture.payload)
+    : "Product route needs review";
 }
 
 export function fixtureFilesSummary(fixture: LensFixture) {
@@ -222,18 +222,20 @@ export function fixtureFilesSummary(fixture: LensFixture) {
 }
 
 export function fixtureParticipantSummary(fixture: LensFixture) {
-  if (fixture.payload) return formatParticipantsSummary(fixture.payload);
   const participants = fixture.inference.people
     .filter((field) => field.key === "participantEmail" || field.key === "participant")
     .map((field) => String(field.value));
-  return participants.length ? participants.join(", ") : "No participants detected";
+  if (participants.length) return participants.join(", ");
+  return fixture.payload
+    ? formatParticipantsSummary(fixture.payload)
+    : "No participants detected";
 }
 
 export function fixtureBillingSummary(fixture: LensFixture) {
-  if (fixture.payload) return formatAddress(fixture.payload.billingDetails);
-  return fixture.inference.billingAddress
-    ? String(fixture.inference.billingAddress.value)
-    : "Not extracted";
+  if (fixture.inference.billingAddress) {
+    return String(fixture.inference.billingAddress.value);
+  }
+  return fixture.payload ? formatAddress(fixture.payload.billingDetails) : "Not extracted";
 }
 
 export function fixtureHasHardCopy(fixture: LensFixture) {
@@ -243,11 +245,11 @@ export function fixtureHasHardCopy(fixture: LensFixture) {
 }
 
 export function fixtureShippingSummary(fixture: LensFixture) {
-  if (fixture.payload) return formatShippingSummary(fixture.payload);
   if (!fixtureHasHardCopy(fixture)) return "No hard copy shipment";
-  return fixture.inference.shippingAddress
-    ? String(fixture.inference.shippingAddress.value)
-    : "Shipping details needed";
+  if (fixture.inference.shippingAddress) {
+    return String(fixture.inference.shippingAddress.value);
+  }
+  return fixture.payload ? formatShippingSummary(fixture.payload) : "Shipping details needed";
 }
 
 export function SubmissionDocumentPreview({ fixture }: { fixture: LensFixture }) {
