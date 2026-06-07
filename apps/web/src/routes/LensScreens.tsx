@@ -398,9 +398,6 @@ function DemoPdfViewer({
               >
                 <FileText className="h-4 w-4 shrink-0 text-primary/75" aria-hidden="true" />
                 <span className="max-w-[15rem] truncate">{document.filename}</span>
-                <span className="rounded-full bg-lens-surface-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                  {document.textByPage.length || 1}p
-                </span>
               </button>
             );
           })}

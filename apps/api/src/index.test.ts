@@ -111,8 +111,38 @@ describe("api routes", () => {
         expect(response.status, `${fixture.id}/${document.id}`).toBe(200);
         expect(response.headers.get("content-type")).toContain("application/pdf");
         expect(response.headers.get("content-disposition")).toContain("inline");
-        expect(body).toBe("%PDF-1.4");
+        expect(body.startsWith("%PDF-")).toBe(true);
       }
+    }
+  });
+
+  it("serves original reference-material PDFs for the seeded personas", async () => {
+    const referenceDocuments = [
+      [
+        "/api/fixtures/joshua/documents/doc-joshua-nie-application/pdf",
+        "../../../_context/notarity-reference-materials/personas/joshua/documents/nie-application-demo-joshua_timms.pdf",
+      ],
+      [
+        "/api/fixtures/joshua/documents/doc-joshua-personal-details/pdf",
+        "../../../_context/notarity-reference-materials/personas/joshua/documents/nie_personal_details-joshuatimms.pdf",
+      ],
+      [
+        "/api/fixtures/robert/documents/doc-robert-poa/pdf",
+        "../../../_context/notarity-reference-materials/personas/robert/documents/Robert_Stevens_sample_case.pdf",
+      ],
+      [
+        "/api/fixtures/elizabeth/documents/doc-elizabeth-flexco/pdf",
+        "../../../_context/notarity-reference-materials/personas/elizabeth/documents/Gesellschaftsvertrag_Midgley_Tech_EU_FlexCo.pdf",
+      ],
+    ] as const;
+
+    for (const [route, referencePath] of referenceDocuments) {
+      const response = await app.request(route);
+      const servedPdf = Buffer.from(await response.arrayBuffer());
+      const referencePdf = await readFile(new URL(referencePath, import.meta.url));
+
+      expect(response.status, route).toBe(200);
+      expect(Buffer.compare(servedPdf, referencePdf), route).toBe(0);
     }
   });
 

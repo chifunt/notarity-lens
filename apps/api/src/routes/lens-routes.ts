@@ -58,10 +58,15 @@ function isPdfFile(file: File) {
   return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 }
 
-const fixturePdfDirectories: Record<z.infer<typeof PersonaSchema>, string> = {
-  joshua: "joshua-timms",
-  robert: "robert-stevens",
-  elizabeth: "elizabeth-midgley",
+type Persona = z.infer<typeof PersonaSchema>;
+
+const referencePdfDirectories: Partial<Record<Persona, string>> = {
+  joshua: "joshua",
+  robert: "robert",
+  elizabeth: "elizabeth",
+};
+
+const generatedPdfDirectories: Partial<Record<Persona, string>> = {
   amara: "amara-okafor",
   noah: "noah-chen",
   sofia: "sofia-rossi",
@@ -69,11 +74,42 @@ const fixturePdfDirectories: Record<z.infer<typeof PersonaSchema>, string> = {
   priya: "priya-nair",
 };
 
-function fixturePdfUrl(persona: z.infer<typeof PersonaSchema>, filename: string) {
-  return new URL(
-    `../../../../docs/generated-personas/${fixturePdfDirectories[persona]}/${filename}`,
-    import.meta.url,
-  );
+function fixturePdfUrls(persona: Persona, filename: string) {
+  const urls: URL[] = [];
+  const referenceDirectory = referencePdfDirectories[persona];
+  const generatedDirectory = generatedPdfDirectories[persona];
+
+  if (referenceDirectory) {
+    urls.push(
+      new URL(
+        `../../../../_context/notarity-reference-materials/personas/${referenceDirectory}/documents/${filename}`,
+        import.meta.url,
+      ),
+    );
+  }
+
+  if (generatedDirectory) {
+    urls.push(
+      new URL(
+        `../../../../docs/generated-personas/${generatedDirectory}/${filename}`,
+        import.meta.url,
+      ),
+    );
+  }
+
+  return urls;
+}
+
+async function readFixturePdf(persona: Persona, filename: string) {
+  for (const url of fixturePdfUrls(persona, filename)) {
+    try {
+      return await readFile(url);
+    } catch {
+      // Try the next configured source for this fixture document.
+    }
+  }
+
+  throw new Error("Fixture PDF is not available");
 }
 
 function contentDispositionFilename(filename: string) {
@@ -103,9 +139,7 @@ export function createLensRoutes() {
     if (!document) return c.json(jsonError("Unknown fixture document", 404), 404);
 
     try {
-      const pdf = await readFile(
-        fixturePdfUrl(parsed.data.persona, document.filename),
-      );
+      const pdf = await readFixturePdf(parsed.data.persona, document.filename);
       return new Response(new Uint8Array(pdf), {
         status: 200,
         headers: {
