@@ -666,3 +666,19 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue accessibility checks for repeated controls and mobile stepper behavior.
+
+## Sprint 41: Shipping review route alignment
+
+- Status: complete
+- Scope: make the final-review shipping row send users to the screen that can resolve shipping confirmation.
+- Changes:
+  - Changed `Change Shipping` from Evidence to Country, matching the unresolved-field `Review shipping` action and the screen that confirms country/shipping context.
+- Verification:
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - Browser check: unconfirmed Joshua review exposes one `Change Shipping` action and routes it to `/lens/country`.
+  - Browser check: the destination shows the country question, shipping context, and `Confirm Spain`.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking review `Change` destinations against where each field can actually be resolved.

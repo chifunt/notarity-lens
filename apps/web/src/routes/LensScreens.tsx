@@ -1021,7 +1021,7 @@ export function ReviewScreen() {
                       label: "Shipping",
                       value: formatShippingSummary(fixture.payload),
                       status: statuses.shipping,
-                      onChange: () => navigate("/lens/evidence"),
+                      onChange: () => navigate("/lens/country"),
                     },
                   ]}
                 />
