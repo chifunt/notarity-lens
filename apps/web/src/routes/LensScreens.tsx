@@ -104,6 +104,7 @@ function SampleRequestGrid({
           type="button"
           onClick={() => onSelect(sample.id)}
           disabled={loading}
+          aria-label={`Use ${sample.name} sample request`}
           className="rounded-lg border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
         >
           <span className="text-sm font-semibold text-foreground">{sample.name}</span>
@@ -242,7 +243,10 @@ export function StartScreen() {
             aria-hidden="true"
             tabIndex={-1}
             onChange={(event) => {
-              void uploadAndContinue(event.currentTarget.files);
+              const input = event.currentTarget;
+              void uploadAndContinue(input.files).finally(() => {
+                input.value = "";
+              });
             }}
           />
           <button
@@ -278,7 +282,8 @@ export function StartScreen() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="rounded-xl border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            disabled={loading}
+            className="rounded-xl border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
           >
             <Smartphone className="h-5 w-5 text-primary" aria-hidden="true" />
             <span className="mt-3 block text-sm font-semibold text-foreground">
@@ -291,7 +296,8 @@ export function StartScreen() {
           <button
             type="button"
             onClick={() => navigate("/lens/analyze")}
-            className="rounded-xl border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            disabled={loading}
+            className="rounded-xl border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
           >
             <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
             <span className="mt-3 block text-sm font-semibold text-foreground">

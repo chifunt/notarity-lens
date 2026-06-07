@@ -532,3 +532,21 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue store and UI state audits, especially race-prone navigation and failure states.
+
+## Sprint 34: Sample picker accessibility polish
+
+- Status: complete
+- Scope: improve accessible control names and upload-state behavior in the start/sample picker area.
+- Changes:
+  - Sample request cards now expose concise accessible names such as `Use Robert Stevens sample request`.
+  - The hidden file input clears after upload handling so selecting the same PDF again can trigger another upload.
+  - Secondary file/continue controls are disabled while an upload or sample load is in progress.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: sample request cards expose concise accessible names for Joshua, Robert, and Elizabeth.
+  - Browser check: selecting Robert via the accessible sample-card name still reaches Robert evidence.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue accessibility and interaction audits for the remaining flow controls.
