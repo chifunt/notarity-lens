@@ -21,9 +21,15 @@ export function CountrySemanticsCard({
   const [helpOpen, setHelpOpen] = useState(false);
   const countryOfUse = formatCountry(inference.countryOfUse.value);
   const billingCountry = formatCountry(payload.billingDetails.countryCode);
-  const shippingCountry = payload.shippingDetails
-    ? formatCountry(payload.shippingDetails.countryCode)
-    : billingCountry;
+  const hasHardCopy = payload.hardCopy?.hardCopy === true;
+  const shippingCountry = hasHardCopy
+    ? payload.shippingDetails
+      ? formatCountry(payload.shippingDetails.countryCode)
+      : "Shipping details needed"
+    : "No hard copy shipment";
+  const semanticSummary = hasHardCopy
+    ? `This can be valid: the document is for ${countryOfUse}, billing is in ${billingCountry}, and shipping is to ${shippingCountry}.`
+    : `This can be valid: the document is for ${countryOfUse}, billing is in ${billingCountry}, and no hard copy shipment is requested.`;
 
   return (
     <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)] sm:p-6">
@@ -61,10 +67,7 @@ export function CountrySemanticsCard({
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-status-confirmed bg-status-confirmed/60 px-4 py-3 text-sm text-status-confirmed-foreground">
         <div className="flex items-center gap-2">
           <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
-          <span>
-            This can be valid: the document is for {countryOfUse}, billing is in
-            {` ${billingCountry}`}, and shipping is to {shippingCountry}.
-          </span>
+          <span>{semanticSummary}</span>
         </div>
         <ArrowRight className="hidden h-4 w-4 md:block" aria-hidden="true" />
       </div>

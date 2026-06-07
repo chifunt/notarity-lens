@@ -1017,3 +1017,27 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: browser-test the Amara flow end to end and polish any UI issues exposed by having four sample personas.
+
+## Sprint 62: Amara browser output polish
+
+- Status: complete
+- Scope: run Amara through the local browser flow and polish any output issues.
+- Browser findings:
+  - Start exposes `Use Amara Okafor sample request` with the expected accessible name.
+  - Evidence includes Amara, Germany, Netherlands, and Signature notarisation.
+  - Country review correctly separates Germany as country of use from Netherlands as billing/home.
+  - Cost and final review show EUR 120 and no unresolved blockers after country and route confirmation.
+  - Mock submit reaches Success with a `mock_appt_...` id.
+  - Mobile start page at `390x844` shows all four samples without horizontal overflow.
+- Changes:
+  - Fixed the country semantics card for no-hard-copy cases. It now shows `No hard copy shipment` and says no shipment is requested instead of reusing billing country as a shipping destination.
+- Verification:
+  - Browser check: Amara desktop flow from Start to Success succeeds.
+  - Browser check: mobile Start sample grid has no horizontal overflow at `390x844`.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add the first insufficient-data PDF persona so missing evidence becomes a documented review state.

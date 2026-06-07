@@ -34,3 +34,4 @@ The recurring requirements are:
 |---|---|---|
 | 60 | Complete | Added this matrix and a dependency-free fixture PDF writer so every new case can include a reproducible PDF artifact. |
 | 61 | Complete | Added Amara Okafor with generated PDF, complete document evidence, `DE` country of use, `NL` billing/home, signature notarisation, no hard copy, and EUR 120 mock price. |
+| 62 | Complete | Browser-tested Amara end to end. Evidence, country, route, cost, review, and mock submit are coherent; fixed the no-hard-copy country card so it no longer displays billing country as a shipment. |
