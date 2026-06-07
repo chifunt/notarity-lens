@@ -1,4 +1,5 @@
 import {
+  ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
   amaraFixture,
   joshuaFixture,
   kenjiFixture,
@@ -289,6 +290,23 @@ describe("Lens store sample flow", () => {
     });
     expect(fixture?.payload?.destinationCountry).toBe("ES");
     expect(fixture?.payload?.participants[0]?.email).toBe("noah@example.com");
+  });
+
+  it("syncs route and apostille edits into the draft payload", async () => {
+    await expect(useLensStore.getState().loadPersona("joshua")).resolves.toBe(true);
+
+    useLensStore.getState().saveInferenceField({
+      key: "recommendedProduct",
+      value: "signature_notarisation",
+    });
+    useLensStore.getState().saveInferenceField({ key: "apostille", value: false });
+
+    expect(useLensStore.getState().fixture?.payload?.products).toEqual([
+      expect.objectContaining({
+        apostille: false,
+        id: ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
+      }),
+    ]);
   });
 
   it("loads Sofia with country conflict evidence through the generic persona loader", async () => {

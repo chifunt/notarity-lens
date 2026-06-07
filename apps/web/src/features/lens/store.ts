@@ -1,5 +1,11 @@
 import { create } from "zustand";
 import {
+  ELIZABETH_FLEXCO_PRODUCT_ID,
+  JOSHUA_NIE_APPLICATION_PRODUCT_ID,
+  JOSHUA_NIE_PERSONAL_DATA_PRODUCT_ID,
+  ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
+} from "@notarity-lens/shared";
+import {
   draftPayload,
   getPersonaFixture,
   inferDocuments,
@@ -111,6 +117,15 @@ const fieldLabels: Record<string, string> = {
   recommendedProduct: "Recommended product",
   requiredCompanionDocument: "Required companion document",
   shippingAddress: "Shipping address",
+};
+
+const productIdsByRoute: Record<string, string[]> = {
+  flexco_incorporation: [ELIZABETH_FLEXCO_PRODUCT_ID],
+  nie_number_application: [
+    JOSHUA_NIE_APPLICATION_PRODUCT_ID,
+    JOSHUA_NIE_PERSONAL_DATA_PRODUCT_ID,
+  ],
+  signature_notarisation: [ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID],
 };
 
 function normalizeFieldValue(input: SaveInferenceFieldInput) {
@@ -266,6 +281,38 @@ function syncPayloadWithField(
       ...payload,
       hardCopy: { ...payload.hardCopy, hardCopy: value },
       shippingDetails: value ? payload.shippingDetails : undefined,
+    };
+  }
+
+  if (input.key === "recommendedProduct" && typeof value === "string") {
+    const productIds = productIdsByRoute[value];
+    if (!productIds) return payload;
+
+    const existingProductsById = new Map(
+      payload.products.map((product) => [product.id, product]),
+    );
+
+    return {
+      ...payload,
+      products: productIds.map((productId) => ({
+        id: productId,
+        apostille:
+          productId === JOSHUA_NIE_APPLICATION_PRODUCT_ID
+            ? true
+            : existingProductsById.get(productId)?.apostille ?? false,
+        files: existingProductsById.get(productId)?.files ?? [],
+      })),
+    };
+  }
+
+  if (input.key === "apostille" && typeof value === "boolean") {
+    return {
+      ...payload,
+      products: payload.products.map((product) =>
+        product.id === JOSHUA_NIE_PERSONAL_DATA_PRODUCT_ID
+          ? product
+          : { ...product, apostille: value },
+      ),
     };
   }
 
