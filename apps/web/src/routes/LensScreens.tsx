@@ -48,7 +48,13 @@ import {
 import { formatEuro } from "@/features/lens/format";
 import { unresolvedConfirmationFields } from "@/features/lens/readiness";
 import { useLensStore } from "@/features/lens/store";
-import type { PersonaFixture, PriceResponse } from "@/features/lens/types";
+import type {
+  DocumentFactExtraction,
+  FieldStatus,
+  InferredField,
+  PersonaFixture,
+  PriceResponse,
+} from "@/features/lens/types";
 
 const sampleRequests: Array<{
   id: PersonaFixture["id"];
@@ -90,6 +96,52 @@ const sampleRequests: Array<{
     ],
   },
 ];
+
+function reviewStatusForFields(
+  fields: Array<InferredField | undefined>,
+  fallback: FieldStatus = "confirmed",
+): FieldStatus {
+  const statuses = fields.flatMap((field) => (field ? [field.status] : []));
+  if (!statuses.length) return fallback;
+  if (statuses.some((status) => status === "conflict")) return "conflict";
+  if (statuses.some((status) => status === "missing")) return "missing";
+  if (statuses.some((status) => status === "needs_review")) return "needs_review";
+  if (statuses.some((status) => status === "edited")) return "edited";
+  if (statuses.some((status) => status === "inferred")) return "inferred";
+  if (statuses.every((status) => status === "not_applicable")) return "not_applicable";
+  return "confirmed";
+}
+
+function reviewActionForField(field: InferredField) {
+  switch (field.key) {
+    case "countryOfUse":
+      return { label: "Review country", path: "/lens/country" };
+    case "shippingAddress":
+      return { label: "Review shipping", path: "/lens/country" };
+    case "apostille":
+      return { label: "Review apostille", path: "/lens/plan" };
+    case "hardCopy":
+      return { label: "Review hard copy", path: "/lens/plan" };
+    case "participant":
+    case "participantAmbiguity":
+      return { label: "Review participants", path: "/lens/appointment" };
+    default:
+      return { label: "Review evidence", path: "/lens/evidence" };
+  }
+}
+
+function reviewStatuses(inference: DocumentFactExtraction, hasShippingDetails: boolean) {
+  return {
+    products: reviewStatusForFields(inference.products),
+    billing: reviewStatusForFields([inference.billingAddress]),
+    shipping: hasShippingDetails
+      ? reviewStatusForFields([inference.shippingAddress], "needs_review")
+      : "not_applicable",
+    hardCopy: inference.hardCopy?.value
+      ? reviewStatusForFields([inference.hardCopy], "needs_review")
+      : "not_applicable",
+  } satisfies Record<string, FieldStatus>;
+}
 
 function SampleRequestGrid({
   loading,
@@ -805,7 +857,11 @@ export function ReviewScreen() {
               fixture.inference.people.some((personField) => personField.key === field.key),
             )
               ? "needs_review"
-              : "confirmed";
+              : reviewStatusForFields(fixture.inference.people);
+            const statuses = reviewStatuses(
+              fixture.inference,
+              Boolean(fixture.payload.shippingDetails),
+            );
             const readyToSubmit =
               fixture.inference.countryOfUse.status === "confirmed" &&
               fixture.inference.products.every((field) => field.status === "confirmed") &&
@@ -890,7 +946,22 @@ export function ReviewScreen() {
                               </p>
                             ) : null}
                           </div>
-                          <StatusBadge status={field.status} />
+                          <div className="grid justify-items-start gap-2 sm:justify-items-end">
+                            <StatusBadge status={field.status} />
+                            {(() => {
+                              const action = reviewActionForField(field);
+                              return (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => navigate(action.path)}
+                                >
+                                  {action.label}
+                                </Button>
+                              );
+                            })()}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -908,7 +979,7 @@ export function ReviewScreen() {
                     {
                       label: "Products",
                       value: formatProductSummary(fixture.payload),
-                      status: "confirmed",
+                      status: statuses.products,
                       onChange: () => navigate("/lens/plan"),
                     },
                     {
@@ -920,7 +991,7 @@ export function ReviewScreen() {
                     {
                       label: "Hard copy",
                       value: formatShippingSummary(fixture.payload),
-                      status: fixture.payload.hardCopy.hardCopy ? "confirmed" : "not_applicable",
+                      status: statuses.hardCopy,
                       onChange: () => navigate("/lens/plan"),
                     },
                     {
@@ -943,13 +1014,13 @@ export function ReviewScreen() {
                     {
                       label: "Billing",
                       value: formatAddress(fixture.payload.billingDetails),
-                      status: "confirmed",
+                      status: statuses.billing,
                       onChange: () => navigate("/lens/evidence"),
                     },
                     {
                       label: "Shipping",
                       value: formatShippingSummary(fixture.payload),
-                      status: fixture.payload.shippingDetails ? "confirmed" : "not_applicable",
+                      status: statuses.shipping,
                       onChange: () => navigate("/lens/evidence"),
                     },
                   ]}

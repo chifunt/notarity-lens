@@ -630,3 +630,22 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue route guard audits for other direct-navigation edge cases.
+
+## Sprint 39: Review resolution actions
+
+- Status: complete
+- Scope: make blocked final-review states honest and directly actionable.
+- Changes:
+  - Added review status aggregation so inferred products, people, billing, unresolved shipping, and unresolved hard-copy state are not shown as confirmed prematurely.
+  - Added per-field actions in the unresolved-confirmations panel for country, shipping, apostille, hard copy, and participant ambiguity.
+  - Review actions route users to the screen that can resolve the blocker instead of relying on the lower review table.
+- Verification:
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: unconfirmed Joshua review shows inferred product/billing/participant rows, review-required shipping and hard-copy rows, and routes `Review hard copy` to Route.
+  - Browser check: Elizabeth participant ambiguity shows `Review participants`, routes to Appointment, and exposes `Confirm listed participants`.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue auditing review and route summaries for stale or misleading state.
