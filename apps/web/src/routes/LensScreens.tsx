@@ -46,6 +46,7 @@ import {
   formatShippingSummary,
 } from "@/features/lens/display";
 import { formatEuro } from "@/features/lens/format";
+import { unresolvedConfirmationFields } from "@/features/lens/readiness";
 import { useLensStore } from "@/features/lens/store";
 import type { PersonaFixture, PriceResponse } from "@/features/lens/types";
 
@@ -772,9 +773,16 @@ export function ReviewScreen() {
       {(fixture, price) => (
         <ScreenFrame>
           {(() => {
+            const unresolvedFields = unresolvedConfirmationFields(fixture.inference);
+            const peopleStatus = unresolvedFields.some((field) =>
+              fixture.inference.people.some((personField) => personField.key === field.key),
+            )
+              ? "needs_review"
+              : "confirmed";
             const readyToSubmit =
               fixture.inference.countryOfUse.status === "confirmed" &&
               fixture.inference.products.every((field) => field.status === "confirmed") &&
+              unresolvedFields.length === 0 &&
               Boolean(price);
             const submitLabel =
               price?.source === "mock"
@@ -825,6 +833,42 @@ export function ReviewScreen() {
                     })}
                   </ul>
                 </section>
+                {unresolvedFields.length ? (
+                  <section className="rounded-xl border border-status-needs-review bg-card p-5 shadow-[var(--shadow-card)]">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h2 className="text-base font-semibold text-foreground">
+                          Confirm these before submit
+                        </h2>
+                        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                          Lens will not create a booking request while required
+                          document inferences still need review.
+                        </p>
+                      </div>
+                      <StatusBadge status="needs_review" />
+                    </div>
+                    <div className="mt-4 grid gap-3">
+                      {unresolvedFields.map((field) => (
+                        <div
+                          key={field.key}
+                          className="grid gap-2 rounded-lg border border-border bg-lens-surface-muted p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-foreground">
+                              {field.label}
+                            </p>
+                            {field.explanation ? (
+                              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                {field.explanation}
+                              </p>
+                            ) : null}
+                          </div>
+                          <StatusBadge status={field.status} />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
                 <ReviewSection
                   title="Country and route"
                   rows={[
@@ -866,7 +910,7 @@ export function ReviewScreen() {
                     {
                       label: "Participant",
                       value: formatParticipantsSummary(fixture.payload),
-                      status: "confirmed",
+                      status: peopleStatus,
                       onChange: () => navigate("/lens/appointment"),
                     },
                     {

@@ -571,3 +571,23 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: keep auditing copy that may overstate certainty around inferred people and participant ambiguity.
+
+## Sprint 36: Required confirmation gating
+
+- Status: complete
+- Scope: ensure final review cannot submit while any required inference field remains unresolved.
+- Changes:
+  - Added review-readiness helpers for required and unresolved confirmation fields.
+  - Final review now blocks submit when unresolved required confirmations remain.
+  - Final review surfaces unresolved fields in a dedicated review panel.
+  - Participant rows show `needs_review` when a people inference is still unresolved.
+  - Added regression coverage for Joshua confirmation readiness and Elizabeth participant ambiguity.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: Elizabeth review shows unresolved Participant ambiguity and no mock submit CTA.
+  - Browser check: Joshua review remains mock-submit ready after country and route confirmations.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add clearer resolution paths for non-P0 ambiguity cases, especially participant review.
