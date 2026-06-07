@@ -4,7 +4,9 @@ import {
   ArrowRight,
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
   Clock3,
+  FileSearch,
   FileText,
   FileUp,
   Globe2,
@@ -284,6 +286,75 @@ function fixtureShippingSummary(fixture: LensFixture) {
     : "Shipping details needed";
 }
 
+function SubmissionDocumentPreview({ fixture }: { fixture: LensFixture }) {
+  const [open, setOpen] = useState(false);
+  const [activeDocumentId, setActiveDocumentId] = useState<string | undefined>();
+  const payloadFiles = fixture.payload?.products.flatMap((product) => product.files) ?? [];
+
+  return (
+    <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <FileSearch className="h-5 w-5 text-primary" aria-hidden="true" />
+            <h2 className="text-base font-semibold text-foreground">
+              Documents before submit
+            </h2>
+          </div>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Preview the extracted PDFs and the payload file references before
+            creating the booking request.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium">
+            <span className="rounded-full bg-status-confirmed px-2 py-1 text-status-confirmed-foreground">
+              {fixture.documents.length} extracted document
+              {fixture.documents.length === 1 ? "" : "s"}
+            </span>
+            <span className="rounded-full bg-lens-surface-muted px-2 py-1 text-muted-foreground">
+              {payloadFiles.length
+                ? `${payloadFiles.length} payload file reference${
+                    payloadFiles.length === 1 ? "" : "s"
+                  }`
+                : "No file attachment required by selected product"}
+            </span>
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setOpen((value) => !value)}
+          aria-expanded={open}
+          aria-controls="submission-document-preview"
+        >
+          {open ? "Hide documents" : "Preview documents"}
+        </Button>
+      </div>
+
+      {open ? (
+        <div id="submission-document-preview" className="mt-5 grid gap-4">
+          <DocumentFileList documents={fixture.documents} />
+          {payloadFiles.length ? (
+            <div className="rounded-lg border border-border bg-lens-surface-muted p-3">
+              <p className="text-xs font-medium uppercase text-muted-foreground">
+                Payload file references
+              </p>
+              <p className="mt-2 break-words text-sm font-semibold text-foreground">
+                {payloadFiles.join(", ")}
+              </p>
+            </div>
+          ) : null}
+          <PdfPreviewPanel
+            inference={fixture.inference}
+            documents={fixture.documents}
+            activeDocumentId={activeDocumentId}
+            onActiveDocumentChange={setActiveDocumentId}
+          />
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function SampleRequestGrid({
   loading,
   onSelect,
@@ -327,6 +398,57 @@ function SampleRequestGrid({
         </button>
       ))}
     </div>
+  );
+}
+
+function DemoSampleRequests({
+  loading,
+  onSelect,
+  title = "Demo sample requests",
+  defaultOpen = false,
+}: {
+  loading: boolean;
+  onSelect: (persona: PersonaFixture["id"]) => void;
+  title?: string;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <section className="rounded-xl border border-border bg-card shadow-[var(--shadow-card)]">
+      <button
+        type="button"
+        className="flex w-full items-start justify-between gap-4 px-4 py-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        aria-expanded={open}
+        aria-controls="demo-sample-requests"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className="min-w-0">
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+            <FileSearch className="h-4 w-4 text-primary" aria-hidden="true" />
+            {title}
+          </span>
+          <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+            These are demo-only fixtures for testing known scenarios. Real bookings
+            should start with uploaded PDFs.
+          </span>
+          <span className="mt-2 inline-flex rounded-full bg-lens-surface-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+            {sampleRequests.length} demo cases hidden by default
+          </span>
+        </span>
+        <ChevronDown
+          className={`mt-1 h-5 w-5 shrink-0 text-muted-foreground transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+          aria-hidden="true"
+        />
+      </button>
+      {open ? (
+        <div id="demo-sample-requests" className="border-t border-border p-4">
+          <SampleRequestGrid loading={loading} onSelect={onSelect} />
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -379,19 +501,12 @@ function RequireFixture({
         <DemoError />
         <div className="grid gap-4">
           <EmptyState onLoad={loadJoshuaDemo} loading={loading} />
-          <section>
-            <h2 className="text-sm font-semibold text-foreground">
-              Or choose another sample
-            </h2>
-            <div className="mt-3">
-              <SampleRequestGrid
-                loading={loading}
-                onSelect={(persona) => {
-                  void loadPersona(persona);
-                }}
-              />
-            </div>
-          </section>
+          <DemoSampleRequests
+            loading={loading}
+            onSelect={(persona) => {
+              void loadPersona(persona);
+            }}
+          />
         </div>
       </ScreenFrame>
     );
@@ -482,7 +597,7 @@ export function StartScreen() {
               I will upload it later
             </Button>
             <Button variant="ghost" onClick={() => void loadAndContinue()} disabled={loading}>
-              Use Joshua sample
+              Use Joshua demo sample
             </Button>
           </div>
         </div>
@@ -518,17 +633,14 @@ export function StartScreen() {
           </button>
         </div>
 
-        <section className="mt-6">
-          <h2 className="text-sm font-semibold text-foreground">Sample requests</h2>
-          <div className="mt-3">
-            <SampleRequestGrid
-              loading={loading}
-              onSelect={(persona) => {
-                void loadAndContinue(persona);
-              }}
-            />
-          </div>
-        </section>
+        <div className="mt-6">
+          <DemoSampleRequests
+            loading={loading}
+            onSelect={(persona) => {
+              void loadAndContinue(persona);
+            }}
+          />
+        </div>
       </section>
     </AppShell>
   );
@@ -637,36 +749,23 @@ export function AnalyzeScreen() {
                 request when you need a complete route, price, and payload draft.
               </p>
             </div>
-            <section>
-              <h2 className="text-sm font-semibold text-foreground">
-                Continue with a sample request
-              </h2>
-              <div className="mt-3">
-                <SampleRequestGrid
-                  loading={loading}
-                  onSelect={(persona) => {
-                    void loadSampleInPlace(persona);
-                  }}
-                />
-              </div>
-            </section>
+            <DemoSampleRequests
+              loading={loading}
+              title="Demo fallback samples"
+              onSelect={(persona) => {
+                void loadSampleInPlace(persona);
+              }}
+            />
           </div>
         ) : (
           <div className="grid gap-4">
             <EmptyState onLoad={loadJoshuaDemo} loading={loading} />
-            <section>
-              <h2 className="text-sm font-semibold text-foreground">
-                Or choose another sample
-              </h2>
-              <div className="mt-3">
-                <SampleRequestGrid
-                  loading={loading}
-                  onSelect={(persona) => {
-                    void loadSampleInPlace(persona);
-                  }}
-                />
-              </div>
-            </section>
+            <DemoSampleRequests
+              loading={loading}
+              onSelect={(persona) => {
+                void loadSampleInPlace(persona);
+              }}
+            />
           </div>
         )}
         {fixture ? <ReadingProgress items={progressItems} /> : null}
@@ -1197,6 +1296,7 @@ export function ReviewScreen() {
                     },
                   ]}
                 />
+                <SubmissionDocumentPreview fixture={fixture} />
                 {payload ? (
                   <PayloadPreview payload={payload} />
                 ) : (
