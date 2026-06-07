@@ -21,6 +21,28 @@ describe("persona fixtures", () => {
     }
   });
 
+  it("covers the intended original and generated persona scenario mix", () => {
+    expect(Object.keys(personaFixtures).sort()).toEqual([
+      "amara",
+      "elizabeth",
+      "joshua",
+      "kenji",
+      "noah",
+      "priya",
+      "robert",
+      "sofia",
+    ]);
+    expect(personaFixtures.amara.inference.countryOfUse.status).toBe("inferred");
+    expect(personaFixtures.noah.inference.countryOfUse.status).toBe("missing");
+    expect(personaFixtures.sofia.inference.countryOfUse.status).toBe("conflict");
+    expect(personaFixtures.kenji.payload.hardCopy.hardCopy).toBe(true);
+    expect(
+      personaFixtures.priya.inference.people.some(
+        (field) => field.key === "participantAmbiguity",
+      ),
+    ).toBe(true);
+  });
+
   it("keeps the Joshua payload at the expected critical route", () => {
     const payload = AppointmentPayloadSchema.parse(joshuaPayload);
 

@@ -1150,3 +1150,18 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add aggregate persona-result documentation and regression coverage across all generated cases.
+
+## Sprint 68: Aggregate persona results and regression coverage
+
+- Status: complete
+- Scope: consolidate the persona results and add a regression test for the intended case mix.
+- Changes:
+  - Added `docs/persona-case-results.md` with the original three personas, five generated-PDF personas, generated artifact paths, expected outputs, and browser results.
+  - Added shared fixture coverage that locks the eight expected persona ids and the generated scenario mix: complete generic route, missing country evidence, country conflict, hard-copy/apostille route, and participant ambiguity.
+- Verification:
+  - `pnpm --filter @notarity-lens/shared test` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: run a full final regression/browser sweep and record the final 10-sprint result.
