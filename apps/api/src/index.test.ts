@@ -20,6 +20,14 @@ describe("api routes", () => {
     expect(body.payload.destinationCountry).toBe("ES");
   });
 
+  it("rejects unknown fixture personas", async () => {
+    const response = await app.request("/api/fixtures/unknown");
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("Unknown fixture persona");
+  });
+
   it("returns mock inference", async () => {
     const response = await app.request("/api/infer", {
       method: "POST",
@@ -31,6 +39,32 @@ describe("api routes", () => {
     expect(response.status).toBe(200);
     expect(body.source).toBe("mock");
     expect(body.inference.countryOfUse.value).toBe("ES");
+  });
+
+  it("rejects unknown inference personas", async () => {
+    const response = await app.request("/api/infer", {
+      method: "POST",
+      body: JSON.stringify({ persona: "unknown" }),
+      headers: { "content-type": "application/json" },
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Unknown fixture persona");
+  });
+
+  it("rejects unknown upload fixture personas", async () => {
+    const formData = new FormData();
+    formData.append("persona", "unknown");
+
+    const response = await app.request("/api/documents/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Unknown fixture persona");
   });
 
   it("returns normalized mock price", async () => {

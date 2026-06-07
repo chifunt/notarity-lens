@@ -738,3 +738,20 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue reducing duplicated readiness and status derivation across review surfaces.
+
+## Sprint 45: API persona validation hardening
+
+- Status: complete
+- Scope: prevent invalid persona values from throwing or falling through on API routes.
+- Changes:
+  - Shared the same persona enum across fixture params and persona request bodies.
+  - `/api/documents/upload`, `/api/extract`, and `/api/infer` now return controlled JSON errors for unknown personas instead of casting or throwing.
+  - Added API coverage for unknown fixture, inference, and upload fixture personas.
+- Verification:
+  - `pnpm --filter @notarity-lens/api test` succeeds.
+  - `pnpm --filter @notarity-lens/api typecheck` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue API input validation audits for payload and multipart edge cases.

@@ -4,7 +4,6 @@ import {
   AppointmentPayloadSchema,
   PersonaFixtureSchema,
   personaFixtures,
-  type PersonaId,
 } from "@notarity-lens/shared";
 import { buildJoshuaPayload } from "@notarity-lens/notarity";
 import { inferDocuments } from "../ai/inference-client.js";
@@ -12,12 +11,14 @@ import { createNotarityClient } from "../clients/notarity-client.js";
 import { fixtureDocuments, uploadedDocuments } from "../extraction/mock-extraction.js";
 import { getApiConfig } from "../utils/env.js";
 
+const PersonaSchema = z.enum(["joshua", "robert", "elizabeth"]);
+
 const PersonaParamSchema = z.object({
-  persona: z.enum(["joshua", "robert", "elizabeth"]),
+  persona: PersonaSchema,
 });
 
 const PersonaBodySchema = z.object({
-  persona: z.enum(["joshua", "robert", "elizabeth"]).default("joshua"),
+  persona: PersonaSchema.default("joshua"),
 });
 
 function jsonError(message: string, status = 400) {
@@ -40,12 +41,18 @@ export function createLensRoutes() {
     const files = formData
       .getAll("files")
       .filter((entry): entry is File => entry instanceof File);
-    const persona = (formData.get("persona")?.toString() || "joshua") as PersonaId;
+    const parsedPersona = PersonaBodySchema.safeParse({
+      persona: formData.get("persona")?.toString() || undefined,
+    });
+
+    if (!parsedPersona.success) {
+      return c.json(jsonError("Unknown fixture persona"), 400);
+    }
 
     if (files.length === 0) {
       return c.json({
         sessionId: `session_${Date.now()}`,
-        documents: fixtureDocuments(persona),
+        documents: fixtureDocuments(parsedPersona.data.persona),
         source: "fixture",
       });
     }
@@ -58,17 +65,21 @@ export function createLensRoutes() {
   });
 
   app.post("/extract", async (c) => {
-    const body = PersonaBodySchema.parse(await c.req.json().catch(() => ({})));
+    const body = PersonaBodySchema.safeParse(await c.req.json().catch(() => ({})));
+    if (!body.success) return c.json(jsonError("Unknown fixture persona"), 400);
+
     return c.json({
-      documents: fixtureDocuments(body.persona),
+      documents: fixtureDocuments(body.data.persona),
       source: "fixture",
     });
   });
 
   app.post("/infer", async (c) => {
     const config = getApiConfig();
-    const body = PersonaBodySchema.parse(await c.req.json().catch(() => ({})));
-    const response = await inferDocuments(body, config);
+    const body = PersonaBodySchema.safeParse(await c.req.json().catch(() => ({})));
+    if (!body.success) return c.json(jsonError("Unknown fixture persona"), 400);
+
+    const response = await inferDocuments(body.data, config);
     return c.json(response);
   });
 
