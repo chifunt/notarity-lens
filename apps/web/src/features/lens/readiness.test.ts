@@ -1,4 +1,5 @@
 import {
+  amaraFixture,
   elizabethFixture,
   joshuaFixture,
   robertFixture,
@@ -11,12 +12,11 @@ import {
 } from "./readiness";
 import type { DocumentFactExtraction } from "./types";
 
-const joshuaInference =
-  joshuaFixture.inference as unknown as DocumentFactExtraction;
+const joshuaInference = joshuaFixture.inference as unknown as DocumentFactExtraction;
 const elizabethInference =
   elizabethFixture.inference as unknown as DocumentFactExtraction;
-const robertInference =
-  robertFixture.inference as unknown as DocumentFactExtraction;
+const robertInference = robertFixture.inference as unknown as DocumentFactExtraction;
+const amaraInference = amaraFixture.inference as unknown as DocumentFactExtraction;
 
 describe("review readiness", () => {
   it("finds Joshua fields that must be confirmed before submit", () => {
@@ -69,5 +69,22 @@ describe("review readiness", () => {
       unresolvedConfirmationFields(robertInference).map((field) => field.label),
     ).toEqual(["Country of use"]);
     expect(readyForSubmit(robertInference, true)).toBe(false);
+  });
+
+  it("treats Amara as complete after country and route confirmation", () => {
+    const confirmed: DocumentFactExtraction = {
+      ...amaraInference,
+      countryOfUse: { ...amaraInference.countryOfUse, status: "confirmed" },
+      products: amaraInference.products.map((field) => ({
+        ...field,
+        status: "confirmed",
+      })),
+    };
+
+    expect(
+      unresolvedConfirmationFields(amaraInference).map((field) => field.label),
+    ).toEqual(["Country of use", "Recommended product"]);
+    expect(unresolvedConfirmationFields(confirmed)).toEqual([]);
+    expect(readyForSubmit(confirmed, true)).toBe(true);
   });
 });

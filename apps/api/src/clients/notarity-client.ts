@@ -2,6 +2,7 @@ import {
   mockBookingForm,
   personaFixtures,
   productFixtures,
+  ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
   type AppointmentPayload,
   type PersonaId,
   type PriceLine,
@@ -42,8 +43,30 @@ export interface NotarityClient {
 }
 
 function personaForPayload(payload: AppointmentPayload): PersonaId {
+  const matchingFixture = Object.values(personaFixtures).find((fixture) => {
+    const fixtureProducts = fixture.payload.products.map((product) => product.id);
+    const payloadProducts = payload.products.map((product) => product.id);
+    const sameProducts =
+      fixtureProducts.length === payloadProducts.length &&
+      fixtureProducts.every((id, index) => id === payloadProducts[index]);
+    const samePrimaryParticipant =
+      fixture.payload.participants[0]?.email === payload.participants[0]?.email;
+
+    return (
+      fixture.payload.destinationCountry === payload.destinationCountry &&
+      sameProducts &&
+      samePrimaryParticipant
+    );
+  });
+
+  if (matchingFixture) return matchingFixture.id;
   if (payload.destinationCountry === "LT") return "robert";
   if (payload.destinationCountry === "AT") return "elizabeth";
+  if (
+    payload.products.some((product) => product.id === ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID)
+  ) {
+    return "robert";
+  }
   return "joshua";
 }
 

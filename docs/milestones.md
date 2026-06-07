@@ -999,3 +999,21 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: add the first brand-new complete persona with generated PDFs, fixture/API/UI wiring, tests, and documented output.
+
+## Sprint 61: Amara complete generic persona
+
+- Status: complete
+- Scope: add a brand-new persona outside the original Joshua, Robert, and Elizabeth set.
+- Changes:
+  - Generated `docs/generated-personas/amara-okafor/Signature_Authorisation_Amara_Okafor.pdf` from a committed JSON source file.
+  - Added Amara Okafor as a complete generic signature-notarisation fixture with Germany as country of use, Netherlands as billing/home, no apostille, no hard copy, one participant, and EUR 120 mock price.
+  - Expanded shared persona schemas, web fixture types, API persona validation, country/product display labels, and the start-screen sample grid.
+  - Updated mock pricing to match an exact persona fixture before falling back by country/product, preventing generic non-Lithuania payloads from being mispriced as Joshua.
+  - Updated the root `pnpm test` script to rebuild shared/notarity/AI packages before recursive tests so app tests do not read stale package `dist` output.
+- Verification:
+  - Generated PDF validates as a PDF 1.4 document.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: browser-test the Amara flow end to end and polish any UI issues exposed by having four sample personas.

@@ -2,7 +2,9 @@ import { joshuaFixture, robertFixture } from "@notarity-lens/shared";
 import { describe, expect, it } from "vitest";
 import {
   formatBooleanChoice,
+  formatCountry,
   formatFilesSummary,
+  formatFieldValue,
   formatParticipantsSummary,
   formatProductFiles,
   formatShippingSummary,
@@ -23,6 +25,21 @@ describe("Lens display helpers", () => {
 
   it("labels nullable boolean choices as not applicable", () => {
     expect(formatBooleanChoice(null)).toBe("Not applicable");
+  });
+
+  it("formats Amara country and product labels", () => {
+    expect(formatCountry("DE")).toBe("Germany");
+    expect(formatCountry("NL")).toBe("Netherlands");
+    expect(
+      formatFieldValue({
+        key: "recommendedProduct",
+        label: "Recommended product",
+        value: "signature_notarisation",
+        status: "inferred",
+        evidence: [],
+        requiresConfirmation: false,
+      }),
+    ).toBe("Signature notarisation");
   });
 
   it("summarizes all participant emails", () => {

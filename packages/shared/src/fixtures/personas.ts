@@ -207,7 +207,8 @@ export const joshuaInference: DocumentFactExtraction = {
         "350 5th Avenue, New York, NY 10118, United States",
       ),
     ],
-    explanation: "New York is treated as residence and billing context, not country of use.",
+    explanation:
+      "New York is treated as residence and billing context, not country of use.",
     requiresConfirmation: false,
   },
   shippingAddress: {
@@ -341,9 +342,7 @@ export const joshuaPayload: AppointmentPayload = {
       files: [JOSHUA_FILE_B_CANONICAL],
     },
   ],
-  participants: [
-    { email: "joshua.timms@notarity.com", client: true, supervisor: false },
-  ],
+  participants: [{ email: "joshua.timms@notarity.com", client: true, supervisor: false }],
   timeslots: [JOSHUA_TIMESLOT_ID],
   instantNotarisationSupported: false,
   instant: false,
@@ -544,6 +543,236 @@ export const robertFixture: PersonaFixture = {
   },
 };
 
+export const amaraDocuments: ExtractedDocument[] = [
+  {
+    id: "doc-amara-signature-authorisation",
+    filename: "Signature_Authorisation_Amara_Okafor.pdf",
+    canonicalName: "Signature_Authorisation_Amara_Okafor.pdf",
+    mimeType: "application/pdf",
+    size: 1135,
+    extractionStatus: "fixture",
+    textByPage: [
+      {
+        page: 1,
+        text: [
+          "Signature Authorisation Statement for the German Commercial Register.",
+          "Applicant: Amara Okafor.",
+          "Email: amara.okafor@notarity.com.",
+          "Country where this notarised document will be used: Germany.",
+          "Residence and billing address: Herengracht 420, 1017 BZ Amsterdam, Netherlands.",
+          "Purpose: certify Amara Okafor's signature for the appointment of a German branch representative.",
+          "No apostille requested.",
+          "Digital notarised copy is sufficient.",
+          "No hard copy shipment required.",
+        ].join(" "),
+      },
+    ],
+  },
+];
+
+export const amaraInference: DocumentFactExtraction = {
+  persona: "amara",
+  documents: amaraDocuments,
+  countryOfUse: {
+    key: "countryOfUse",
+    label: "Country of use",
+    value: "DE",
+    status: "inferred",
+    confidence: 0.94,
+    evidence: [
+      evidence(
+        "ev-amara-germany",
+        "doc-amara-signature-authorisation",
+        "Signature_Authorisation_Amara_Okafor.pdf",
+        1,
+        "Country where this notarised document will be used: Germany",
+      ),
+      evidence(
+        "ev-amara-register",
+        "doc-amara-signature-authorisation",
+        "Signature_Authorisation_Amara_Okafor.pdf",
+        1,
+        "German Commercial Register",
+      ),
+    ],
+    explanation:
+      "The document explicitly says the notarised document will be used in Germany and mentions the German Commercial Register.",
+    requiresConfirmation: false,
+  },
+  products: [
+    {
+      key: "recommendedProduct",
+      label: "Recommended product",
+      value: "signature_notarisation",
+      status: "inferred",
+      confidence: 0.9,
+      evidence: [
+        evidence(
+          "ev-amara-signature",
+          "doc-amara-signature-authorisation",
+          "Signature_Authorisation_Amara_Okafor.pdf",
+          1,
+          "certify Amara Okafor's signature",
+        ),
+      ],
+      explanation:
+        "A signature certification maps to the generic Signature notarisation product.",
+      requiresConfirmation: false,
+    },
+  ],
+  people: [
+    {
+      key: "participant",
+      label: "Participant",
+      value: "Amara Okafor",
+      status: "inferred",
+      confidence: 0.95,
+      evidence: [
+        evidence(
+          "ev-amara-name",
+          "doc-amara-signature-authorisation",
+          "Signature_Authorisation_Amara_Okafor.pdf",
+          1,
+          "Applicant: Amara Okafor",
+        ),
+      ],
+      explanation: "Amara Okafor appears as the applicant and signer.",
+      requiresConfirmation: false,
+    },
+  ],
+  billingAddress: {
+    key: "billingAddress",
+    label: "Billing/home address",
+    value: "Herengracht 420, 1017 BZ Amsterdam, Netherlands",
+    status: "inferred",
+    confidence: 0.88,
+    evidence: [
+      evidence(
+        "ev-amara-netherlands",
+        "doc-amara-signature-authorisation",
+        "Signature_Authorisation_Amara_Okafor.pdf",
+        1,
+        "Herengracht 420, 1017 BZ Amsterdam, Netherlands",
+      ),
+    ],
+    explanation:
+      "The Netherlands address is residence and billing context, not the country of use.",
+    requiresConfirmation: false,
+  },
+  apostille: {
+    key: "apostille",
+    label: "Apostille",
+    value: false,
+    status: "not_applicable",
+    confidence: 0.86,
+    evidence: [
+      evidence(
+        "ev-amara-no-apostille",
+        "doc-amara-signature-authorisation",
+        "Signature_Authorisation_Amara_Okafor.pdf",
+        1,
+        "No apostille requested",
+      ),
+    ],
+    explanation: "No apostille is requested for this sample.",
+    requiresConfirmation: false,
+  },
+  hardCopy: {
+    key: "hardCopy",
+    label: "Hard copy",
+    value: false,
+    status: "not_applicable",
+    confidence: 0.9,
+    evidence: [
+      evidence(
+        "ev-amara-no-hard-copy",
+        "doc-amara-signature-authorisation",
+        "Signature_Authorisation_Amara_Okafor.pdf",
+        1,
+        "No hard copy shipment required",
+      ),
+    ],
+    explanation: "The document says a digital notarised copy is sufficient.",
+    requiresConfirmation: false,
+  },
+  uncertainties: [],
+};
+
+export const amaraPriceLines: PriceLine[] = [
+  {
+    name: "Signature notarisation",
+    _product: ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
+    amount: 1,
+    pricePerUnit: 12000,
+    net: 12000,
+    identifier: 1,
+    pricingEnabled: true,
+  },
+];
+
+export const amaraPayload: AppointmentPayload = {
+  _bookingForm: NOTARITY_BOOKING_FORM_ID,
+  language: "en",
+  origin: NOTARITY_ORIGIN,
+  confirmedPrice: 120,
+  hardCopy: { expressShipping: false, hardCopy: false },
+  newsletter: false,
+  mode: "debug",
+  _appointmentRequestDraft: NOTARITY_DRAFT_ID,
+  destinationCountry: "DE",
+  products: [
+    {
+      id: ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
+      apostille: false,
+      userInput: "",
+      documentsNotReadyYet: false,
+      needHelpDrafting: false,
+      proofOfRepresentation: false,
+      files: [],
+    },
+  ],
+  participants: [{ email: "amara.okafor@notarity.com", client: true, supervisor: false }],
+  timeslots: [ROBERT_TIMESLOT_ID],
+  instantNotarisationSupported: false,
+  instant: false,
+  timezone: "Europe/Vienna",
+  billingDetails: {
+    firstName: "Amara",
+    lastName: "Okafor",
+    business: false,
+    email: "amara.okafor@notarity.com",
+    phoneNumber: "+31615550142",
+    address: "Herengracht 420",
+    zipCode: "1017 BZ",
+    city: "Amsterdam",
+    stateProvince: "Noord-Holland",
+    countryCode: "NL",
+  },
+  contactDetails: {
+    contactDetailsSameAsBillingDetails: true,
+    firstName: "Amara",
+    lastName: "Okafor",
+    business: false,
+    email: "amara.okafor@notarity.com",
+    phoneNumber: "+31615550142",
+  },
+  preferredNotary: "",
+};
+
+export const amaraFixture: PersonaFixture = {
+  id: "amara",
+  name: "Amara Okafor",
+  scenario:
+    "Nigerian-Dutch operations lead in Amsterdam needs her signature notarised for a German Commercial Register filing.",
+  documents: amaraDocuments,
+  inference: amaraInference,
+  products: productFixtures.filter(
+    (product) => product.id === ROBERT_POWER_OF_ATTORNEY_PRODUCT_ID,
+  ),
+  priceLines: amaraPriceLines,
+  payload: amaraPayload,
+};
+
 export const elizabethFixture: PersonaFixture = {
   id: "elizabeth",
   name: "Elizabeth Midgley",
@@ -605,7 +834,9 @@ export const elizabethFixture: PersonaFixture = {
       "Scenario mentions a co-founder in Berlin, but expected payload includes Elizabeth only.",
     ],
   },
-  products: productFixtures.filter((product) => product.id === ELIZABETH_FLEXCO_PRODUCT_ID),
+  products: productFixtures.filter(
+    (product) => product.id === ELIZABETH_FLEXCO_PRODUCT_ID,
+  ),
   priceLines: [],
   payload: {
     _bookingForm: NOTARITY_BOOKING_FORM_ID,
@@ -664,6 +895,7 @@ export const personaFixtures: Record<PersonaFixture["id"], PersonaFixture> = {
   joshua: joshuaFixture,
   robert: robertFixture,
   elizabeth: elizabethFixture,
+  amara: amaraFixture,
 };
 
 export const mockBookingForm = {

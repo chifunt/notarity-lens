@@ -11,7 +11,7 @@ import { createNotarityClient } from "../clients/notarity-client.js";
 import { fixtureDocuments, uploadedDocuments } from "../extraction/mock-extraction.js";
 import { getApiConfig } from "../utils/env.js";
 
-const PersonaSchema = z.enum(["joshua", "robert", "elizabeth"]);
+const PersonaSchema = z.enum(["joshua", "robert", "elizabeth", "amara"]);
 
 const PersonaParamSchema = z.object({
   persona: PersonaSchema,
@@ -115,9 +115,7 @@ export function createLensRoutes() {
     const client = createNotarityClient(getApiConfig());
     const body = await c.req.json().catch(() => ({}));
     const rawPayload =
-      isRecord(body) && Object.keys(body).length === 0
-        ? buildJoshuaPayload()
-        : body;
+      isRecord(body) && Object.keys(body).length === 0 ? buildJoshuaPayload() : body;
     const payload = AppointmentPayloadSchema.safeParse(rawPayload);
     if (!payload.success) return c.json(jsonError("Invalid appointment payload"), 400);
 

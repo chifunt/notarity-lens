@@ -98,6 +98,17 @@ const sampleRequests: Array<{
       "Participant ambiguity needs review",
     ],
   },
+  {
+    id: "amara",
+    name: "Amara Okafor",
+    summary: "German commercial-register signature route",
+    bullets: [
+      "Country of use: Germany",
+      "Billing/home: Netherlands",
+      "Signature notarisation product",
+      "Complete PDF evidence",
+    ],
+  },
 ];
 
 function reviewStatusForFields(

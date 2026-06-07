@@ -7,9 +7,11 @@ const ELIZABETH_FLEXCO_PRODUCT_ID = "S3N2zyJENFE0vTjrKTZn";
 
 const countryNames: Record<string, string> = {
   AT: "Austria",
+  DE: "Germany",
   ES: "Spain",
   GB: "United Kingdom",
   LT: "Lithuania",
+  NL: "Netherlands",
   US: "United States",
 };
 
@@ -57,12 +59,14 @@ export function formatFieldValue(field: InferredField) {
   if (field.key === "countryOfUse") return formatCountry(field.value);
   if (typeof field.value === "boolean") return formatBooleanChoice(field.value);
   if (field.key === "recommendedProduct") {
-    return field.value === "nie_number_application"
-      ? "NIE number application"
-      : String(field.value);
+    if (field.value === "nie_number_application") return "NIE number application";
+    if (field.value === "signature_notarisation") return "Signature notarisation";
+    return String(field.value);
   }
   if (field.key === "requiredCompanionDocument") {
-    return field.value === "nie_personal_data" ? "NIE Personal Data" : String(field.value);
+    return field.value === "nie_personal_data"
+      ? "NIE Personal Data"
+      : String(field.value);
   }
   return String(field.value);
 }

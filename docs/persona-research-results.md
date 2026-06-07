@@ -33,3 +33,4 @@ The recurring requirements are:
 | Sprint | Status | Notes |
 |---|---|---|
 | 60 | Complete | Added this matrix and a dependency-free fixture PDF writer so every new case can include a reproducible PDF artifact. |
+| 61 | Complete | Added Amara Okafor with generated PDF, complete document evidence, `DE` country of use, `NL` billing/home, signature notarisation, no hard copy, and EUR 120 mock price. |

@@ -1,10 +1,11 @@
-import { joshuaFixture, robertFixture } from "@notarity-lens/shared";
+import { amaraFixture, joshuaFixture, robertFixture } from "@notarity-lens/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useLensStore } from "./store";
 import type { PersonaFixture } from "./types";
 
 const webJoshuaFixture = joshuaFixture as unknown as PersonaFixture;
 const webRobertFixture = robertFixture as unknown as PersonaFixture;
+const webAmaraFixture = amaraFixture as unknown as PersonaFixture;
 
 function jsonResponse(data: unknown) {
   return Promise.resolve({
@@ -48,12 +49,19 @@ describe("Lens store sample flow", () => {
           return jsonResponse(robertFixture);
         }
 
+        if (href.endsWith("/api/fixtures/amara")) {
+          return jsonResponse(amaraFixture);
+        }
+
         if (href.endsWith("/api/price")) {
           const body = init?.body ? JSON.parse(String(init.body)) : {};
           const fixture =
-            body.destinationCountry === robertFixture.payload.destinationCountry
-              ? robertFixture
-              : joshuaFixture;
+            [joshuaFixture, robertFixture, amaraFixture].find(
+              (candidate) =>
+                candidate.payload.destinationCountry === body.destinationCountry &&
+                candidate.payload.participants[0]?.email ===
+                  body.participants?.[0]?.email,
+            ) ?? joshuaFixture;
 
           return jsonResponse({
             confirmedPrice: body.confirmedPrice ?? fixture.payload.confirmedPrice ?? 0,
@@ -117,9 +125,7 @@ describe("Lens store sample flow", () => {
         .getState()
         .fixture?.inference.products.every((field) => field.status === "confirmed"),
     ).toBe(true);
-    expect(useLensStore.getState().fixture?.inference.hardCopy?.status).toBe(
-      "confirmed",
-    );
+    expect(useLensStore.getState().fixture?.inference.hardCopy?.status).toBe("confirmed");
 
     await expect(useLensStore.getState().submitBooking()).resolves.toBe(true);
     expect(useLensStore.getState().submitResult?.id).toBe("mock_appt_test");
@@ -138,6 +144,17 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/fixtures/robert"),
+      expect.anything(),
+    );
+  });
+
+  it("loads and prices Amara through the generic persona loader", async () => {
+    await expect(useLensStore.getState().loadPersona("amara")).resolves.toBe(true);
+
+    expect(useLensStore.getState().fixture?.id).toBe("amara");
+    expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/fixtures/amara"),
       expect.anything(),
     );
   });
@@ -185,7 +202,7 @@ describe("Lens store sample flow", () => {
   it("reports upload failure without navigating stale draft state", async () => {
     useLensStore.setState({
       fixture: webJoshuaFixture,
-      uploadedDocuments: webRobertFixture.documents,
+      uploadedDocuments: webAmaraFixture.documents,
       price: {
         confirmedPrice: 580,
         lines: joshuaFixture.priceLines,
@@ -212,9 +229,7 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().price).toBeNull();
     expect(useLensStore.getState().submitResult).toBeNull();
     expect(useLensStore.getState().loading).toBe(false);
-    expect(useLensStore.getState().error).toBe(
-      "Only PDF documents are supported (400)",
-    );
+    expect(useLensStore.getState().error).toBe("Only PDF documents are supported (400)");
   });
 
   it("confirms participant inference fields", async () => {
