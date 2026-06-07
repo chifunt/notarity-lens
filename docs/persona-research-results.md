@@ -39,3 +39,4 @@ The recurring requirements are:
 | 64 | Complete | Added Sofia Rossi with generated PDF containing Spain as country of use and Italy as billing/home. Browser confirms conflict status, separated country semantics, EUR 120 pricing, and a clean review after confirmation. |
 | 65 | Complete | Added Kenji Tanaka with two generated NIE PDFs, Japan billing/home, Spain country of use, Valencia hard-copy shipping, apostille, companion product, and EUR 580. Browser confirms the full hard-copy route. |
 | 66 | Complete | Added Priya Nair with generated PDF naming a possible co-signer. Browser confirms review blocks on participant ambiguity and clears after confirming listed participants. |
+| 67 | Complete | Polished the eight-persona sample picker with responsive 1/2/4-column layout, case labels, and status badges. Browser confirms all personas/labels render on desktop and mobile without horizontal overflow. |

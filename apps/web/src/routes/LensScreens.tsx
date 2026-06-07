@@ -63,12 +63,16 @@ const sampleRequests: Array<{
   id: PersonaFixture["id"];
   name: string;
   summary: string;
+  caseLabel: string;
+  status: FieldStatus;
   bullets: string[];
 }> = [
   {
     id: "joshua",
     name: "Joshua Timms",
     summary: "Spanish NIE route with hard-copy shipping",
+    caseLabel: "Complete hard-copy route",
+    status: "needs_review",
     bullets: [
       "Country of use: Spain",
       "Billing/home: United States",
@@ -80,6 +84,8 @@ const sampleRequests: Array<{
     id: "robert",
     name: "Robert Stevens",
     summary: "Lithuanian signature notarisation",
+    caseLabel: "Simple generic route",
+    status: "inferred",
     bullets: [
       "Country of use: Lithuania",
       "One signature notarisation product",
@@ -91,6 +97,8 @@ const sampleRequests: Array<{
     id: "elizabeth",
     name: "Elizabeth Midgley",
     summary: "Austrian FlexCo incorporation",
+    caseLabel: "Participant review",
+    status: "needs_review",
     bullets: [
       "Country of use: Austria",
       "FlexCo incorporation product",
@@ -102,6 +110,8 @@ const sampleRequests: Array<{
     id: "amara",
     name: "Amara Okafor",
     summary: "German commercial-register signature route",
+    caseLabel: "Complete generic route",
+    status: "inferred",
     bullets: [
       "Country of use: Germany",
       "Billing/home: Netherlands",
@@ -113,6 +123,8 @@ const sampleRequests: Array<{
     id: "noah",
     name: "Noah Chen",
     summary: "Affidavit with missing country-of-use evidence",
+    caseLabel: "Insufficient PDF data",
+    status: "missing",
     bullets: [
       "Country of use: needs confirmation",
       "Billing/home: Canada",
@@ -124,6 +136,8 @@ const sampleRequests: Array<{
     id: "sofia",
     name: "Sofia Rossi",
     summary: "Spanish bank route with Italian billing context",
+    caseLabel: "Country conflict",
+    status: "conflict",
     bullets: [
       "Country of use: Spain",
       "Billing/home: Italy",
@@ -135,6 +149,8 @@ const sampleRequests: Array<{
     id: "kenji",
     name: "Kenji Tanaka",
     summary: "Spanish NIE route with apostille and hard copy",
+    caseLabel: "Complete hard-copy route",
+    status: "needs_review",
     bullets: [
       "Country of use: Spain",
       "Billing/home: Japan",
@@ -146,6 +162,8 @@ const sampleRequests: Array<{
     id: "priya",
     name: "Priya Nair",
     summary: "German registry filing with possible co-signer",
+    caseLabel: "Participant review",
+    status: "needs_review",
     bullets: [
       "Country of use: Germany",
       "Billing/home: United Kingdom",
@@ -219,7 +237,7 @@ function SampleRequestGrid({
   onSelect: (persona: PersonaFixture["id"]) => void;
 }) {
   return (
-    <div className="grid gap-3 lg:grid-cols-3">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       {sampleRequests.map((sample) => (
         <button
           key={sample.id}
@@ -227,13 +245,23 @@ function SampleRequestGrid({
           onClick={() => onSelect(sample.id)}
           disabled={loading}
           aria-label={`Use ${sample.name} sample request`}
-          className="rounded-lg border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
+          className="flex h-full flex-col rounded-lg border border-border bg-card p-4 text-left shadow-[var(--shadow-card)] transition-colors hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-60"
         >
-          <span className="text-sm font-semibold text-foreground">{sample.name}</span>
-          <span className="mt-1 block text-sm leading-6 text-muted-foreground">
-            {sample.summary}
+          <span className="flex items-start justify-between gap-3">
+            <span className="min-w-0">
+              <span className="text-sm font-semibold text-foreground">
+                {sample.name}
+              </span>
+              <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+                {sample.summary}
+              </span>
+            </span>
+            <StatusBadge status={sample.status} />
           </span>
-          <span className="mt-3 grid gap-2 text-sm text-muted-foreground">
+          <span className="mt-3 inline-flex w-fit rounded-full bg-lens-surface-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+            {sample.caseLabel}
+          </span>
+          <span className="mt-3 grid flex-1 content-start gap-2 text-sm text-muted-foreground">
             {sample.bullets.map((item) => (
               <span key={item} className="flex gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-status-confirmed-foreground" aria-hidden="true" />

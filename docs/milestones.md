@@ -1130,3 +1130,23 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: improve the start/sample selection surface now that there are eight personas.
+
+## Sprint 67: Multi-persona sample picker polish
+
+- Status: complete
+- Scope: improve the start/sample selection surface now that the app has eight personas.
+- Changes:
+  - Added a case label and field-status badge to every sample card.
+  - Changed the sample grid from a fixed three-column desktop layout to a responsive one/two/four-column layout.
+  - Kept sample cards equal-height and easier to scan across complete, missing-data, conflict, hard-copy, and participant-review cases.
+- Browser findings:
+  - Desktop at `1440x1000` shows all eight personas and case labels with no horizontal overflow.
+  - Mobile at `390x844` shows all eight personas and case labels with no horizontal overflow.
+- Verification:
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: add aggregate persona-result documentation and regression coverage across all generated cases.
