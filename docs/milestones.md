@@ -719,3 +719,22 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking submit gating against visible blocker explanations for each persona.
+
+## Sprint 44: Submit readiness single source
+
+- Status: complete
+- Scope: remove duplicated submit-readiness logic from Final review.
+- Changes:
+  - Added a `readyForSubmit` helper that derives submit readiness from price availability and unresolved readiness blockers.
+  - Final review now uses the shared helper instead of duplicating country/product/status checks inline.
+  - Added coverage that confirmed Joshua is ready only when price exists and unconfirmed Robert is not ready.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - Browser check: confirmed Joshua review exposes `Create mock booking request` without the required-fields blocker.
+  - Browser check: unconfirmed Robert review hides submit, shows `Confirm required fields first`, and exposes `Review country`.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue reducing duplicated readiness and status derivation across review surfaces.

@@ -24,3 +24,10 @@ export function unresolvedConfirmationFields(inference: DocumentFactExtraction) 
     (field) => !resolvedStatuses.has(field.status),
   );
 }
+
+export function readyForSubmit(
+  inference: DocumentFactExtraction,
+  hasPrice: boolean,
+) {
+  return hasPrice && unresolvedConfirmationFields(inference).length === 0;
+}

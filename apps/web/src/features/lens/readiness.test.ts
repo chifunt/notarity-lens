@@ -5,6 +5,7 @@ import {
 } from "@notarity-lens/shared";
 import { describe, expect, it } from "vitest";
 import {
+  readyForSubmit,
   requiredConfirmationFields,
   unresolvedConfirmationFields,
 } from "./readiness";
@@ -48,6 +49,8 @@ describe("review readiness", () => {
     };
 
     expect(unresolvedConfirmationFields(confirmed)).toEqual([]);
+    expect(readyForSubmit(confirmed, true)).toBe(true);
+    expect(readyForSubmit(confirmed, false)).toBe(false);
   });
 
   it("keeps Elizabeth participant ambiguity unresolved after country confirmation", () => {
@@ -65,5 +68,6 @@ describe("review readiness", () => {
     expect(
       unresolvedConfirmationFields(robertInference).map((field) => field.label),
     ).toEqual(["Country of use"]);
+    expect(readyForSubmit(robertInference, true)).toBe(false);
   });
 });

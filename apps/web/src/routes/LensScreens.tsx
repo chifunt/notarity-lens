@@ -46,7 +46,10 @@ import {
   formatShippingSummary,
 } from "@/features/lens/display";
 import { formatEuro } from "@/features/lens/format";
-import { unresolvedConfirmationFields } from "@/features/lens/readiness";
+import {
+  readyForSubmit,
+  unresolvedConfirmationFields,
+} from "@/features/lens/readiness";
 import { useLensStore } from "@/features/lens/store";
 import type {
   DocumentFactExtraction,
@@ -866,11 +869,7 @@ export function ReviewScreen() {
               fixture.inference,
               Boolean(fixture.payload.shippingDetails),
             );
-            const readyToSubmit =
-              fixture.inference.countryOfUse.status === "confirmed" &&
-              fixture.inference.products.every((field) => field.status === "confirmed") &&
-              unresolvedFields.length === 0 &&
-              Boolean(price);
+            const readyToSubmit = readyForSubmit(fixture.inference, Boolean(price));
             const submitLabel =
               price?.source === "mock"
                 ? "Create mock booking request"
