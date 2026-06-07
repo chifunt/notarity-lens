@@ -858,3 +858,21 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking load and price failure navigation behavior.
+
+## Sprint 52: Sample load navigation guard
+
+- Status: complete
+- Scope: keep users on Start when sample loading or pricing fails.
+- Changes:
+  - `loadPersona` and `loadJoshuaDemo` now return boolean success values.
+  - Start only navigates to Analyze after a successful sample load.
+  - Updated store coverage to assert success/failure return values for sample loading.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - Browser check: selecting the Joshua Timms sample from Start still advances through analysis to Evidence.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking price failure handling and retry ergonomics.

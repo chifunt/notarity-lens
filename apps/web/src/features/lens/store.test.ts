@@ -101,7 +101,7 @@ describe("Lens store sample flow", () => {
   });
 
   it("loads Joshua, prices the payload, confirms required gates, submits, and resets", async () => {
-    await useLensStore.getState().loadJoshuaDemo();
+    await expect(useLensStore.getState().loadJoshuaDemo()).resolves.toBe(true);
 
     expect(useLensStore.getState().fixture?.id).toBe("joshua");
     expect(useLensStore.getState().price?.confirmedPrice).toBe(580);
@@ -132,7 +132,7 @@ describe("Lens store sample flow", () => {
   });
 
   it("loads and prices a non-Joshua fixture through the generic persona loader", async () => {
-    await useLensStore.getState().loadPersona("robert");
+    await expect(useLensStore.getState().loadPersona("robert")).resolves.toBe(true);
 
     expect(useLensStore.getState().fixture?.id).toBe("robert");
     expect(useLensStore.getState().price?.confirmedPrice).toBe(120);
@@ -143,7 +143,7 @@ describe("Lens store sample flow", () => {
   });
 
   it("reports submit failure without creating a stale submit result", async () => {
-    await useLensStore.getState().loadJoshuaDemo();
+    await expect(useLensStore.getState().loadJoshuaDemo()).resolves.toBe(true);
     useLensStore.setState({
       submitResult: {
         id: "mock_appt_previous",
@@ -218,7 +218,7 @@ describe("Lens store sample flow", () => {
   });
 
   it("confirms participant inference fields", async () => {
-    await useLensStore.getState().loadPersona("joshua");
+    await expect(useLensStore.getState().loadPersona("joshua")).resolves.toBe(true);
 
     useLensStore.setState((state) => ({
       fixture: state.fixture
@@ -263,7 +263,7 @@ describe("Lens store sample flow", () => {
     });
     vi.mocked(fetch).mockRejectedValueOnce(new Error("Network unavailable"));
 
-    await useLensStore.getState().loadPersona("robert");
+    await expect(useLensStore.getState().loadPersona("robert")).resolves.toBe(false);
 
     expect(useLensStore.getState().fixture).toBeNull();
     expect(useLensStore.getState().uploadedDocuments).toEqual([]);

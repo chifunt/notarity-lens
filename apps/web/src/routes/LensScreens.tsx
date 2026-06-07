@@ -264,8 +264,8 @@ export function StartScreen() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadAndContinue = async (persona: PersonaFixture["id"] = "joshua") => {
-    await loadPersona(persona);
-    navigate("/lens/analyze");
+    const loaded = await loadPersona(persona);
+    if (loaded) navigate("/lens/analyze");
   };
 
   const uploadAndContinue = async (files: FileList | null) => {

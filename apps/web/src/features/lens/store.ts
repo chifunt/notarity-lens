@@ -17,8 +17,8 @@ type LensStore = {
   submitResult: SubmitResponse | null;
   loading: boolean;
   error: string | null;
-  loadPersona: (persona?: PersonaFixture["id"]) => Promise<void>;
-  loadJoshuaDemo: () => Promise<void>;
+  loadPersona: (persona?: PersonaFixture["id"]) => Promise<boolean>;
+  loadJoshuaDemo: () => Promise<boolean>;
   uploadDocuments: (files: File[]) => Promise<boolean>;
   confirmEvidence: () => void;
   confirmCountry: () => void;
@@ -71,9 +71,11 @@ export const useLensStore = create<LensStore>((set, get) => ({
       const fixture = await getPersonaFixture(persona);
       const price = await pricePayload(fixture.payload);
       set({ fixture, price, loading: false });
+      return true;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load sample request";
       set({ error: message, loading: false });
+      return false;
     }
   },
 
