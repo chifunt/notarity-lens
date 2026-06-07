@@ -699,3 +699,23 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking visible sample names against fixture identities and documentation.
+
+## Sprint 43: Submit readiness blocker parity
+
+- Status: complete
+- Scope: make the final-review blocker panel list every field that can disable submit.
+- Changes:
+  - Country and product-route inference fields are now always part of review readiness, even when their fixture metadata does not set `requiresConfirmation`.
+  - Optional people/address/apostille/hard-copy fields still participate only when marked as requiring confirmation.
+  - Product blockers now route to Route with distinct `Review product` and `Review companion` actions.
+  - Added readiness coverage for Joshua product blockers and Robert country confirmation.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - Browser check: direct Robert review shows a country blocker, keeps submit disabled, and routes `Review country` to Lithuania confirmation.
+  - Browser check: direct Joshua review shows product, companion, country, shipping, apostille, and hard-copy blockers with one action each, and `Review product` routes to Route.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking submit gating against visible blocker explanations for each persona.

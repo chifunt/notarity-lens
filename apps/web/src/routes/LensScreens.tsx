@@ -118,6 +118,10 @@ function reviewActionForField(field: InferredField) {
       return { label: "Review country", path: "/lens/country" };
     case "shippingAddress":
       return { label: "Review shipping", path: "/lens/country" };
+    case "recommendedProduct":
+      return { label: "Review product", path: "/lens/plan" };
+    case "requiredCompanionDocument":
+      return { label: "Review companion", path: "/lens/plan" };
     case "apostille":
       return { label: "Review apostille", path: "/lens/plan" };
     case "hardCopy":

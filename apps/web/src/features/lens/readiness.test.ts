@@ -1,4 +1,8 @@
-import { elizabethFixture, joshuaFixture } from "@notarity-lens/shared";
+import {
+  elizabethFixture,
+  joshuaFixture,
+  robertFixture,
+} from "@notarity-lens/shared";
 import { describe, expect, it } from "vitest";
 import {
   requiredConfirmationFields,
@@ -10,18 +14,31 @@ const joshuaInference =
   joshuaFixture.inference as unknown as DocumentFactExtraction;
 const elizabethInference =
   elizabethFixture.inference as unknown as DocumentFactExtraction;
+const robertInference =
+  robertFixture.inference as unknown as DocumentFactExtraction;
 
 describe("review readiness", () => {
   it("finds Joshua fields that must be confirmed before submit", () => {
     expect(
       requiredConfirmationFields(joshuaInference).map((field) => field.label),
-    ).toEqual(["Country of use", "Shipping address", "Apostille", "Hard copy"]);
+    ).toEqual([
+      "Country of use",
+      "Recommended product",
+      "Required companion document",
+      "Shipping address",
+      "Apostille",
+      "Hard copy",
+    ]);
   });
 
   it("treats confirmed Joshua route fields as resolved", () => {
     const confirmed: DocumentFactExtraction = {
       ...joshuaInference,
       countryOfUse: { ...joshuaInference.countryOfUse, status: "confirmed" },
+      products: joshuaInference.products.map((field) => ({
+        ...field,
+        status: "confirmed",
+      })),
       shippingAddress: {
         ...joshuaInference.shippingAddress!,
         status: "confirmed",
@@ -42,5 +59,11 @@ describe("review readiness", () => {
     expect(
       unresolvedConfirmationFields(countryConfirmed).map((field) => field.label),
     ).toEqual(["Participant ambiguity"]);
+  });
+
+  it("shows Robert country inference as unresolved before explicit confirmation", () => {
+    expect(
+      unresolvedConfirmationFields(robertInference).map((field) => field.label),
+    ).toEqual(["Country of use"]);
   });
 });

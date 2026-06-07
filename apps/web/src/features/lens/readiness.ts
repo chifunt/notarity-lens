@@ -6,15 +6,17 @@ export function requiredConfirmationFields(inference: DocumentFactExtraction) {
   return [
     inference.countryOfUse,
     ...inference.products,
-    ...inference.people,
-    inference.billingAddress,
-    inference.shippingAddress,
-    inference.apostille,
-    inference.hardCopy,
-  ].filter(
-    (field): field is InferredField =>
-      Boolean(field?.requiresConfirmation),
-  );
+    ...[
+      ...inference.people,
+      inference.billingAddress,
+      inference.shippingAddress,
+      inference.apostille,
+      inference.hardCopy,
+    ].filter(
+      (field): field is InferredField =>
+        Boolean(field?.requiresConfirmation),
+    ),
+  ].filter((field): field is InferredField => Boolean(field));
 }
 
 export function unresolvedConfirmationFields(inference: DocumentFactExtraction) {
