@@ -61,6 +61,15 @@ export function getPersonaFixture(persona: PersonaFixture["id"] = "joshua") {
   return requestJson<PersonaFixture>(`/api/fixtures/${persona}`);
 }
 
+export function getFixturePdfUrl(
+  persona: PersonaFixture["id"],
+  documentId: ExtractedDocument["id"],
+) {
+  return `${API_BASE}/api/fixtures/${persona}/documents/${encodeURIComponent(
+    documentId,
+  )}/pdf`;
+}
+
 export function uploadDocumentFiles(files: File[]) {
   const formData = new FormData();
   files.forEach((file) => formData.append("files", file));

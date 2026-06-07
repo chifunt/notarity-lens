@@ -5,6 +5,7 @@ import {
   amaraPayload,
   kenjiPayload,
   noahPayload,
+  personaFixtures,
   priyaPayload,
   sofiaPayload,
 } from "@notarity-lens/shared";
@@ -93,6 +94,34 @@ describe("api routes", () => {
 
     expect(response.status).toBe(404);
     expect(body.error).toBe("Unknown fixture persona");
+  });
+
+  it("serves fixture PDF binaries for every demo preview document", async () => {
+    for (const fixture of Object.values(personaFixtures)) {
+      for (const document of fixture.documents) {
+        const response = await app.request(
+          `/api/fixtures/${fixture.id}/documents/${document.id}/pdf`,
+        );
+        const body = Buffer.from(await response.arrayBuffer()).toString(
+          "utf8",
+          0,
+          8,
+        );
+
+        expect(response.status, `${fixture.id}/${document.id}`).toBe(200);
+        expect(response.headers.get("content-type")).toContain("application/pdf");
+        expect(response.headers.get("content-disposition")).toContain("inline");
+        expect(body).toBe("%PDF-1.4");
+      }
+    }
+  });
+
+  it("rejects unknown fixture PDF documents", async () => {
+    const response = await app.request("/api/fixtures/amara/documents/missing/pdf");
+    const body = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(body.error).toBe("Unknown fixture document");
   });
 
   it("returns mock inference", async () => {

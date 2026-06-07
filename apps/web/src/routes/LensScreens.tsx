@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock3,
+  ExternalLink,
   FileSearch,
   FileText,
   FileUp,
@@ -48,7 +49,7 @@ import {
   formatShippingSummary,
 } from "@/features/lens/display";
 import { formatEuro } from "@/features/lens/format";
-import { getPersonaFixture } from "@/features/lens/api";
+import { getFixturePdfUrl, getPersonaFixture } from "@/features/lens/api";
 import {
   readyForSubmit,
   unresolvedConfirmationFields,
@@ -355,6 +356,91 @@ function SubmissionDocumentPreview({ fixture }: { fixture: LensFixture }) {
   );
 }
 
+function DemoPdfViewer({
+  fixture,
+  activeDocumentId,
+  onActiveDocumentChange,
+}: {
+  fixture: PersonaFixture;
+  activeDocumentId?: string;
+  onActiveDocumentChange: (documentId: string) => void;
+}) {
+  const selectedDocument =
+    fixture.documents.find((document) => document.id === activeDocumentId) ??
+    fixture.documents[0];
+  const selectedPdfUrl = selectedDocument
+    ? getFixturePdfUrl(fixture.id, selectedDocument.id)
+    : undefined;
+
+  return (
+    <section className="overflow-hidden rounded-xl border border-border bg-card shadow-[var(--shadow-card)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-lens-surface-muted/70 px-3 py-3">
+        <div
+          role="tablist"
+          aria-label={`${fixture.name} PDF documents`}
+          className="flex min-w-0 flex-1 flex-wrap gap-2"
+        >
+          {fixture.documents.map((document) => {
+            const active = document.id === selectedDocument?.id;
+
+            return (
+              <button
+                key={document.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => onActiveDocumentChange(document.id)}
+                className={`flex min-w-0 items-center gap-2 rounded-md px-3 py-2 text-xs font-medium transition-colors ${
+                  active
+                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                    : "text-muted-foreground hover:bg-card/70 hover:text-foreground"
+                }`}
+              >
+                <FileText className="h-4 w-4 shrink-0 text-primary/75" aria-hidden="true" />
+                <span className="max-w-[15rem] truncate">{document.filename}</span>
+                <span className="rounded-full bg-lens-surface-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                  {document.textByPage.length || 1}p
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        {selectedPdfUrl ? (
+          <a
+            href={selectedPdfUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-8 items-center justify-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            Open PDF
+          </a>
+        ) : null}
+      </div>
+
+      {selectedDocument && selectedPdfUrl ? (
+        <div className="bg-lens-surface-muted p-3">
+          <iframe
+            key={selectedDocument.id}
+            title={`${selectedDocument.filename} PDF preview`}
+            src={`${selectedPdfUrl}#toolbar=1&navpanes=0&view=FitH`}
+            className="h-[78vh] min-h-[680px] max-h-[920px] w-full rounded-lg border border-border bg-white"
+          />
+        </div>
+      ) : (
+        <div className="grid min-h-[24rem] place-items-center p-6 text-center">
+          <div>
+            <FileText className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden="true" />
+            <p className="mt-3 text-sm font-medium text-foreground">
+              No fixture PDFs are available
+            </p>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function SampleRequestGrid({
   loading,
   onSelect,
@@ -509,7 +595,7 @@ function DemoSampleRequests({
                 {previewingSample?.name ?? "Demo sample"}
               </p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Fetching the fixture documents and extracted PDF text.
+                Fetching the fixture documents and original PDF files.
               </p>
             </section>
           ) : null}
@@ -529,7 +615,7 @@ function DemoSampleRequests({
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-medium uppercase text-muted-foreground">
-                    Demo PDF preview
+                    Demo PDF viewer
                   </p>
                   <h3 className="mt-1 text-lg font-semibold text-foreground">
                     {previewFixture.name}
@@ -547,10 +633,8 @@ function DemoSampleRequests({
                   Use this demo
                 </Button>
               </div>
-              <DocumentFileList documents={previewFixture.documents} />
-              <PdfPreviewPanel
-                inference={previewFixture.inference}
-                documents={previewFixture.documents}
+              <DemoPdfViewer
+                fixture={previewFixture}
                 activeDocumentId={activePreviewDocumentId}
                 onActiveDocumentChange={setActivePreviewDocumentId}
               />

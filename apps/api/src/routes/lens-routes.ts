@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { Hono } from "hono";
 import { z } from "zod";
 import {
@@ -28,6 +29,10 @@ const PersonaParamSchema = z.object({
   persona: PersonaSchema,
 });
 
+const PersonaDocumentParamSchema = PersonaParamSchema.extend({
+  documentId: z.string().min(1),
+});
+
 const PersonaBodySchema = z.object({
   persona: PersonaSchema.default("joshua"),
 });
@@ -53,6 +58,28 @@ function isPdfFile(file: File) {
   return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 }
 
+const fixturePdfDirectories: Record<z.infer<typeof PersonaSchema>, string> = {
+  joshua: "joshua-timms",
+  robert: "robert-stevens",
+  elizabeth: "elizabeth-midgley",
+  amara: "amara-okafor",
+  noah: "noah-chen",
+  sofia: "sofia-rossi",
+  kenji: "kenji-tanaka",
+  priya: "priya-nair",
+};
+
+function fixturePdfUrl(persona: z.infer<typeof PersonaSchema>, filename: string) {
+  return new URL(
+    `../../../../docs/generated-personas/${fixturePdfDirectories[persona]}/${filename}`,
+    import.meta.url,
+  );
+}
+
+function contentDispositionFilename(filename: string) {
+  return filename.replace(/["\\]/g, "_");
+}
+
 export function createLensRoutes() {
   const app = new Hono();
 
@@ -62,6 +89,36 @@ export function createLensRoutes() {
 
     const fixture = PersonaFixtureSchema.parse(personaFixtures[parsed.data.persona]);
     return c.json(fixture);
+  });
+
+  app.get("/fixtures/:persona/documents/:documentId/pdf", async (c) => {
+    const parsed = PersonaDocumentParamSchema.safeParse(c.req.param());
+    if (!parsed.success) return c.json(jsonError("Unknown fixture document", 404), 404);
+
+    const fixture = PersonaFixtureSchema.parse(personaFixtures[parsed.data.persona]);
+    const document = fixture.documents.find(
+      (candidate) => candidate.id === parsed.data.documentId,
+    );
+
+    if (!document) return c.json(jsonError("Unknown fixture document", 404), 404);
+
+    try {
+      const pdf = await readFile(
+        fixturePdfUrl(parsed.data.persona, document.filename),
+      );
+      return new Response(new Uint8Array(pdf), {
+        status: 200,
+        headers: {
+          "content-type": "application/pdf",
+          "content-disposition": `inline; filename="${contentDispositionFilename(
+            document.filename,
+          )}"`,
+          "cache-control": "public, max-age=300",
+        },
+      });
+    } catch {
+      return c.json(jsonError("Fixture PDF is not available", 404), 404);
+    }
   });
 
   app.post("/documents/upload", async (c) => {
