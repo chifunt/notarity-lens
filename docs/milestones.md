@@ -876,3 +876,19 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking price failure handling and retry ergonomics.
+
+## Sprint 53: Price failure state coverage
+
+- Status: complete
+- Scope: lock down state cleanup when sample fixture loading succeeds but pricing fails.
+- Changes:
+  - Added store coverage for second-step sample-load failure during pricing.
+  - The regression starts with stale fixture/upload/price/submit state and verifies all draft state is cleared while surfacing the server price error.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking retry ergonomics after failed sample load and failed uploads.

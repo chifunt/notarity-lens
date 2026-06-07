@@ -273,6 +273,36 @@ describe("Lens store sample flow", () => {
     expect(useLensStore.getState().error).toBe("Network unavailable");
   });
 
+  it("clears stale draft state when sample pricing fails", async () => {
+    useLensStore.setState({
+      fixture: webJoshuaFixture,
+      uploadedDocuments: webRobertFixture.documents,
+      price: {
+        confirmedPrice: 580,
+        lines: joshuaFixture.priceLines,
+        source: "mock",
+      },
+      submitResult: {
+        id: "mock_appt_previous",
+        mode: "mock",
+        ok: true,
+        payload: joshuaFixture.payload,
+      },
+    });
+    vi.mocked(fetch)
+      .mockImplementationOnce(() => jsonResponse(robertFixture))
+      .mockImplementationOnce(() => jsonErrorResponse(503, "Price unavailable"));
+
+    await expect(useLensStore.getState().loadPersona("robert")).resolves.toBe(false);
+
+    expect(useLensStore.getState().fixture).toBeNull();
+    expect(useLensStore.getState().uploadedDocuments).toEqual([]);
+    expect(useLensStore.getState().price).toBeNull();
+    expect(useLensStore.getState().submitResult).toBeNull();
+    expect(useLensStore.getState().loading).toBe(false);
+    expect(useLensStore.getState().error).toBe("Price unavailable (503)");
+  });
+
   it("reset clears loading as well as draft data", () => {
     useLensStore.setState({
       fixture: webJoshuaFixture,
