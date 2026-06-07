@@ -824,3 +824,20 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking load, upload, and price failure messages in the web flow.
+
+## Sprint 50: Upload MIME validation
+
+- Status: complete
+- Scope: enforce PDF-only uploads on the backend, not just through the browser file picker.
+- Changes:
+  - Added server-side PDF validation for `/api/documents/upload`.
+  - Uploads now reject non-PDF files with `Only PDF documents are supported`.
+  - Added API coverage for non-PDF upload rejection.
+- Verification:
+  - `pnpm --filter @notarity-lens/api test` succeeds.
+  - `pnpm --filter @notarity-lens/api typecheck` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue hardening upload edge cases around multiple files and mixed-validity batches.

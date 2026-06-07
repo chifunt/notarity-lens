@@ -29,6 +29,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
+function isPdfFile(file: File) {
+  return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+}
+
 export function createLensRoutes() {
   const app = new Hono();
 
@@ -51,6 +55,10 @@ export function createLensRoutes() {
 
     if (!parsedPersona.success) {
       return c.json(jsonError("Unknown fixture persona"), 400);
+    }
+
+    if (files.some((file) => !isPdfFile(file))) {
+      return c.json(jsonError("Only PDF documents are supported"), 400);
     }
 
     if (files.length === 0) {

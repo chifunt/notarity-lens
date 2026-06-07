@@ -67,6 +67,20 @@ describe("api routes", () => {
     expect(body.error).toBe("Unknown fixture persona");
   });
 
+  it("rejects non-PDF uploads", async () => {
+    const formData = new FormData();
+    formData.append("files", new File(["hello"], "notes.txt", { type: "text/plain" }));
+
+    const response = await app.request("/api/documents/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Only PDF documents are supported");
+  });
+
   it("returns normalized mock price", async () => {
     const response = await app.request("/api/price", {
       method: "POST",
