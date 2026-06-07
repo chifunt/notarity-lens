@@ -611,3 +611,22 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue adding explicit resolution paths for any remaining blocked review states.
+
+## Sprint 38: Success route guard
+
+- Status: complete
+- Scope: prevent the success route from implying a booking request exists when no submit result is present.
+- Changes:
+  - Success now shows the booking-ready summary only when `submitResult` exists.
+  - Direct success visits with a loaded draft but no submit result show a no-booking-created state and a return-to-review action.
+  - Payload preview is hidden on success until a booking request has actually been created.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: direct `/lens/success` with no loaded draft shows the guarded sample picker.
+  - Browser check: choosing Joshua from the success-route sample picker shows `No booking request created yet`, hides payload preview, and returns to final review.
+  - Browser check: normal Joshua mock submit still shows `Booking request ready`, the `mock_appt_...` id, payload preview, and the start-another-booking action.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue route guard audits for other direct-navigation edge cases.
