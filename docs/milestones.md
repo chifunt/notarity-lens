@@ -1210,3 +1210,17 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: generate evidence refs from extracted uploaded PDF text.
+
+## Sprint 71: Uploaded PDF evidence references
+
+- Status: complete
+- Scope: turn extracted upload text into page-level evidence findings that can feed inference and review screens.
+- Changes:
+  - Added a shared AI evidence scanner for uploaded documents.
+  - Detects country mentions, product-route hints, participant names, emails, apostille/hard-copy signals, missing country-of-use statements, and participant ambiguity signals.
+  - Emits deterministic `EvidenceRef` objects with document id, filename, page, quote, confidence, and rule source.
+  - Added focused AI package coverage for complete, missing-data, ambiguity, and multi-page citation cases.
+- Verification:
+  - `pnpm --filter @notarity-lens/ai typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/ai test` succeeds.
+- Next: infer uploaded-document facts from extracted evidence without relying on sample personas.
