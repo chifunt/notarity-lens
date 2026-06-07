@@ -329,7 +329,11 @@ export function StartScreen() {
           </button>
 
           <div className="mt-5 flex flex-wrap justify-center gap-3">
-            <Button variant="outline" onClick={() => navigate("/lens/analyze")}>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/lens/analyze")}
+              disabled={loading}
+            >
               <FileText className="h-4 w-4" aria-hidden="true" />
               I will upload it later
             </Button>

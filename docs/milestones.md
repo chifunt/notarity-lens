@@ -906,3 +906,18 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking public docs for stale single-persona assumptions.
+
+## Sprint 55: Start loading-state guard
+
+- Status: complete
+- Scope: prevent secondary Start actions from navigating away during sample/upload loading.
+- Changes:
+  - `I will upload it later` now disables while the store is loading, matching the other Start secondary controls.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - `pnpm --filter @notarity-lens/web typecheck` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking loading-state consistency across route actions.
