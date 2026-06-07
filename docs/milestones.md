@@ -497,3 +497,20 @@
   - P0 Joshua demo is ready in mock mode.
   - Robert and Elizabeth are available as fallback sample branches.
   - Arbitrary uploaded PDFs are honestly handled as metadata-only until extraction-to-payload generation is implemented.
+
+## Sprint 32: Deep-link sample recovery
+
+- Status: complete
+- Scope: make guarded Lens routes recoverable with any supported sample persona instead of only Joshua.
+- Changes:
+  - Deep-linked no-draft screens now show the reusable sample picker below the no-draft message.
+  - Users can load Joshua, Robert, or Elizabeth from country, route, cost, appointment, review, success, or evidence routes when no draft exists.
+- Verification:
+  - `pnpm --filter @notarity-lens/web test` succeeds.
+  - Browser check: direct `/lens/country` shows all three sample cards with no draft loaded.
+  - Browser check: selecting Elizabeth from direct `/lens/country` loads the Austria country semantics screen in-place.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue deep-link and edge-state audits across the guarded flow.

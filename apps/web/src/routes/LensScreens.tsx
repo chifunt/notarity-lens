@@ -164,13 +164,29 @@ function RequireFixture({
   children: (fixture: PersonaFixture, price: PriceResponse | null) => ReactNode;
 }) {
   const { fixture, loadJoshuaDemo, loading } = useEnsureFixture();
+  const loadPersona = useLensStore((state) => state.loadPersona);
   const price = useLensStore((state) => state.price);
 
   if (!fixture) {
     return (
       <ScreenFrame sidebar={false}>
         <DemoError />
-        <EmptyState onLoad={loadJoshuaDemo} loading={loading} />
+        <div className="grid gap-4">
+          <EmptyState onLoad={loadJoshuaDemo} loading={loading} />
+          <section>
+            <h2 className="text-sm font-semibold text-foreground">
+              Or choose another sample
+            </h2>
+            <div className="mt-3">
+              <SampleRequestGrid
+                loading={loading}
+                onSelect={(persona) => {
+                  void loadPersona(persona);
+                }}
+              />
+            </div>
+          </section>
+        </div>
       </ScreenFrame>
     );
   }
