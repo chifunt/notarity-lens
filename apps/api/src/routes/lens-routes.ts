@@ -25,6 +25,10 @@ function jsonError(message: string, status = 400) {
   return { error: message, status };
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 export function createLensRoutes() {
   const app = new Hono();
 
@@ -102,21 +106,30 @@ export function createLensRoutes() {
   app.post("/price", async (c) => {
     const client = createNotarityClient(getApiConfig());
     const body = await c.req.json().catch(() => ({}));
-    const payload = AppointmentPayloadSchema.parse(
-      Object.keys(body).length ? body : buildJoshuaPayload(),
-    );
-    return c.json(await client.price(payload));
+    const rawPayload =
+      isRecord(body) && Object.keys(body).length === 0
+        ? buildJoshuaPayload()
+        : body;
+    const payload = AppointmentPayloadSchema.safeParse(rawPayload);
+    if (!payload.success) return c.json(jsonError("Invalid appointment payload"), 400);
+
+    return c.json(await client.price(payload.data));
   });
 
   app.post("/submit", async (c) => {
     const client = createNotarityClient(getApiConfig());
     const body = await c.req.json().catch(() => ({}));
     const rawPayload =
-      body.payload ?? (Object.keys(body).length ? body : buildJoshuaPayload());
-    const payload = AppointmentPayloadSchema.parse(rawPayload);
+      isRecord(body) && "payload" in body
+        ? body.payload
+        : isRecord(body) && Object.keys(body).length === 0
+          ? buildJoshuaPayload()
+          : body;
+    const payload = AppointmentPayloadSchema.safeParse(rawPayload);
+    if (!payload.success) return c.json(jsonError("Invalid appointment payload"), 400);
 
     try {
-      return c.json(await client.submit(payload));
+      return c.json(await client.submit(payload.data));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Submit failed";
       return c.json(jsonError(message, 403), 403);

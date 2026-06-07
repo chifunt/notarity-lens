@@ -80,6 +80,18 @@ describe("api routes", () => {
     expect(body.lines).toHaveLength(3);
   });
 
+  it("rejects invalid price payloads", async () => {
+    const response = await app.request("/api/price", {
+      method: "POST",
+      body: JSON.stringify({ destinationCountry: "ES" }),
+      headers: { "content-type": "application/json" },
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Invalid appointment payload");
+  });
+
   it("returns mock submit success", async () => {
     const response = await app.request("/api/submit", {
       method: "POST",
@@ -92,5 +104,17 @@ describe("api routes", () => {
     expect(body.ok).toBe(true);
     expect(body.mode).toBe("mock");
     expect(body.payload.destinationCountry).toBe("ES");
+  });
+
+  it("rejects invalid submit payloads", async () => {
+    const response = await app.request("/api/submit", {
+      method: "POST",
+      body: JSON.stringify({ payload: { destinationCountry: "ES" } }),
+      headers: { "content-type": "application/json" },
+    });
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toBe("Invalid appointment payload");
   });
 });

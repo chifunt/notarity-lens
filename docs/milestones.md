@@ -755,3 +755,20 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue API input validation audits for payload and multipart edge cases.
+
+## Sprint 46: API payload validation hardening
+
+- Status: complete
+- Scope: prevent invalid price/submit payloads from surfacing as server errors.
+- Changes:
+  - Added safe record handling before checking body keys so JSON `null` and other non-object bodies cannot trip `Object.keys`.
+  - `/api/price` and `/api/submit` now use safe appointment-payload parsing and return controlled `Invalid appointment payload` errors.
+  - Added API coverage for invalid price and submit payloads.
+- Verification:
+  - `pnpm --filter @notarity-lens/api test` succeeds.
+  - `pnpm --filter @notarity-lens/api typecheck` succeeds.
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue API validation audits around empty/default request bodies and live-submit failure modes.
