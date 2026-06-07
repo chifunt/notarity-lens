@@ -1,10 +1,16 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { HelpCircle, RefreshCcw, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatEuro, formatEuroFromCents } from "../format";
 import type { PriceResponse } from "../types";
 
-export function LiveReceipt({ price }: { price: PriceResponse }) {
+export function LiveReceipt({
+  price,
+  action,
+}: {
+  price: PriceResponse;
+  action?: ReactNode;
+}) {
   const [helpOpen, setHelpOpen] = useState(false);
 
   return (
@@ -50,6 +56,8 @@ export function LiveReceipt({ price }: { price: PriceResponse }) {
         <HelpCircle className="h-4 w-4" aria-hidden="true" />
         I am not sure about the price
       </Button>
+
+      {action ? <div className="mt-4 border-t border-border pt-4">{action}</div> : null}
 
       {helpOpen ? (
         <div id="price-help" className="mt-4 rounded-lg border border-border bg-lens-surface-muted p-4">

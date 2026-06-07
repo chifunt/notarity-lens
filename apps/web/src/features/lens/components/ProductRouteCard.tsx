@@ -13,11 +13,9 @@ import { StatusBadge } from "./StatusBadge";
 
 export function ProductRouteCard({
   fixture,
-  onConfirm,
   onShowEvidence,
 }: {
   fixture: LensFixture;
-  onConfirm: () => void;
   onShowEvidence?: () => void;
 }) {
   const productFields = fixture.inference.products;
@@ -122,9 +120,6 @@ export function ProductRouteCard({
       ) : null}
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <Button onClick={onConfirm}>
-          {routeConfirmed ? "Continue with route" : "Confirm product route"}
-        </Button>
         <Button
           variant="outline"
           aria-controls="route-unsure-help"
@@ -193,16 +188,13 @@ export function ProductRouteCard({
             )}
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button size="sm" onClick={onConfirm}>
-              Confirm route
-            </Button>
-            {onShowEvidence ? (
+          {onShowEvidence ? (
+            <div className="mt-4 flex flex-wrap gap-2">
               <Button size="sm" variant="outline" onClick={onShowEvidence}>
                 Show cited evidence
               </Button>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </section>

@@ -9,15 +9,12 @@ import type { AppointmentPayload, DocumentFactExtraction } from "../types";
 export function CountrySemanticsCard({
   inference,
   payload,
-  onConfirm,
   onShowEvidence,
 }: {
   inference: DocumentFactExtraction;
   payload?: AppointmentPayload;
-  onConfirm: () => void;
   onShowEvidence?: () => void;
 }) {
-  const confirmed = inference.countryOfUse.status === "confirmed";
   const countryMissing = inference.countryOfUse.status === "missing";
   const [helpOpen, setHelpOpen] = useState(false);
   const countryOfUse = formatCountry(inference.countryOfUse.value);
@@ -84,9 +81,6 @@ export function CountrySemanticsCard({
       </div>
 
       <div className="mt-5 flex flex-wrap gap-2">
-        <Button onClick={onConfirm}>
-          {confirmed ? `Continue with ${countryOfUse}` : `Confirm ${countryOfUse}`}
-        </Button>
         <Button
           variant="outline"
           aria-controls="country-unsure-help"
@@ -113,7 +107,7 @@ export function CountrySemanticsCard({
               </h3>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 {countryMissing
-                  ? `The document does not state where the notarised document will be used or accepted. Confirm ${countryOfUse} only if that is the country provided outside the PDF.`
+                  ? `The document does not state where the notarised document will be used or accepted. Continue only if ${countryOfUse} is the country provided outside the PDF.`
                   : `Country of use means where the notarised document will be used or accepted. Lens suggests ${countryOfUse} from the cited document evidence while keeping billing/home and shipping separate.`}
               </p>
             </div>
@@ -131,20 +125,13 @@ export function CountrySemanticsCard({
             )}
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              onClick={onConfirm}
-              aria-label={`Confirm ${countryOfUse} from country help`}
-            >
-              Confirm {countryOfUse}
-            </Button>
-            {onShowEvidence ? (
+          {onShowEvidence ? (
+            <div className="mt-4 flex flex-wrap gap-2">
               <Button size="sm" variant="outline" onClick={onShowEvidence}>
                 Show cited evidence
               </Button>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </section>

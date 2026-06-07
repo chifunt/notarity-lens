@@ -1,13 +1,22 @@
+import type { ReactNode } from "react";
 import { Euro } from "lucide-react";
 import { formatEuro, formatEuroFromCents } from "../format";
 import type { PriceResponse } from "../types";
 
-export function ReceiptSidebar({ price }: { price: PriceResponse | null }) {
+export function ReceiptSidebar({
+  price,
+  action,
+}: {
+  price: PriceResponse | null;
+  action?: ReactNode;
+}) {
+  const title = price?.source === "live" ? "Live receipt" : "Projected receipt";
+
   return (
     <div className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
       <div className="flex items-center gap-2">
         <Euro className="h-5 w-5 text-primary" aria-hidden="true" />
-        <h2 className="text-base font-semibold text-foreground">Receipt</h2>
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
       </div>
       {price ? (
         <>
@@ -33,6 +42,7 @@ export function ReceiptSidebar({ price }: { price: PriceResponse | null }) {
           Use the sample request or upload documents to see pricing.
         </p>
       )}
+      {action ? <div className="mt-4 border-t border-border pt-4">{action}</div> : null}
     </div>
   );
 }

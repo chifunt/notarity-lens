@@ -661,14 +661,20 @@ function useEnsureFixture() {
 function ScreenFrame({
   children,
   sidebar = true,
+  railAction,
 }: {
   children: ReactNode;
   sidebar?: boolean;
+  railAction?: ReactNode;
 }) {
   const price = useLensStore((state) => state.price);
 
   return (
-    <AppShell rightRail={sidebar ? <ReceiptSidebar price={price} /> : undefined}>
+    <AppShell
+      rightRail={
+        sidebar ? <ReceiptSidebar price={price} action={railAction} /> : undefined
+      }
+    >
       {children}
     </AppShell>
   );
@@ -891,13 +897,11 @@ export function AnalyzeScreen() {
 
     setActiveStep(0);
     setComplete(false);
-    let evidenceTimer: number | undefined;
     const timer = window.setInterval(() => {
       setActiveStep((current) => {
         if (current >= analyzeSteps.length - 1) {
           window.clearInterval(timer);
           setComplete(true);
-          evidenceTimer = window.setTimeout(() => navigate("/lens/evidence"), 500);
           return current;
         }
         return current + 1;
@@ -906,9 +910,8 @@ export function AnalyzeScreen() {
 
     return () => {
       window.clearInterval(timer);
-      if (evidenceTimer) window.clearTimeout(evidenceTimer);
     };
-  }, [fixture, navigate]);
+  }, [fixture]);
 
   const progressItems = useMemo(
     () =>
@@ -925,7 +928,19 @@ export function AnalyzeScreen() {
   );
 
   return (
-    <ScreenFrame>
+    <ScreenFrame
+      railAction={
+        <Button
+          type="button"
+          className="w-full"
+          onClick={() => navigate("/lens/evidence")}
+          disabled={!fixture || !complete}
+        >
+          Continue
+          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        </Button>
+      }
+    >
       <DemoError />
       <div className="grid gap-5">
         <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
@@ -969,14 +984,6 @@ export function AnalyzeScreen() {
           </div>
         )}
         {fixture ? <ReadingProgress items={progressItems} /> : null}
-        {complete ? (
-          <div className="flex justify-end">
-            <Button onClick={() => navigate("/lens/evidence")} disabled={!fixture}>
-              Open evidence
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </div>
-        ) : null}
       </div>
     </ScreenFrame>
   );
@@ -990,7 +997,21 @@ export function EvidenceScreen() {
   return (
     <RequireFixture>
       {(fixture) => (
-        <ScreenFrame>
+        <ScreenFrame
+          railAction={
+            <Button
+              type="button"
+              className="w-full"
+              onClick={() => {
+                confirmEvidence();
+                navigate("/lens/country");
+              }}
+            >
+              Continue
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          }
+        >
           <DemoError />
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.85fr)]">
             <PdfPreviewPanel
@@ -1049,17 +1070,6 @@ export function EvidenceScreen() {
                   onEvidenceSelect={(evidence) => setActiveEvidenceDocumentId(evidence.documentId)}
                 />
               ) : null}
-              <div className="flex justify-end gap-2">
-                <Button
-                  onClick={() => {
-                    confirmEvidence();
-                    navigate("/lens/country");
-                  }}
-                >
-                  Continue to country
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Button>
-              </div>
             </section>
           </div>
         </ScreenFrame>
@@ -1075,15 +1085,25 @@ export function CountryScreen() {
   return (
     <RequireFixture>
       {(fixture) => (
-        <ScreenFrame>
+        <ScreenFrame
+          railAction={
+            <Button
+              type="button"
+              className="w-full"
+              onClick={() => {
+                confirmCountry();
+                navigate("/lens/plan");
+              }}
+            >
+              Continue
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          }
+        >
           <div className="mx-auto max-w-3xl">
             <CountrySemanticsCard
               inference={fixture.inference}
               payload={fixture.payload}
-              onConfirm={() => {
-                confirmCountry();
-                navigate("/lens/plan");
-              }}
               onShowEvidence={() => navigate("/lens/evidence")}
             />
           </div>
@@ -1100,14 +1120,24 @@ export function PlanScreen() {
   return (
     <RequireFixture>
       {(fixture) => (
-        <ScreenFrame>
-          <div className="mx-auto max-w-3xl">
-            <ProductRouteCard
-              fixture={fixture}
-              onConfirm={() => {
+        <ScreenFrame
+          railAction={
+            <Button
+              type="button"
+              className="w-full"
+              onClick={() => {
                 confirmRoute();
                 navigate("/lens/cost");
               }}
+            >
+              Continue
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          }
+        >
+          <div className="mx-auto max-w-3xl">
+            <ProductRouteCard
+              fixture={fixture}
               onShowEvidence={() => navigate("/lens/evidence")}
             />
           </div>
@@ -1133,13 +1163,31 @@ export function CostScreen() {
             </div>
             <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem]">
               <PreparationTimeline fixture={fixture} />
-              {price ? <LiveReceipt price={price} /> : null}
-            </div>
-            <div className="mt-6 flex justify-end">
-              <Button onClick={() => navigate("/lens/appointment")}>
-                Continue to appointment
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Button>
+              {price ? (
+                <LiveReceipt
+                  price={price}
+                  action={
+                    <Button
+                      type="button"
+                      className="w-full"
+                      onClick={() => navigate("/lens/appointment")}
+                    >
+                      Continue
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  }
+                />
+              ) : (
+                <ReceiptSidebar
+                  price={null}
+                  action={
+                    <Button type="button" className="w-full" disabled>
+                      Continue
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  }
+                />
+              )}
             </div>
           </div>
         </ScreenFrame>
@@ -1156,7 +1204,21 @@ export function AppointmentScreen() {
   return (
     <RequireFixture>
       {(fixture) => (
-        <ScreenFrame>
+        <ScreenFrame
+          railAction={
+            <Button
+              type="button"
+              className="w-full"
+              onClick={() => {
+                confirmPeople();
+                navigate("/lens/review");
+              }}
+            >
+              Continue
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          }
+        >
           {(() => {
             const payload = fixture.payload;
             const participantEmails = payload
@@ -1224,16 +1286,6 @@ export function AppointmentScreen() {
                       <HelpCircle className="h-4 w-4" aria-hidden="true" />
                       Who needs to join?
                     </Button>
-                    {participantUnresolved.length ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="mt-3"
-                        onClick={confirmPeople}
-                      >
-                        Confirm listed participants
-                      </Button>
-                    ) : null}
                     {participantHelpOpen ? (
                       <div
                         id="participant-help"
@@ -1292,12 +1344,6 @@ export function AppointmentScreen() {
                 </aside>
               </div>
             </section>
-            <div className="mt-6 flex justify-end">
-              <Button onClick={() => navigate("/lens/review")}>
-                Review booking
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Button>
-            </div>
           </div>
             );
           })()}
@@ -1314,44 +1360,73 @@ export function ReviewScreen() {
 
   return (
     <RequireFixture>
-      {(fixture, price) => (
-        <ScreenFrame>
-          <DemoError />
-          {(() => {
-            const payload = fixture.payload;
-            const unresolvedFields = unresolvedConfirmationFields(fixture.inference);
-            const peopleStatus = unresolvedFields.some((field) =>
-              fixture.inference.people.some((personField) => personField.key === field.key),
-            )
-              ? "needs_review"
-              : reviewStatusForFields(fixture.inference.people);
-            const statuses = reviewStatuses(
-              fixture.inference,
-              {
-                hasHardCopy: fixtureHasHardCopy(fixture),
-                hasShippingDetails: Boolean(payload?.shippingDetails || fixture.inference.shippingAddress),
-                hasPayloadProducts: Boolean(payload?.products.length),
-              },
-            );
-            const readyToSubmit = Boolean(payload) && readyForSubmit(fixture.inference, Boolean(price));
-            const submitLabel =
-              !payload
-                ? "Payload not ready"
-                : price?.source === "mock"
-                ? "Create mock booking request"
-                : "Create booking request";
-            const summary = [
-              {
-                icon: Globe2,
-                label: "Country of use",
-                value: fixtureCountrySummary(fixture),
-              },
-              { icon: PackageCheck, label: "Booking", value: fixtureProductSummary(fixture) },
-              { icon: UserRound, label: "Client", value: fixture.name },
-              { icon: ReceiptIcon, label: "Total", value: price ? formatEuro(price.confirmedPrice) : "Pending" },
-            ];
+      {(fixture, price) => {
+        const payload = fixture.payload;
+        const unresolvedFields = unresolvedConfirmationFields(fixture.inference);
+        const peopleStatus = unresolvedFields.some((field) =>
+          fixture.inference.people.some((personField) => personField.key === field.key),
+        )
+          ? "needs_review"
+          : reviewStatusForFields(fixture.inference.people);
+        const statuses = reviewStatuses(
+          fixture.inference,
+          {
+            hasHardCopy: fixtureHasHardCopy(fixture),
+            hasShippingDetails: Boolean(payload?.shippingDetails || fixture.inference.shippingAddress),
+            hasPayloadProducts: Boolean(payload?.products.length),
+          },
+        );
+        const readyToSubmit = Boolean(payload) && readyForSubmit(fixture.inference, Boolean(price));
+        const submitLabel =
+          !payload
+            ? "Payload not ready"
+            : price?.source === "mock"
+              ? "Create mock booking request"
+              : "Create booking request";
+        const summary = [
+          {
+            icon: Globe2,
+            label: "Country of use",
+            value: fixtureCountrySummary(fixture),
+          },
+          { icon: PackageCheck, label: "Booking", value: fixtureProductSummary(fixture) },
+          { icon: UserRound, label: "Client", value: fixture.name },
+          { icon: ReceiptIcon, label: "Total", value: price ? formatEuro(price.confirmedPrice) : "Pending" },
+        ];
 
-            return (
+        return (
+          <ScreenFrame
+            railAction={
+              <div className="grid gap-2">
+                <Button
+                  type="button"
+                  className="w-full"
+                  onClick={async () => {
+                    const submitted = await submitBooking();
+                    if (submitted) navigate("/lens/success");
+                  }}
+                  disabled={loading || !readyToSubmit}
+                >
+                  <Send className="h-4 w-4" aria-hidden="true" />
+                  {loading
+                    ? "Creating..."
+                    : readyToSubmit
+                      ? submitLabel
+                      : "Confirm required fields first"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate("/lens/appointment")}
+                  disabled={loading}
+                >
+                  Back
+                </Button>
+              </div>
+            }
+          >
+            <DemoError />
               <div className="grid gap-5">
                 <section className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1511,34 +1586,10 @@ export function ReviewScreen() {
                     </p>
                   </section>
                 )}
-                <div className="flex flex-wrap justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate("/lens/appointment")}
-                    disabled={loading}
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    onClick={async () => {
-                      const submitted = await submitBooking();
-                      if (submitted) navigate("/lens/success");
-                    }}
-                    disabled={loading || !readyToSubmit}
-                  >
-                    <Send className="h-4 w-4" aria-hidden="true" />
-                    {loading
-                      ? "Creating..."
-                      : readyToSubmit
-                        ? submitLabel
-                        : "Confirm required fields first"}
-                  </Button>
-                </div>
               </div>
-            );
-          })()}
-        </ScreenFrame>
-      )}
+          </ScreenFrame>
+        );
+      }}
     </RequireFixture>
   );
 }
