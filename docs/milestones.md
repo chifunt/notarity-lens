@@ -1280,3 +1280,25 @@
   - `pnpm --filter @notarity-lens/web typecheck` succeeds.
   - `pnpm --filter @notarity-lens/web test` succeeds.
 - Next: add unseen uploaded-PDF regressions and run the browser sweep.
+
+## Sprint 75: Unseen uploaded-PDF regression and browser sweep
+
+- Status: complete
+- Scope: test the full uploaded-PDF pipeline with a new document outside the existing sample personas and run the browser review sweep.
+- Changes:
+  - Added a new generated PDF case: Lina Hoffmann, a Canadian immigration signature authorisation with Germany billing context.
+  - Added API regression coverage for upload extraction, deterministic inference, draft payload generation, and mock price from the Lina PDF.
+  - Added `docs/uploaded-pdf-regression-results.md` with the expected and observed results.
+  - Fixed local dev CORS so the API accepts Vite fallback ports `5174` and `5175`, not only `5173`.
+- Browser findings:
+  - Start screen loads on `http://localhost:5174/` with API connected after the CORS fix.
+  - Evidence screen shows explicit country, participant, billing address, no-apostille, and no-hard-copy citations.
+  - Country screen separates Germany country-of-use from Netherlands billing/home and no shipment for the comparable complete route.
+  - Route screen shows Signature notarisation, no files, and apostille not needed.
+  - Cost, Appointment, and Review show EUR 120, participant email, no hard-copy shipment, and enabled mock submit after confirmations.
+  - Browser runtime does not expose file-input upload for the hidden PDF input, so the actual Lina upload is covered by API integration tests.
+- Verification:
+  - `node scripts/write-fixture-pdf.mjs docs/generated-personas/lina-hoffmann/Canadian_Authorisation_Lina_Hoffmann.json` generated a PDF 1.4 file.
+  - `pnpm --filter @notarity-lens/api typecheck` succeeds.
+  - `pnpm --filter @notarity-lens/api test` succeeds.
+- Next: none for this uploaded-PDF extraction tranche.

@@ -265,6 +265,63 @@ describe("api routes", () => {
     expect(priceBody.confirmedPrice).toBe(120);
   });
 
+  it("processes an unseen uploaded PDF through extraction, inference, draft, and price", async () => {
+    const pdf = await readFile(
+      new URL(
+        "../../../docs/generated-personas/lina-hoffmann/Canadian_Authorisation_Lina_Hoffmann.pdf",
+        import.meta.url,
+      ),
+    );
+    const formData = new FormData();
+    formData.append(
+      "files",
+      new File([pdf], "Canadian_Authorisation_Lina_Hoffmann.pdf", {
+        type: "application/pdf",
+      }),
+    );
+
+    const uploadResponse = await app.request("/api/documents/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const uploadBody = await uploadResponse.json();
+    const inferResponse = await app.request("/api/infer", {
+      method: "POST",
+      body: JSON.stringify({ documents: uploadBody.documents }),
+      headers: { "content-type": "application/json" },
+    });
+    const inferBody = await inferResponse.json();
+    const draftResponse = await app.request("/api/draft", {
+      method: "POST",
+      body: JSON.stringify({ inference: inferBody.inference }),
+      headers: { "content-type": "application/json" },
+    });
+    const draftBody = await draftResponse.json();
+    const priceResponse = await app.request("/api/price", {
+      method: "POST",
+      body: JSON.stringify(draftBody.payload),
+      headers: { "content-type": "application/json" },
+    });
+    const priceBody = await priceResponse.json();
+
+    expect(uploadBody.documents[0].textByPage[0].text).toContain("Lina Hoffmann");
+    expect(inferBody.inference.countryOfUse.value).toBe("CA");
+    expect(inferBody.inference.countryOfUse.status).toBe("inferred");
+    expect(draftBody.blockers).toEqual([]);
+    expect(draftBody.payload.destinationCountry).toBe("CA");
+    expect(draftBody.payload.billingDetails).toMatchObject({
+      firstName: "Lina",
+      lastName: "Hoffmann",
+      countryCode: "DE",
+      city: "Berlin",
+    });
+    expect(draftBody.payload.participants[0].email).toBe(
+      "lina.hoffmann@notarity.com",
+    );
+    expect(priceResponse.status).toBe(200);
+    expect(priceBody.confirmedPrice).toBe(120);
+  });
+
   it("returns normalized mock price", async () => {
     const response = await app.request("/api/price", {
       method: "POST",
