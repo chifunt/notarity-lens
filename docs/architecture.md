@@ -32,8 +32,8 @@ The default demo mode uses:
 - Joshua, Robert, or Elizabeth fixture documents and extracted text.
 - persona fixture inference.
 - mock booking form and product fixtures.
-- mock timeslot `xitTkTMC18R0ZfCNtqyW`.
-- mock price lines totaling EUR 580.
+- mock timeslots keyed by persona and destination country.
+- persona price lines, including Joshua's EUR 580 NIE route.
 - mock submit id `mock_appt_*`.
 
 Uploaded PDFs use `/api/documents/upload` to return session and file metadata.

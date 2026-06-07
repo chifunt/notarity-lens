@@ -94,7 +94,9 @@ Current automated coverage includes:
 - filename normalization
 - EUR 580 price total
 - deterministic inference mapper country semantics
-- API smoke routes for health, fixtures, infer, price, and submit
+- API smoke routes for health, fixtures, infer, upload, price, and submit
+- API validation for unknown personas, non-PDF uploads, and invalid
+  price/submit payloads
 
 Manual browser verification covered the Joshua path from start to success on the
 local dev server. Later verification also covered Robert and Elizabeth sample

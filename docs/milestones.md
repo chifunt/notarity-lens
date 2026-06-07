@@ -892,3 +892,17 @@
   - `pnpm test` succeeds.
   - `pnpm build` succeeds.
 - Next: continue checking retry ergonomics after failed sample load and failed uploads.
+
+## Sprint 54: Documentation fixture accuracy
+
+- Status: complete
+- Scope: keep architecture and report docs aligned with the current multi-persona fixture behavior.
+- Changes:
+  - Architecture mock-mode docs now describe persona-specific timeslots and price lines instead of one Joshua-only timeslot/total.
+  - Report testing section now mentions upload routes and the added API validation coverage.
+- Verification:
+  - `pnpm typecheck` succeeds.
+  - `pnpm lint` succeeds.
+  - `pnpm test` succeeds.
+  - `pnpm build` succeeds.
+- Next: continue checking public docs for stale single-persona assumptions.
